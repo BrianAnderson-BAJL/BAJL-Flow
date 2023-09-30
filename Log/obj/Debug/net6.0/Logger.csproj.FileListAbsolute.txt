@@ -1,0 +1,15 @@
+C:\Users\brian\source\repos\FlowEngine\Log\bin\Debug\net6.0\Logger.deps.json
+C:\Users\brian\source\repos\FlowEngine\Log\bin\Debug\net6.0\Logger.dll
+C:\Users\brian\source\repos\FlowEngine\Log\bin\Debug\net6.0\Logger.pdb
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\Logger.csproj.AssemblyReference.cache
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\Logger.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\Logger.AssemblyInfoInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\Logger.AssemblyInfo.cs
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\Logger.csproj.CoreCompileInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\Logger.csproj.CopyComplete
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\Logger.dll
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\refint\Logger.dll
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\Logger.pdb
+C:\Users\brian\source\repos\FlowEngine\Log\obj\Debug\net6.0\ref\Logger.dll
+C:\Users\brian\source\repos\FlowEngine\Log\bin\Debug\net6.0\Core.dll
+C:\Users\brian\source\repos\FlowEngine\Log\bin\Debug\net6.0\Core.pdb

@@ -1,0 +1,15 @@
+C:\Users\brian\source\repos\FlowEngine\Http\bin\Debug\net6.0\Http.deps.json
+C:\Users\brian\source\repos\FlowEngine\Http\bin\Debug\net6.0\Http.dll
+C:\Users\brian\source\repos\FlowEngine\Http\bin\Debug\net6.0\Http.pdb
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\Http.csproj.AssemblyReference.cache
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\Http.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\Http.AssemblyInfoInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\Http.AssemblyInfo.cs
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\Http.csproj.CoreCompileInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\Http.csproj.CopyComplete
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\Http.dll
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\refint\Http.dll
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\Http.pdb
+C:\Users\brian\source\repos\FlowEngine\Http\obj\Debug\net6.0\ref\Http.dll
+C:\Users\brian\source\repos\FlowEngine\Http\bin\Debug\net6.0\Core.dll
+C:\Users\brian\source\repos\FlowEngine\Http\bin\Debug\net6.0\Core.pdb

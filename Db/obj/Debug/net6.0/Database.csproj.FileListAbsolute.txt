@@ -1,0 +1,15 @@
+C:\Users\brian\source\repos\FlowEngine\Db\bin\Debug\net6.0\Database.deps.json
+C:\Users\brian\source\repos\FlowEngine\Db\bin\Debug\net6.0\Database.dll
+C:\Users\brian\source\repos\FlowEngine\Db\bin\Debug\net6.0\Database.pdb
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\Database.csproj.AssemblyReference.cache
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\Database.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\Database.AssemblyInfoInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\Database.AssemblyInfo.cs
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\Database.csproj.CoreCompileInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\Database.csproj.CopyComplete
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\Database.dll
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\refint\Database.dll
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\Database.pdb
+C:\Users\brian\source\repos\FlowEngine\Db\obj\Debug\net6.0\ref\Database.dll
+C:\Users\brian\source\repos\FlowEngine\Db\bin\Debug\net6.0\Core.dll
+C:\Users\brian\source\repos\FlowEngine\Db\bin\Debug\net6.0\Core.pdb
