@@ -144,5 +144,46 @@ namespace FlowEngineDesigner
       frmAdministrationUserLogin f = new frmAdministrationUserLogin();
       f.Show();
     }
+
+    private void changePasswordToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      frmAdministrationUserChangePassword f = new frmAdministrationUserChangePassword();
+      f.ShowDialog();
+    }
+
+    private void securityProfilesToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      frmAdministrationSecurityProfiles f = new frmAdministrationSecurityProfiles();
+      f.Show();
+    }
+
+    private void serverToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+    }
+
+    private void serverToolStripMenuItem_DropDownOpening(object sender, EventArgs e)
+    {
+      usersToolStripMenuItem1.Enabled = false;
+      securityProfilesToolStripMenuItem.Enabled = false;
+
+      SecurityProfile.SECURITY_ACCESS_LEVEL accessUsers = cServer.AccessLevelForUserLoggedIn(SecurityProfile.SECURITY_AREA.Users);
+      SecurityProfile.SECURITY_ACCESS_LEVEL accessSecurityProfiles = cServer.AccessLevelForUserLoggedIn(SecurityProfile.SECURITY_AREA.SecurityProfiles);
+
+      if (accessSecurityProfiles >= SecurityProfile.SECURITY_ACCESS_LEVEL.Readonly)
+        securityProfilesToolStripMenuItem.Enabled = true;
+      if (accessUsers >= SecurityProfile.SECURITY_ACCESS_LEVEL.Readonly)
+        usersToolStripMenuItem1.Enabled = true;
+    }
+
+    private void disconnectToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      cServer.Disconnect();
+    }
+
+    private void tsLoggedInAs_DoubleClick(object sender, EventArgs e)
+    {
+      frmAdministrationUserProperties f = new frmAdministrationUserProperties(FORM_MODE.ReadOnly, cServer.UserLoggedIn);
+      f.Show();
+    }
   }
 }

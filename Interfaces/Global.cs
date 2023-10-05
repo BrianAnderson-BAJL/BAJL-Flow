@@ -30,7 +30,13 @@ namespace Core
     Xml,
   }
 
-  
+  public enum RECORD_RESULT
+  {
+    Success,
+    Error,
+    Duplicate,
+  }
+
 
   public class Global
   {

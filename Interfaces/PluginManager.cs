@@ -21,7 +21,6 @@ namespace Core
 
     public static void LoadPlugins(string FullPath)
     {
-      
       string[] Files = Directory.GetFiles(FullPath, "*.dll");
       mPlugins = new List<Plugin>(Files.Length);
       for (int x = 0; x < Files.Length; x++)

@@ -45,11 +45,18 @@
       highlightStepsOnExecutionToolStripMenuItem = new ToolStripMenuItem();
       serverToolStripMenuItem = new ToolStripMenuItem();
       connectToolStripMenuItem = new ToolStripMenuItem();
+      disconnectToolStripMenuItem = new ToolStripMenuItem();
       connectRecentToolStripMenuItem = new ToolStripMenuItem();
       administrationToolStripMenuItem = new ToolStripMenuItem();
       usersToolStripMenuItem1 = new ToolStripMenuItem();
+      securityProfilesToolStripMenuItem = new ToolStripMenuItem();
+      changePasswordToolStripMenuItem = new ToolStripMenuItem();
       statusStrip1 = new StatusStrip();
+      tsServer = new ToolStripStatusLabel();
+      toolStripStatusLabel1 = new ToolStripStatusLabel();
+      tsLoggedInAs = new ToolStripStatusLabel();
       menuStrip1.SuspendLayout();
+      statusStrip1.SuspendLayout();
       SuspendLayout();
       // 
       // menuStrip1
@@ -159,45 +166,89 @@
       // 
       // serverToolStripMenuItem
       // 
-      serverToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { connectToolStripMenuItem, connectRecentToolStripMenuItem, administrationToolStripMenuItem });
+      serverToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { connectToolStripMenuItem, disconnectToolStripMenuItem, connectRecentToolStripMenuItem, administrationToolStripMenuItem });
       serverToolStripMenuItem.Name = "serverToolStripMenuItem";
       serverToolStripMenuItem.Size = new Size(51, 20);
       serverToolStripMenuItem.Text = "&Server";
+      serverToolStripMenuItem.DropDownOpening += serverToolStripMenuItem_DropDownOpening;
+      serverToolStripMenuItem.Click += serverToolStripMenuItem_Click;
       // 
       // connectToolStripMenuItem
       // 
       connectToolStripMenuItem.Name = "connectToolStripMenuItem";
-      connectToolStripMenuItem.Size = new Size(180, 22);
+      connectToolStripMenuItem.Size = new Size(167, 22);
       connectToolStripMenuItem.Text = "&Connect";
       connectToolStripMenuItem.Click += connectToolStripMenuItem_Click;
+      // 
+      // disconnectToolStripMenuItem
+      // 
+      disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
+      disconnectToolStripMenuItem.Size = new Size(167, 22);
+      disconnectToolStripMenuItem.Text = "Disconnect";
+      disconnectToolStripMenuItem.Click += disconnectToolStripMenuItem_Click;
       // 
       // connectRecentToolStripMenuItem
       // 
       connectRecentToolStripMenuItem.Name = "connectRecentToolStripMenuItem";
-      connectRecentToolStripMenuItem.Size = new Size(180, 22);
+      connectRecentToolStripMenuItem.Size = new Size(167, 22);
       connectRecentToolStripMenuItem.Text = "Connect &Recent...";
       // 
       // administrationToolStripMenuItem
       // 
-      administrationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem1 });
+      administrationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem1, securityProfilesToolStripMenuItem, changePasswordToolStripMenuItem });
       administrationToolStripMenuItem.Name = "administrationToolStripMenuItem";
-      administrationToolStripMenuItem.Size = new Size(180, 22);
+      administrationToolStripMenuItem.Size = new Size(167, 22);
       administrationToolStripMenuItem.Text = "&Administration";
       // 
       // usersToolStripMenuItem1
       // 
       usersToolStripMenuItem1.Name = "usersToolStripMenuItem1";
-      usersToolStripMenuItem1.Size = new Size(180, 22);
+      usersToolStripMenuItem1.Size = new Size(168, 22);
       usersToolStripMenuItem1.Text = "&Users...";
       usersToolStripMenuItem1.Click += usersToolStripMenuItem1_Click;
       // 
+      // securityProfilesToolStripMenuItem
+      // 
+      securityProfilesToolStripMenuItem.Name = "securityProfilesToolStripMenuItem";
+      securityProfilesToolStripMenuItem.Size = new Size(168, 22);
+      securityProfilesToolStripMenuItem.Text = "Security Profiles...";
+      securityProfilesToolStripMenuItem.Click += securityProfilesToolStripMenuItem_Click;
+      // 
+      // changePasswordToolStripMenuItem
+      // 
+      changePasswordToolStripMenuItem.Name = "changePasswordToolStripMenuItem";
+      changePasswordToolStripMenuItem.Size = new Size(168, 22);
+      changePasswordToolStripMenuItem.Text = "Change &Password";
+      changePasswordToolStripMenuItem.Click += changePasswordToolStripMenuItem_Click;
+      // 
       // statusStrip1
       // 
+      statusStrip1.Items.AddRange(new ToolStripItem[] { tsServer, toolStripStatusLabel1, tsLoggedInAs });
       statusStrip1.Location = new Point(0, 458);
       statusStrip1.Name = "statusStrip1";
       statusStrip1.Size = new Size(947, 22);
       statusStrip1.TabIndex = 1;
       statusStrip1.Text = "statusStrip1";
+      // 
+      // tsServer
+      // 
+      tsServer.Name = "tsServer";
+      tsServer.Size = new Size(118, 17);
+      tsServer.Text = "toolStripStatusLabel1";
+      // 
+      // toolStripStatusLabel1
+      // 
+      toolStripStatusLabel1.Name = "toolStripStatusLabel1";
+      toolStripStatusLabel1.Size = new Size(13, 17);
+      toolStripStatusLabel1.Text = "  ";
+      // 
+      // tsLoggedInAs
+      // 
+      tsLoggedInAs.DoubleClickEnabled = true;
+      tsLoggedInAs.Name = "tsLoggedInAs";
+      tsLoggedInAs.Size = new Size(60, 17);
+      tsLoggedInAs.Text = "Username";
+      tsLoggedInAs.DoubleClick += tsLoggedInAs_DoubleClick;
       // 
       // frmMain
       // 
@@ -215,6 +266,8 @@
       MouseEnter += frmMain_MouseEnter;
       menuStrip1.ResumeLayout(false);
       menuStrip1.PerformLayout();
+      statusStrip1.ResumeLayout(false);
+      statusStrip1.PerformLayout();
       ResumeLayout(false);
       PerformLayout();
     }
@@ -223,7 +276,6 @@
 
     private MenuStrip menuStrip1;
     private ToolStripMenuItem tsmFile;
-    private StatusStrip statusStrip1;
     private ToolStripMenuItem openToolStripMenuItem;
     private ToolStripMenuItem viewToolStripMenuItem;
     private ToolStripMenuItem toolboxToolStripMenuItem;
@@ -242,5 +294,12 @@
     private ToolStripMenuItem connectRecentToolStripMenuItem;
     private ToolStripMenuItem administrationToolStripMenuItem;
     private ToolStripMenuItem usersToolStripMenuItem1;
+    private ToolStripMenuItem changePasswordToolStripMenuItem;
+    private ToolStripMenuItem securityProfilesToolStripMenuItem;
+    private ToolStripMenuItem disconnectToolStripMenuItem;
+    public StatusStrip statusStrip1;
+    public ToolStripStatusLabel tsServer;
+    private ToolStripStatusLabel toolStripStatusLabel1;
+    public ToolStripStatusLabel tsLoggedInAs;
   }
 }

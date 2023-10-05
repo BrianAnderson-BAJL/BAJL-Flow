@@ -1,4 +1,6 @@
-﻿using Core.Administration;
+﻿using Core;
+using Core.Administration;
+using Core.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,20 +11,29 @@ namespace FlowEngineDesigner
 {
   internal class cServer
   {
+
+    /// <summary>
+    /// At some point I will need to create a thread to check for a response timeout in the responseHandlers dictionary
+    /// </summary>
     struct CALLBACK_INFO
     {
       public ResponseDelegate Callback;
+      public ResponseDelegate? Callback_AlsoNotify;
+      public DateTime CreationDateTime;
 
-      public CALLBACK_INFO(ResponseDelegate callback)
+      public CALLBACK_INFO(ResponseDelegate callback, ResponseDelegate? callback_also = null)
       {
         Callback = callback;
+        Callback_AlsoNotify = callback_also;
+        CreationDateTime = DateTime.UtcNow;
       }
     }
     public delegate void ResponseDelegate(Core.Administration.EventArgsPacket e);
-    private static Core.Administration.TcpClient? Client;
-    private static Dictionary<Packet.PACKET_TYPE, CALLBACK_INFO> responseHandlers = new Dictionary<Packet.PACKET_TYPE, CALLBACK_INFO>(8);
+    private static Core.Administration.TcpTlsClient? Client;
+    private static Dictionary<int, CALLBACK_INFO> responseHandlers = new Dictionary<int, CALLBACK_INFO>(8);
     private static object CriticalSection = new object();
     public static Core.User? UserLoggedIn = null;
+    public static List<Core.SecurityProfile>? SecurityProfiles;
 
     public static bool Connect(string domainName, int port)
     {
@@ -31,21 +42,85 @@ namespace FlowEngineDesigner
         if (Client is not null && Client.Connected == true) //Already connected, just return true, they need to call Disconnect to create a new connection first.
           return true;
 
-        Client = Core.Administration.TcpClient.Connect(domainName, port);
+        Client = Core.Administration.TcpTlsClient.Connect(domainName, port);
         if (Client is null)
           return false;
         else
         {
           Client.NewPacket += Client_NewPacket;
           Client.ConnectionClosed += Client_ConnectionClosed;
+          cEventManager.RaiseEventTracer("Server", String.Format("Connected to [{0}], [{1}]", domainName, port));
+          Global.FormMain!.tsServer.Text = "Connected";
+          Global.FormMain!.tsServer.ForeColor = Color.Green;
           return true;
         }
+
+      }
+    }
+
+    public static void RefreshSecurityProfiles(ResponseDelegate? callback = null)
+    {
+      if (UserLoggedIn is null)
+        return;
+
+      SecurityProfilesGet spg = new SecurityProfilesGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
+      cServer.SendAndResponse(spg.GetPacket(), Callback_SecurityProfile, callback);
+    }
+
+    private static void Callback_SecurityProfile(Core.Administration.EventArgsPacket e)
+    {
+      if (e.Packet.PeekResponseCode() == BaseResponse.RESPONSE_CODE.Success)
+      {
+        SecurityProfilesGetResponse response = new SecurityProfilesGetResponse(e.Packet);
+        cServer.SecurityProfiles = response.Profiles;
+        if (UserLoggedIn is null)
+          return;
+        
+      }
+    }
+
+    public static SecurityProfile.SECURITY_ACCESS_LEVEL AccessLevelForUserLoggedIn(SecurityProfile.SECURITY_AREA secArea)
+    {
+      if (UserLoggedIn is null)
+        return SecurityProfile.SECURITY_ACCESS_LEVEL.None;
+      SecurityProfile? sp = FindSecurityProfileByName(UserLoggedIn.SecurityProfile);
+      if (sp is null)
+        return SecurityProfile.SECURITY_ACCESS_LEVEL.None;
+
+      return sp.AccessLevelClient(secArea);
+    }
+
+    public static SecurityProfile? FindSecurityProfileByName(string name)
+    {
+      if (SecurityProfiles is null)
+        return null;
+
+      for (int x = 0; x < SecurityProfiles.Count; x++)
+      {
+        if (name == SecurityProfiles[x].Name)
+        {
+          return SecurityProfiles[x];
+        }
+      }
+      return null;
+    }
+
+    private static void CheckSecurityAccess(Core.SecurityProfile sp)
+    {
+      if (sp.AdministrationUsers >= Core.SecurityProfile.SECURITY_ACCESS_LEVEL.Readonly)
+      {
+        //Global.FormMain.
       }
     }
 
     private static void Client_ConnectionClosed(object? sender, Core.Administration.EventArgsTcpClient e)
     {
-      throw new NotImplementedException();
+      Global.FormMain!.Invoke((MethodInvoker)delegate
+      {
+        Global.FormMain!.tsServer.Text = "Disconnected";
+        Global.FormMain!.tsServer.ForeColor = Color.Red;
+        Global.FormMain!.tsLoggedInAs.Text = "";
+      });
     }
 
     private static void Client_NewPacket(object? sender, Core.Administration.EventArgsPacket e)
@@ -53,19 +128,26 @@ namespace FlowEngineDesigner
       CALLBACK_INFO? callbackInfo = null;
       lock (CriticalSection)
       {
-        if (responseHandlers.ContainsKey(e.Packet.PacketType) == true)
+        if (responseHandlers.ContainsKey(e.Packet.PacketId) == true)
         {
-          callbackInfo = responseHandlers[e.Packet.PacketType];
-          responseHandlers.Remove(e.Packet.PacketType);
+          callbackInfo = responseHandlers[e.Packet.PacketId];
+          responseHandlers.Remove(e.Packet.PacketId);
         }
       }
       if (callbackInfo.HasValue)
       {
         try
         {
+
           Global.FormMain!.Invoke((MethodInvoker)delegate
           {
+            cEventManager.RaiseEventTracer("Server", String.Format("Received [{0}], Response code [{1}]", e.Packet.PacketType.ToString(), e.Packet.PeekResponseCode().ToString()), e.Packet.PeekResponseCode());
             callbackInfo.Value.Callback(e);
+            if (callbackInfo.Value.Callback_AlsoNotify is not null)
+            {
+              e.Packet.ResetReadPosition();
+              callbackInfo.Value.Callback_AlsoNotify(e);
+            }
           });
         }
         catch (Exception ex)
@@ -83,23 +165,37 @@ namespace FlowEngineDesigner
     {
       lock (CriticalSection)
       {
+        if (cServer.UserLoggedIn is not null)
+        {
+          Send(new BaseMessage(Packet.PACKET_TYPE.CloseConnection).GetPacket());
+        }
         if (Client is not null)
           Client.Close();
+        cServer.UserLoggedIn = null;
+        cEventManager.RaiseEventTracer("Server", "Disconnected");
       }
     }
 
-    //public static bool Send(Core.Administration.Packet packet)
-    //{
-    //  lock (CriticalSection)
-    //  {
-    //    if (Client is null)
-    //      return false;
+    public static bool UserHasAccess()
+    {
+      if (UserLoggedIn is null)
+        return false;
 
-    //    return Client.Send(packet);
-    //  }
-    //}
+      return false;
+    }
 
-    public static bool SendAndResponse(Core.Administration.Packet packet, ResponseDelegate callback, Packet.PACKET_TYPE responsePacketType)
+    private static bool Send(Core.Administration.Packet packet)
+    {
+      lock (CriticalSection)
+      {
+        if (Client is null)
+          return false;
+
+        return Client.Send(packet);
+      }
+    }
+
+    public static bool SendAndResponse(Core.Administration.Packet packet, ResponseDelegate callback, ResponseDelegate? callback_also = null)
     {
       if (UserLoggedIn is null) //If the user isn't logged in and this isn't a login request, don't send anything
       {
@@ -110,10 +206,10 @@ namespace FlowEngineDesigner
       {
         if (Client is null)
           return false;
-        if (responseHandlers.ContainsKey(responsePacketType) == true)
+        if (responseHandlers.ContainsKey(packet.PacketId) == true)
           return false;
 
-        responseHandlers.Add(responsePacketType, new CALLBACK_INFO(callback)); //Add one to the packet type for the Response packet type
+        responseHandlers.Add(packet.PacketId, new CALLBACK_INFO(callback, callback_also)); //Add one to the packet type for the Response packet type
         return Client.Send(packet);
       }
     }

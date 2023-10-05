@@ -15,6 +15,7 @@ namespace Core
     public static string PluginStaticGraphicsPath = "./Plugins/StaticGraphics/";
     public static string FlowPath = @"C:\Users\brian\Documents";
     public static string UserPath = "./users.xml";
+    public static string SecurityProfilesPath = "./securityProfiles.xml";
     public static bool FocusOnMouseEnter = true;
     public static int FlowUserHistoryMax = 10;
     public static int ThreadPoolSize = 0;

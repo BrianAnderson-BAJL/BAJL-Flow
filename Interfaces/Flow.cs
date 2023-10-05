@@ -463,7 +463,7 @@ namespace Core
               p.SetValue(value);
             }
             string lit = Xml.GetXMLChunk(ref parm, "Literal");
-            p.ParmLiteral = System.Enum.Parse<PARM_L_OR_V>(lit);
+            p.ParmLiteral = System.Enum.Parse<PARM_L_OR_V>(lit, true);
           }
         }
       } while (parm.Length > 0);

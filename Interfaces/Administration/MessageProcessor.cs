@@ -24,6 +24,14 @@ namespace Core.Administration
       Processors.Add(Packet.PACKET_TYPE.UserLogin, ProcessUserLogin);
       Processors.Add(Packet.PACKET_TYPE.UserLoginIdCheck, ProcessUserLoginIdCheck);
       Processors.Add(Packet.PACKET_TYPE.UsersGet, ProcessUsersGet);
+      Processors.Add(Packet.PACKET_TYPE.UserChangePassword, ProcessUserChangePassword);
+      Processors.Add(Packet.PACKET_TYPE.SecurityProfilesGet, ProcessSecurityProfilesGet);
+      Processors.Add(Packet.PACKET_TYPE.SecurityProfileAdd, ProcessSecurityProfileAdd);
+      Processors.Add(Packet.PACKET_TYPE.SecurityProfileEdit, ProcessSecurityProfileEdit);
+      Processors.Add(Packet.PACKET_TYPE.SecurityProfileDelete, ProcessSecurityProfileDelete);
+      
+
+
     }
 
     public static void ProcessMessage(Packet packet, TcpClientBase client)
@@ -47,8 +55,9 @@ namespace Core.Administration
       else
       {
         Global.Write("MessageProcessor - Can't process message, unknown packet type [{0}]", packet.PacketType.ToString());
+        SendGenericError(packet, client, RESPONSE_CODE.Error);
       }
-     
+
     }
 
     private static bool SecurityValid(Packet packet, TcpClientBase client)
@@ -75,26 +84,25 @@ namespace Core.Administration
       {
         UserLogin? userLogin = new UserLogin(packet);
         packet.ResetReadPosition();
-        if (userLogin is not null)
+        if (userLogin is null)
         {
-          user = UserManager.FindByLoginId(userLogin.LoginId);
-
-          if (user is null)
-          {
-            Global.Write("SECURITY ERROR!  User Login, User not found [{0}]", userLogin.LoginId);
-            SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
-            return false;
-          }
-          else
-          {
-            if (SecureHasherV1.Verify(userLogin.Password, user.passwordHash) == true)
-            {
-              user.SessionKey = SecureHasherV1.Hash(Guid.NewGuid().ToString()); //User has successfully logged in, lets generate a new session key
-              user.SessionKeyExpiration = DateTime.UtcNow + TimeSpan.FromMinutes(Options.AdministrationUserSessionKeyTimeoutInMinutes);
-              return true;
-            }
-          }
+          return false;
         }
+        user = UserManager.FindByLoginId(userLogin.LoginId);
+
+        if (user is null)
+        {
+          Global.Write("SECURITY ERROR!  User Login, User not found [{0}]", userLogin.LoginId);
+          SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
+          return false;
+        }
+        if (SecureHasherV1.Verify(userLogin.Password, user.passwordHash) == true)
+        {
+          user.SessionKey = SecureHasherV1.Hash(Guid.NewGuid().ToString()); //User has successfully logged in, lets generate a new session key
+          user.SessionKeyExpiration = DateTime.UtcNow + TimeSpan.FromMinutes(Options.AdministrationUserSessionKeyTimeoutInMinutes);
+          return true;
+        }
+        
       }
 
       //Normal user message, just check the session key
@@ -105,19 +113,27 @@ namespace Core.Administration
         SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.SessionInvalid);
         return false;
       }
-      else
+      if (user.SessionKeyExpiration < DateTime.UtcNow)
       {
-        if (user.SessionKeyExpiration < DateTime.UtcNow)
-        {
-          user.SessionKey = "";
-          user.SessionKeyExpiration = DateTime.MinValue;
-          Global.Write("SECURITY ERROR!  Session Key has expired");
-          SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.SessionInvalid);
-          return false;
-        }
-        else
-        {
-        }
+        user.SessionKey = "";
+        user.SessionKeyExpiration = DateTime.MinValue;
+        Global.Write("SECURITY ERROR!  Session Key has expired");
+        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.SessionInvalid);
+        return false;
+      }
+
+      SecurityProfile? sp = SecurityProfileManager.FindByName(user.SecurityProfile);
+      if (sp is null)
+      {
+        Global.Write("SECURITY ERROR!  Missing Security profile for user");
+        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
+        return false; //No security profile defined for this user, they don't have access
+      }
+      if (sp.HasAccessServer(packet.PacketType) == false)
+      {
+        Global.Write("SECURITY ERROR!  User's Security profile does not allow this action");
+        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
+        return false; //User's security profile doesn't allow them to perform this function
       }
       
       //If we got through all the possible errors, the user has passed the security check
@@ -129,7 +145,7 @@ namespace Core.Administration
     {
       Packet.PACKET_TYPE type = packet.PacketType + 1; //Response messages are allways one bigger in the enum
       Global.Write("SendGenericError - response code [0], response PACKET_TYPE id [{1}]", responseCode.ToString(), type.ToString());
-      BaseResponse response = new BaseResponse(type);
+      BaseResponse response = new BaseResponse(packet.PacketId, type);
       response.ResponseCode = responseCode;
       client.Send(response.GetPacket());
     }
@@ -137,22 +153,10 @@ namespace Core.Administration
     private static void ProcessUserAdd(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
     {
       UserAdd? userAdd = new UserAdd(packet);
-      USER_RESULT results = UserManager.Add(userAdd);
-      BaseResponse response;
-      if (results == USER_RESULT.Success)
-      {
-        if (userAdd is not null)
-          Global.Write("ProcessUserAdd - response code [0], login id [{0}]", userAdd.LoginId);
-        response = new BaseResponse(BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserAddResponse);
-      }
-      else
-      {
-        if (userAdd is not null)
-          Global.Write("ProcessUserAdd - response code [1], login id [{0}]", userAdd.LoginId);
-        response = new BaseResponse(BaseResponse.RESPONSE_CODE.Error, Packet.PACKET_TYPE.UserAddResponse);
-      }
+      RECORD_RESULT results = UserManager.Add(userAdd);
+      Global.Write("ProcessUserAdd - Record result [{0}], login id [{1}]", results.ToString(), userAdd.LoginId);
+      BaseResponse response = new BaseResponse(packet.PacketId, results, Packet.PACKET_TYPE.UserAddResponse);
       client.Send(response.GetPacket());
-
     }
 
     private static void ProcessUserEdit(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
@@ -171,13 +175,13 @@ namespace Core.Administration
         user.NameSur = userEdit.NameSur;
         user.SecurityProfile = userEdit.SecurityProfile;
         UserManager.FileWrite();
-        response = new BaseResponse(BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserEditResponse);
+        response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserEditResponse);
       }
       else
       {
         if (userEdit is not null)
           Global.Write("ProcessUserAdd - response code [1], login id [{0}]", userEdit.LoginId);
-        response = new BaseResponse(BaseResponse.RESPONSE_CODE.Error, Packet.PACKET_TYPE.UserEditResponse);
+        response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Error, Packet.PACKET_TYPE.UserEditResponse);
       }
       client.Send(response.GetPacket());
 
@@ -190,11 +194,11 @@ namespace Core.Administration
       BaseResponse response;
       if (resp == true)
       {
-        response = new BaseResponse(BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserDeleteResponse);
+        response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserDeleteResponse);
       }
       else
       {
-        response = new BaseResponse(BaseResponse.RESPONSE_CODE.Error, Packet.PACKET_TYPE.UserDeleteResponse);
+        response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Error, Packet.PACKET_TYPE.UserDeleteResponse);
       }
       Global.Write("ProcessUserDelete - response code [0], login id [{0}]", response.ResponseCode.ToString(), userDelete.LoginId);
       client.Send(response.GetPacket());
@@ -211,7 +215,7 @@ namespace Core.Administration
         if (user is not null)
         {
           Global.Write("ProcessUserLogin - response code [0], login id [{0}]", user.LoginId);
-          UserLoginResponse response = new UserLoginResponse(user.LoginId, user.SecurityProfile, user.NameFirst, user.NameSur, user.SessionKey, user.SessionKeyExpiration);
+          UserLoginResponse response = new UserLoginResponse(packet.PacketId, user.LoginId, user.SecurityProfile, user.NameFirst, user.NameSur, user.SessionKey, user.SessionKeyExpiration, user.NeedToChangePassword);
           client.Send(response.GetPacket());
         }
       }
@@ -222,18 +226,18 @@ namespace Core.Administration
       if (loginCheck is not null)
       {
         string SuggestedLoginId;
-        USER_RESULT result = UserManager.CheckLoginIdInUse(loginCheck.LoginId, out SuggestedLoginId);
+        RECORD_RESULT result = UserManager.CheckLoginIdInUse(loginCheck.LoginId, out SuggestedLoginId);
         BaseResponse.RESPONSE_CODE responseCode = BaseResponse.RESPONSE_CODE.Error;
-        if (result == USER_RESULT.Success)
+        if (result == RECORD_RESULT.Success)
         {
           responseCode = BaseResponse.RESPONSE_CODE.Success;
         }
-        else if (result == USER_RESULT.DuplicateLoginId)
+        else if (result == RECORD_RESULT.Duplicate)
         {
-          responseCode = BaseResponse.RESPONSE_CODE.LoginIdDuplicate;
+          responseCode = BaseResponse.RESPONSE_CODE.Duplicate;
         }
         Global.Write("ProcessUserLoginIdCheck - response code [{0}], suggested login id [{1}]", responseCode.ToString(), SuggestedLoginId);
-        UserLoginIdCheckResponse response = new UserLoginIdCheckResponse(responseCode, SuggestedLoginId);
+        UserLoginIdCheckResponse response = new UserLoginIdCheckResponse(packet.PacketId, responseCode, SuggestedLoginId);
         client.Send(response.GetPacket());
       }
 
@@ -241,9 +245,57 @@ namespace Core.Administration
 
     private static void ProcessUsersGet(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
     {
-      UsersGetResponse response = new UsersGetResponse(UserManager.GetUsers.ToArray());
+      UsersGetResponse response = new UsersGetResponse(packet.PacketId, UserManager.GetUsers.ToArray());
       client.Send(response.GetPacket());
     }
 
+    private static void ProcessUserChangePassword(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      //If we got here, the user successfully logged in the SecurityValid function
+      UserChangePassword? data = new UserChangePassword(packet);
+      if (data is not null)
+      {
+        User? user = UserManager.FindByLoginId(data.LoginId);
+        if (user is not null)
+        {
+          user.passwordHash = SecureHasherV1.Hash(data.NewPassword);
+          Global.Write("ProcessUserChangePassword - response code [0], login id [{0}]", user.LoginId);
+          BaseResponse response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserChangePasswordResponse);
+          client.Send(response.GetPacket());
+          UserManager.FileWrite();
+        }
+      }
+    }
+
+
+    private static void ProcessSecurityProfilesGet(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      SecurityProfilesGetResponse response = new SecurityProfilesGetResponse(packet.PacketId, SecurityProfileManager.GetProfiles.ToArray());
+      client.Send(response.GetPacket());
+    }
+
+    private static void ProcessSecurityProfileAdd(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      SecurityProfileAdd data = new SecurityProfileAdd(packet);
+      RECORD_RESULT result = SecurityProfileManager.Add(data);
+      BaseResponse response = new BaseResponse(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileAddResponse);
+      client.Send(response.GetPacket());
+    }
+
+    private static void ProcessSecurityProfileEdit(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      SecurityProfileEdit data = new SecurityProfileEdit(packet);
+      RECORD_RESULT result = SecurityProfileManager.Edit(data);
+      BaseResponse response = new BaseResponse(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileEditResponse);
+      client.Send(response.GetPacket());
+    }
+
+    private static void ProcessSecurityProfileDelete(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      SecurityProfileDelete data = new SecurityProfileDelete(packet);
+      RECORD_RESULT result = SecurityProfileManager.Delete(data);
+      BaseResponse response = new BaseResponse(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileDeleteResponse);
+      client.Send(response.GetPacket());
+    }
   }
 }

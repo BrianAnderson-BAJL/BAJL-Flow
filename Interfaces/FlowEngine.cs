@@ -22,7 +22,7 @@ namespace Core
 
     List<Variable> GlobalVariables = new List<Variable>();
     private static List<FlowRequest> WaitingRequests = new List<FlowRequest>(256);
-    Administration.TcpServer? tcpServer;
+    Administration.TcpTlsServer? tcpServer;
     private object mThreadPoolCriticalSection = new object();
     private static STATE mState = STATE._None;
 
@@ -37,10 +37,11 @@ namespace Core
       Options.LoadSettings();
       Options.ParseArgs(args); //Command line arguments always override the settings.xml file
       Global.Write("Initializing...Loading users");
+      SecurityProfileManager.FileLoad();
       UserManager.FileLoad();
       MessageProcessor.Init();
       Global.Write("Initializing...Starting TCP server");
-      Administration.TcpServer tcpServer = new Administration.TcpServer(5000);
+      tcpServer = new Administration.TcpTlsServer(5000, "C:\\GameDev\\certkey.pem");
       tcpServer.NewConnection += Administration_TcpServer_NewConnection;
       tcpServer.ConnectionClosed += Administration_TcpServer_ConnectionClosed;
       tcpServer.NewPacket += Administration_TcpServer_NewPacket;

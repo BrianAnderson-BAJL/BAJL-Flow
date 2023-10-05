@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -23,6 +24,7 @@ namespace Core
     private List<Output> mOutputs = new List<Output>(2);
     public bool OutputsModifiable = false; //This is for a switch statement the flow programmer needs to be able to modify the number of outputs (case val = 36, case val = 0, case default, ...) NOT SURE IF THIS WILL BE SUPPORTED!
     public bool DefaultSaveResponseVariable = false;
+    public bool UseReflection = false;
 
     /// <summary>
     /// The names of the return variables, these are needed for the designer, the author can change the name of the base variable if needed in the flow. (could have two connection_handle varialbes)
@@ -62,6 +64,17 @@ namespace Core
     {
       Initialize(name, plugin, function, tooltip, description);
     }
+
+    //public Function(string name, Plugin plugin, bool useReflection)
+    //{
+    //  Initialize(name, plugin, null, "", "");
+    //  if (useReflection == true)
+    //  {
+        
+    //    //typeof(name)
+    //    //System.Reflection
+    //  }
+    //}
     
     /// <summary>
     /// This constructor is only used when cloning the function

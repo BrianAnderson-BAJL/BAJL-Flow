@@ -21,6 +21,8 @@ namespace Core
     public string SecurityProfile = "";
     public string ServerKey = "";
     public string SessionKey = "";
+    public bool NeedToChangePassword = false;
+
     public DateTime SessionKeyExpiration = DateTime.MinValue;
     public DateTime ModifiedDateTime = DateTime.MinValue;
 
@@ -32,6 +34,7 @@ namespace Core
       NameSur = Xml.GetXMLChunk(ref userBlockXml, "SurName");
       SecurityProfile = Xml.GetXMLChunk(ref userBlockXml, "SecurityProfile");
       ModifiedDateTime = Xml.GetXMLChunkAsDateTime(ref userBlockXml, "ModifiedDateTime");
+      NeedToChangePassword = Xml.GetXMLChunkAsBool(ref userBlockXml, "NeedToChangePassword");
     }
 
     public string ToXml(DateTime CurrentDateTime, TO_XML Minimal = TO_XML.UserFile, int indentLevel = 0)
@@ -56,6 +59,7 @@ namespace Core
       {
         xml.WriteTagAndContents("ModifiedDateTime", ModifiedDateTime);
       }
+      xml.WriteTagAndContents("NeedToChangePassword", NeedToChangePassword);
       xml.WriteTagEnd("User");
 
       return xml.ReadMemory();

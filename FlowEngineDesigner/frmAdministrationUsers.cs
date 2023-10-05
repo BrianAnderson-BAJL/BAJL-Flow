@@ -1,4 +1,5 @@
-﻿using Core.Administration.Messages;
+﻿using Core;
+using Core.Administration.Messages;
 using Core.Administration.Packets;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace FlowEngineDesigner
 {
   public partial class frmAdministrationUsers : Form
   {
+    private SecurityProfile.SECURITY_ACCESS_LEVEL AccessUsers = SecurityProfile.SECURITY_ACCESS_LEVEL.None;
     public frmAdministrationUsers()
     {
       InitializeComponent();
@@ -27,6 +29,20 @@ namespace FlowEngineDesigner
 
     private void frmAdministrationUsers_Load(object sender, EventArgs e)
     {
+      AccessUsers = cServer.AccessLevelForUserLoggedIn(SecurityProfile.SECURITY_AREA.Users);
+      if (AccessUsers < SecurityProfile.SECURITY_ACCESS_LEVEL.Full)
+      {
+        btnAdd.Enabled = false;
+        btnDelete.Enabled = false;
+      }
+      if (AccessUsers == SecurityProfile.SECURITY_ACCESS_LEVEL.Readonly)
+      {
+        btnEditView.Text = "View";
+      }
+      if (AccessUsers == SecurityProfile.SECURITY_ACCESS_LEVEL.None)  //How did you get here
+      {
+        btnEditView.Enabled = false;
+      }
     }
 
     private void Callback_UsersGet(Core.Administration.EventArgsPacket e)
@@ -54,7 +70,7 @@ namespace FlowEngineDesigner
       if (cServer.UserLoggedIn is not null)
       {
         UsersGet usersGet = new UsersGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
-        cServer.SendAndResponse(usersGet.GetPacket(), Callback_UsersGet, Core.Administration.Packet.PACKET_TYPE.UsersGetResponse);
+        cServer.SendAndResponse(usersGet.GetPacket(), Callback_UsersGet);
       }
     }
 
@@ -70,7 +86,10 @@ namespace FlowEngineDesigner
       Core.User? user = lstUsers.SelectedItems[0].Tag as Core.User;
       if (user is not null)
       {
-        frmAdministrationUserProperties f = new frmAdministrationUserProperties(FORM_MODE.Edit, user);
+        FORM_MODE mode = FORM_MODE.Edit;
+        if (AccessUsers == SecurityProfile.SECURITY_ACCESS_LEVEL.Readonly)
+          mode = FORM_MODE.ReadOnly;
+        frmAdministrationUserProperties f = new frmAdministrationUserProperties(mode, user);
         f.Show();
       }
     }

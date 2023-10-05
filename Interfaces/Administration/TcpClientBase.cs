@@ -60,7 +60,7 @@ namespace Core.Administration
       }
     }
 
-    public NetworkStream Stream
+    public virtual NetworkStream Stream
     {
       get 
       {
@@ -90,7 +90,7 @@ namespace Core.Administration
       }
     }
 
-    protected void OnConnectionClosed(TcpClientBase Client)
+    internal void OnConnectionClosed(TcpClientBase Client)
     {
       if (ConnectionClosed is not null)
       {
@@ -114,7 +114,7 @@ namespace Core.Administration
       try
       {
         Packet.FinalizePacketBeforeSending();
-        Stream.Write(Packet.Data, 0, Packet.Length); //Need to add the 4 byte header to the length being sent
+        Stream.Write(Packet.DataToSend, 0, Packet.SendLength); //Need to add the 4 byte header to the length being sent
         Rc = true;
       }
       catch (Exception ex)
@@ -149,7 +149,10 @@ namespace Core.Administration
 
               Packet Packet = new Packet();
               Packet.ReadAllData(Br);
-              OnNewPacket(Packet, Client);
+              if (Packet.PacketType == Packet.PACKET_TYPE.CloseConnection)
+                break;
+              if (Packet.PacketType != Packet.PACKET_TYPE._Unknown)
+                OnNewPacket(Packet, Client);
             }
             Thread.Sleep(1);
           }

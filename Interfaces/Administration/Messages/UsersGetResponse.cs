@@ -36,7 +36,7 @@ namespace Core.Administration.Messages
         Users.Add(user);
       }
     }
-    public UsersGetResponse(User[] users) : base(Packet.PACKET_TYPE.UsersGetResponse)
+    public UsersGetResponse(int packetId, User[] users) : base(packetId, Packet.PACKET_TYPE.UsersGetResponse)
     {
       this.Users = users.ToList();
     }

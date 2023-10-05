@@ -34,7 +34,7 @@ namespace FlowEngineDesigner
     private void btnLogin_Click(object sender, EventArgs e)
     {
       UserLogin userLogin = new UserLogin(cOptions.AdministrationPrivateKey, "", txtLoginId.Text, txtPassword.Text);
-      cServer.SendAndResponse(userLogin.GetPacket(), Callback_UserLogin, Packet.PACKET_TYPE.UserLoginResponse);
+      cServer.SendAndResponse(userLogin.GetPacket(), Callback_UserLogin);
     }
 
     private void Callback_UserLogin(Core.Administration.EventArgsPacket e)
@@ -50,8 +50,10 @@ namespace FlowEngineDesigner
       cServer.UserLoggedIn.NameSur = loginResponse.NameSur;
       cServer.UserLoggedIn.SessionKey = loginResponse.SessionKey;
 
-      this.Close();
+      
     }
+
+
 
   }
 }

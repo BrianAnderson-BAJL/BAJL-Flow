@@ -173,6 +173,7 @@
       Controls.Add(txtLoginId);
       Name = "frmAdministrationUserProperties";
       Text = "frmAdministrationUserProperties";
+      FormClosing += frmAdministrationUserProperties_FormClosing;
       Load += frmAdministrationUserProperties_Load;
       ResumeLayout(false);
       PerformLayout();

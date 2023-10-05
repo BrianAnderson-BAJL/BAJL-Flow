@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using System.Drawing;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -28,7 +29,9 @@ namespace Http
     public override void Init()
     {
       base.Init();
-
+      //AppDomain.CurrentDomain.GetAssemblies()
+      Assembly? a1 = Assembly.GetAssembly(typeof(System.Threading.Thread));
+      
       //SETTINGS
       {
         Setting s = new Setting("Uri", DATA_TYPE.String);

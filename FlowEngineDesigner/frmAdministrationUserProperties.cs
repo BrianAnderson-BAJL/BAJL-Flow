@@ -35,10 +35,13 @@ namespace FlowEngineDesigner
 
     private void frmAdministrationUserProperties_Load(object sender, EventArgs e)
     {
-      cmbSecurityProfile.Items.Add("Admin");
-      cmbSecurityProfile.Items.Add("Everything except Admin");
-      cmbSecurityProfile.Items.Add("Readonly");
-
+      if (cServer.SecurityProfiles is not null)
+      {
+        for (int x = 0; x < cServer.SecurityProfiles.Count; x++)
+        {
+          cmbSecurityProfile.Items.Add(cServer.SecurityProfiles[x].Name);
+        }
+      }
       lblDuplicate.Visible = false;
       if (Mode == FORM_MODE.Delete || Mode == FORM_MODE.ReadOnly)
       {
@@ -50,6 +53,7 @@ namespace FlowEngineDesigner
       }
       if (Mode == FORM_MODE.Edit || Mode == FORM_MODE.ReadOnly || Mode == FORM_MODE.Delete && User is not null)
       {
+        this.Text = User.LoginId;
         PreviousLoginId = User.LoginId;
         txtLoginId.Text = User.LoginId;
         txtPassword.Text = "";
@@ -81,7 +85,6 @@ namespace FlowEngineDesigner
         Tim.Start();
       }
 
-
     }
 
 
@@ -98,7 +101,7 @@ namespace FlowEngineDesigner
       {
         PreviousLoginId = txtLoginId.Text;
         Core.Administration.Messages.UserLoginIdCheck u = new Core.Administration.Messages.UserLoginIdCheck(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtLoginId.Text);
-        cServer.SendAndResponse(u.GetPacket(), Callback_UserLoginIdCheck, Packet.PACKET_TYPE.UserLoginIdCheckResponse);
+        cServer.SendAndResponse(u.GetPacket(), Callback_UserLoginIdCheck);
       }
     }
 
@@ -113,18 +116,20 @@ namespace FlowEngineDesigner
       if (Mode == FORM_MODE.Add)
       {
         Core.Administration.Messages.UserAdd u = new Core.Administration.Messages.UserAdd(cOptions.AdministrationPrivateKey, SessionKey, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
-        cServer.SendAndResponse(u.GetPacket(), Callback_User, Packet.PACKET_TYPE.UserAddResponse);
+        cServer.SendAndResponse(u.GetPacket(), Callback_User);
       }
       if (Mode == FORM_MODE.Edit)
       {
         Core.Administration.Messages.UserEdit u = new Core.Administration.Messages.UserEdit(cOptions.AdministrationPrivateKey, SessionKey, User.LoginId, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
-        cServer.SendAndResponse(u.GetPacket(), Callback_User, Packet.PACKET_TYPE.UserEditResponse);
+        cServer.SendAndResponse(u.GetPacket(), Callback_User);
       }
       if (Mode == FORM_MODE.Delete)
       {
         Core.Administration.Messages.UserDelete u = new Core.Administration.Messages.UserDelete(cOptions.AdministrationPrivateKey, SessionKey, User.LoginId);
-        cServer.SendAndResponse(u.GetPacket(), Callback_User, Packet.PACKET_TYPE.UserDeleteResponse);
+        cServer.SendAndResponse(u.GetPacket(), Callback_User);
       }
+      if (Mode == FORM_MODE.ReadOnly)
+        this.Close();
     }
 
     private void Callback_User(Core.Administration.EventArgsPacket e)
@@ -135,7 +140,7 @@ namespace FlowEngineDesigner
         this.Close();
       }
     }
-   
+
 
     private void Callback_UserLoginIdCheck(Core.Administration.EventArgsPacket e)
     {
@@ -147,7 +152,7 @@ namespace FlowEngineDesigner
         LabelText = "Valid LoginId";
         LabelColor = Color.Green;
       }
-      else if (response.ResponseCode == BaseResponse.RESPONSE_CODE.LoginIdDuplicate)
+      else if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Duplicate)
       {
         LabelText = String.Format("Duplicate use [{0}]", response.LoginIdSuggestion);
         LabelColor = Color.Red;
@@ -186,6 +191,11 @@ namespace FlowEngineDesigner
       if (lblDuplicate.Tag is not null)
         txtLoginId.Text = lblDuplicate.Tag.ToString();
       lblDuplicate.Visible = false;
+    }
+
+    private void frmAdministrationUserProperties_FormClosing(object sender, FormClosingEventArgs e)
+    {
+      Tim.Stop();
     }
   }
 }

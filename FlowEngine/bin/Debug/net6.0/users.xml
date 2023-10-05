@@ -4,8 +4,9 @@
 		<FirstName>Brian</FirstName>
 		<SurName>Anderson</SurName>
 		<PasswordHash>BAJL_HASH~V1~20000~b4SH83CWdWG6FAK4V1K/V1BsjKtyqmKlszaQY3xFQm1teFGwzEqOJ0hgTtGt4SzVf7sFFNilfK/YI6ukrswRYg==</PasswordHash>
-		<SecurityProfile></SecurityProfile>
+		<SecurityProfile>Admin</SecurityProfile>
 		<ModifiedDateTime>09/28/2023 21:31:10</ModifiedDateTime>
+		<NeedToChangePassword>False</NeedToChangePassword>
 	</User>
 	<User>
 		<LoginId>Banderson1</LoginId>
@@ -14,6 +15,7 @@
 		<PasswordHash>BAJL_HASH~V1~20000~U1PagyBgfWli/+C8Nu534+5bXQdei1jaxWAjQgovd2t65cDMZC15sgjyUiQ7A0E2VyY9dq9hhGrlQ2WxkGbjwA==</PasswordHash>
 		<SecurityProfile></SecurityProfile>
 		<ModifiedDateTime>09/29/2023 01:56:47</ModifiedDateTime>
+		<NeedToChangePassword>False</NeedToChangePassword>
 	</User>
 	<User>
 		<LoginId>BAnderson2</LoginId>
@@ -22,6 +24,7 @@
 		<PasswordHash>BAJL_HASH~V1~20000~nVMSF8NiYWb3nbonrCN6u5UU9TGV3q9kgVEv3M+94TW6NIKowMIDBoA9dk34z/3USj5aaRyHOluyIF5m2fIT9Q==</PasswordHash>
 		<SecurityProfile>Admin</SecurityProfile>
 		<ModifiedDateTime>09/29/2023 02:34:21</ModifiedDateTime>
+		<NeedToChangePassword>False</NeedToChangePassword>
 	</User>
 	<User>
 		<LoginId>banderson3</LoginId>
@@ -30,6 +33,7 @@
 		<PasswordHash>BAJL_HASH~V1~20000~w21MUdDzidC8WA+I/5BBWYQfOJtf9LIwdHTDjYkIz6kejsJOvnCa9gyQiQ82u70RzbozbSa9IG0SVAxiUDaWxA==</PasswordHash>
 		<SecurityProfile>Admin</SecurityProfile>
 		<ModifiedDateTime>09/29/2023 02:37:53</ModifiedDateTime>
+		<NeedToChangePassword>False</NeedToChangePassword>
 	</User>
 	<User>
 		<LoginId>banderson4</LoginId>
@@ -38,14 +42,16 @@
 		<PasswordHash>BAJL_HASH~V1~20000~gPbHlVbiREC4yxYa7KGTn1MetlpMfS4p+TxIww9qSqZmh7StE6FXEjWn2XKDzqCdXH2o4/uRnfeNXnm0wGsR6w==</PasswordHash>
 		<SecurityProfile>Admin</SecurityProfile>
 		<ModifiedDateTime>09/29/2023 02:51:22</ModifiedDateTime>
+		<NeedToChangePassword>False</NeedToChangePassword>
 	</User>
 	<User>
 		<LoginId>Jleung</LoginId>
 		<FirstName>Joshua</FirstName>
 		<SurName>Leung</SurName>
 		<PasswordHash>BAJL_HASH~V1~20000~AobXtgmbYqcXT99f3CCMo2wxAjVlIqIj/hzijlAhdRxweaqRiVp3aS8Bk4Hfqb9m5DMuJymJz05V+XiTYSgIQw==</PasswordHash>
-		<SecurityProfile>Everything except Admin</SecurityProfile>
+		<SecurityProfile>Readonly</SecurityProfile>
 		<ModifiedDateTime>09/29/2023 04:10:40</ModifiedDateTime>
+		<NeedToChangePassword>False</NeedToChangePassword>
 	</User>
 	<User>
 		<LoginId>jleung1</LoginId>
@@ -54,6 +60,7 @@
 		<PasswordHash>BAJL_HASH~V1~20000~ZJKFPHoJ/gsOKF4f7r6ZgicWmtx89xu7hZTR0+umz3UJXNDlvNosfYvtHZuycpjFZ6wpVS4C/V5JLUeu8r1/Xg==</PasswordHash>
 		<SecurityProfile>Readonly</SecurityProfile>
 		<ModifiedDateTime>09/29/2023 04:40:01</ModifiedDateTime>
+		<NeedToChangePassword>False</NeedToChangePassword>
 	</User>
 	<User>
 		<LoginId>Jleung2</LoginId>
@@ -62,13 +69,15 @@
 		<PasswordHash>BAJL_HASH~V1~20000~LQkinjEyuJrYdyuKDB2B+GvfOJ/zeGny5mnW19ek5EWTW/WZMTF+R4/lw6KHo/6zQmTXR7+hR0Mk62FEsYZUjA==</PasswordHash>
 		<SecurityProfile>Admin</SecurityProfile>
 		<ModifiedDateTime>09/29/2023 04:42:44</ModifiedDateTime>
+		<NeedToChangePassword>False</NeedToChangePassword>
 	</User>
 	<User>
 		<LoginId>jleung3</LoginId>
 		<FirstName>Josh</FirstName>
 		<SurName>Leung</SurName>
 		<PasswordHash>BAJL_HASH~V1~20000~q15drfdvZsZjaZlBDBeQH5vkr+VXHO79wY5SpA5Gig+J8Ehl4VX+LKXCCsIPonl3HqNyRQTbVlCSNhcODcv0xw==</PasswordHash>
-		<SecurityProfile></SecurityProfile>
+		<SecurityProfile>No Access</SecurityProfile>
 		<ModifiedDateTime>09/29/2023 04:44:24</ModifiedDateTime>
+		<NeedToChangePassword>False</NeedToChangePassword>
 	</User>
 </Users>

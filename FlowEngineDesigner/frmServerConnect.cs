@@ -14,6 +14,7 @@ namespace FlowEngineDesigner
 {
   public partial class frmServerConnect : Form
   {
+    private static bool AutoConnectedOnce = false;
     public frmServerConnect()
     {
       InitializeComponent();
@@ -25,7 +26,7 @@ namespace FlowEngineDesigner
       if (resp == true)
       {
         UserLogin userLogin = new UserLogin(cOptions.AdministrationPrivateKey, "", txtLoginId.Text, txtPassword.Text);
-        cServer.SendAndResponse(userLogin.GetPacket(), Callback_UserLogin, Packet.PACKET_TYPE.UserLoginResponse);
+        cServer.SendAndResponse(userLogin.GetPacket(), Callback_UserLogin);
       }
     }
 
@@ -41,16 +42,52 @@ namespace FlowEngineDesigner
       cServer.UserLoggedIn.NameFirst = loginResponse.NameFirst;
       cServer.UserLoggedIn.NameSur = loginResponse.NameSur;
       cServer.UserLoggedIn.SessionKey = loginResponse.SessionKey;
-
+      cServer.UserLoggedIn.NeedToChangePassword = loginResponse.NeedToChangePassword;
+      Global.FormMain!.tsLoggedInAs.Text = loginResponse.LoginId;
       this.Close();
+      if (cServer.UserLoggedIn.NeedToChangePassword == true)
+      {
+        frmAdministrationUserChangePassword f = new frmAdministrationUserChangePassword();
+        f.ShowDialog();
+      }
+
+      cServer.RefreshSecurityProfiles();
+
+
     }
 
     private void frmServerConnect_Load(object sender, EventArgs e)
     {
-      if (cOptions.AdministrationAutoConnect == true)
+      if (cOptions.AdministrationAutoConnect == true && AutoConnectedOnce == false)
       {
         btnConnect_Click(sender, e);
+        AutoConnectedOnce = true;
       }
+    }
+
+    private void chkRememberMe_CheckedChanged(object sender, EventArgs e)
+    {
+
+    }
+
+    private void label3_Click(object sender, EventArgs e)
+    {
+    }
+
+    private void txtPassword_TextChanged(object sender, EventArgs e)
+    {
+    }
+
+    private void label4_Click(object sender, EventArgs e)
+    {
+    }
+
+    private void txtLoginId_TextChanged(object sender, EventArgs e)
+    {
+    }
+
+    private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
+    {
     }
   }
 }

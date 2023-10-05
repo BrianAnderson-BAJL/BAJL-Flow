@@ -14,7 +14,8 @@ namespace Core.Administration.Messages
     public string NameSur = "";
     public string SessionKey = "";
     public DateTime SessionKeyExpiration = DateTime.MinValue;
-    public UserLoginResponse(string loginId, string securityProfile, string nameFirst, string nameSur, string sessionKey, DateTime sessionKeyExpiration) : base(Packet.PACKET_TYPE.UserLoginResponse)
+    public bool NeedToChangePassword = false;
+    public UserLoginResponse(int packetId, string loginId, string securityProfile, string nameFirst, string nameSur, string sessionKey, DateTime sessionKeyExpiration, bool needToChangePassword) : base(packetId, Packet.PACKET_TYPE.UserLoginResponse)
     {
       this.LoginId = loginId;
       this.SecurityProfile = securityProfile;
@@ -22,6 +23,7 @@ namespace Core.Administration.Messages
       this.NameSur = nameSur;
       this.SessionKey = sessionKey;
       this.SessionKeyExpiration = sessionKeyExpiration;
+      NeedToChangePassword = needToChangePassword;
     }
 
     public UserLoginResponse(Core.Administration.Packet packet) : base(packet) 
@@ -32,18 +34,19 @@ namespace Core.Administration.Messages
       packet.GetData(out NameSur);
       packet.GetData(out SessionKey);
       packet.GetData(out SessionKeyExpiration);
+      packet.GetData(out NeedToChangePassword);
     }
 
     public override Core.Administration.Packet GetPacket()
     {
-      Packet packet = new Packet(PacketType);
-      packet.AddData(ResponseCode);
+      Packet packet = base.GetPacket();
       packet.AddData(LoginId);
       packet.AddData(SecurityProfile);
       packet.AddData(NameFirst);
       packet.AddData(NameSur);
       packet.AddData(SessionKey);
       packet.AddData(SessionKeyExpiration);
+      packet.AddData(NeedToChangePassword);
       return packet;
     }
   }

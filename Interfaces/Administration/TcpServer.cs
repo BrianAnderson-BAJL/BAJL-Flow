@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Core;
 
+
 namespace Core.Administration
 {
   public class TcpServer
@@ -34,7 +35,6 @@ namespace Core.Administration
       if (ConnectionClosed != null)
       {
         EventArgsTcpClient EA = new EventArgsTcpClient(Client);
-        EA.Client = Client;
         ConnectionClosed(this, EA);
       }
     }
@@ -44,7 +44,6 @@ namespace Core.Administration
       if (NewPacket != null)
       {
         EventArgsPacket EA = new EventArgsPacket(Packet, Client);
-        EA.Packet = Packet;
         NewPacket(this, EA);
       }
       Client.OnNewPacket(Packet, Client);
@@ -55,7 +54,6 @@ namespace Core.Administration
       if (NewConnection != null)
       {
         EventArgsTcpClient EA = new EventArgsTcpClient(Client);
-        EA.Client = Client;
         NewConnection(this, EA);
       }
     }

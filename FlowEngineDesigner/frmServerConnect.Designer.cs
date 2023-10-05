@@ -58,7 +58,7 @@
       txtDomainName.Name = "txtDomainName";
       txtDomainName.Size = new Size(221, 23);
       txtDomainName.TabIndex = 1;
-      txtDomainName.Text = "127.0.0.1";
+      txtDomainName.Text = "flowengine.bajlllc.com";
       // 
       // nudPort
       // 
@@ -97,6 +97,7 @@
       chkShowPassword.TabIndex = 23;
       chkShowPassword.Text = "Show Password";
       chkShowPassword.UseVisualStyleBackColor = true;
+      chkShowPassword.CheckedChanged += chkShowPassword_CheckedChanged;
       // 
       // chkRememberMe
       // 
@@ -107,6 +108,7 @@
       chkRememberMe.TabIndex = 22;
       chkRememberMe.Text = "Remember me";
       chkRememberMe.UseVisualStyleBackColor = true;
+      chkRememberMe.CheckedChanged += chkRememberMe_CheckedChanged;
       // 
       // label3
       // 
@@ -116,6 +118,7 @@
       label3.Size = new Size(60, 15);
       label3.TabIndex = 21;
       label3.Text = "Password:";
+      label3.Click += label3_Click;
       // 
       // txtPassword
       // 
@@ -125,6 +128,7 @@
       txtPassword.Size = new Size(224, 23);
       txtPassword.TabIndex = 20;
       txtPassword.Text = "123";
+      txtPassword.TextChanged += txtPassword_TextChanged;
       // 
       // label4
       // 
@@ -134,6 +138,7 @@
       label4.Size = new Size(53, 15);
       label4.TabIndex = 19;
       label4.Text = "Login Id:";
+      label4.Click += label4_Click;
       // 
       // txtLoginId
       // 
@@ -141,7 +146,8 @@
       txtLoginId.Name = "txtLoginId";
       txtLoginId.Size = new Size(224, 23);
       txtLoginId.TabIndex = 18;
-      txtLoginId.Text = "Banderson";
+      txtLoginId.Text = "Jleung";
+      txtLoginId.TextChanged += txtLoginId_TextChanged;
       // 
       // frmServerConnect
       // 

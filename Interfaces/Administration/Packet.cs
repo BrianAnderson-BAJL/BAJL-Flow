@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Buffers.Binary;
 using static Core.Administration.Messages.BaseResponse;
 using Core.Administration.Messages;
+using System.Net.Security;
 
 namespace Core.Administration
 {
@@ -17,6 +18,7 @@ namespace Core.Administration
     public enum PACKET_TYPE : short
     {
       _Unknown = 0,
+      CloseConnection,
       UserLogin,
       UserLoginResponse,
       UserLogout,
@@ -31,31 +33,63 @@ namespace Core.Administration
       UserLoginIdCheckResponse,
       UsersGet,
       UsersGetResponse,
+      UserChangePassword,
+      UserChangePasswordResponse,
+      SecurityProfilesGet,
+      SecurityProfilesGetResponse,
+      SecurityProfileAdd,
+      SecurityProfileAddResponse,
+      SecurityProfileEdit,
+      SecurityProfileEditResponse,
+      SecurityProfileDelete,
+      SecurityProfileDeleteResponse,
+    }
+    private static int NextPacketId = 0;
+    public PACKET_TYPE PacketType = PACKET_TYPE._Unknown;
+    private int mReadPosition;
+    private byte[] ReceiveData = { };
+    private List<byte> SendData = new List<byte>(1024);
+    public int PacketId { get; private set; } = 0;
+
+    private int GetNextPacketId()
+    {
+      if (NextPacketId >= int.MaxValue)
+        NextPacketId = 1;
+      else
+        NextPacketId++;
+      return NextPacketId;
     }
 
-    public PACKET_TYPE PacketType = PACKET_TYPE._Unknown;
-    private int mLength;
-    private int mPosition;
-    //private Span<byte> Data = new Span<byte>();
-    public byte[] Data = { };
-
-    public int Length
+    public int SendLength
     { 
-      get { return mLength + sizeof(int); } 
+      get { return SendData.Count; } 
+    }
+
+    public byte[] DataToSend
+    {
+      get {return SendData.ToArray(); }
     }
 
     public Packet()
     {
-      mPosition = 0;
-      mLength = 0; //Length does not include the size of the length itself
+      mReadPosition = 0;
     }
 
-    public Packet(PACKET_TYPE packetType, int maxSize = 1024)
+    public Packet(PACKET_TYPE packetType, int packetId = 0)
     {
+      //Add buffer space for the length
+      SendData.Add(0);
+      SendData.Add(0);
+      SendData.Add(0);
+      SendData.Add(0);
       PacketType = packetType;
-      Data = new byte[maxSize];
-      mPosition = 4; // Need to leave room for the length that is inserted in FinalizePacketBeforeSending()
+      if (packetId == 0)
+        PacketId = GetNextPacketId();
+      else
+        PacketId = packetId;
       AddData((short)packetType);
+      AddData(PacketId);
+     
     }
 
     public BaseResponse.RESPONSE_CODE PeekResponseCode()
@@ -68,18 +102,41 @@ namespace Core.Administration
     public void ReadAllData(BinaryReader br)
     {
       byte[] temp = br.ReadBytes(sizeof(int));
+      if (temp is not null && temp.Length == 4)
+      {
+        int length = BinaryPrimitives.ReadInt32BigEndian(temp);
 
-      mLength = BinaryPrimitives.ReadInt32BigEndian(temp);
+        ReceiveData = br.ReadBytes(length);
+        short packetType;
+        GetData(out packetType);
+        PacketType = (PACKET_TYPE)packetType;
+        int val;
+        GetData(out val);
+        PacketId = val;
+      }
+    }
 
-      Data = br.ReadBytes(mLength);
-      short packetType;
-      GetData(out packetType);
-      PacketType = (PACKET_TYPE)packetType;
+    public void ReadAllTlsData(SslStream stream)
+    {
+      byte[] temp = new byte[sizeof(int)];
+      int dataRead = stream.Read(temp, 0, sizeof(int));
+      if (dataRead == 4)
+      {
+        int length = BinaryPrimitives.ReadInt32BigEndian(temp);
+        ReceiveData = new byte[length];
+        stream.Read(ReceiveData, 0, length);
+        short packetType;
+        GetData(out packetType);
+        PacketType = (PACKET_TYPE)packetType;
+        int val;
+        GetData(out val);
+        PacketId = val;
+      }
     }
 
     public void ResetReadPosition()
     {
-      mPosition = 2; //Default position is just after the packet type which is a short, two bytes
+      mReadPosition = sizeof(PACKET_TYPE) + sizeof(int); //Default position is just after the packet type and the packet id which is a short, two bytes and an int, 4 bytes
     }
 
     public void AddData(Enum Val)
@@ -92,23 +149,17 @@ namespace Core.Administration
       byte temp = 0;
       if (Val == true)
         temp = 1;
-      Data[mPosition] = temp;
-      mLength += 1;
-      mPosition += 1;
+      AddData(temp);
     }
 
     public void AddData(byte Val)
     {
-      Data[mPosition] = Val;
-      mLength += 1;
-      mPosition += 1;
+      SendData.Add(Val);
     }
 
     public void AddData(byte[] Val)
     {
-      Array.Copy(Val, Data, Val.Length);
-      mLength += Val.Length;
-      mPosition += Val.Length;
+      SendData.AddRange(Val);
     }
 
     public void AddData(short Val)
@@ -116,9 +167,7 @@ namespace Core.Administration
       int size = sizeof(short);
       byte[] Temp = new byte[size];
       BinaryPrimitives.WriteInt16BigEndian(Temp, Val);
-      Temp.CopyTo(Data, mPosition);
-      mLength += size;
-      mPosition += size;
+      SendData.AddRange(Temp);
     }
 
     public void AddData(int Val)
@@ -126,9 +175,7 @@ namespace Core.Administration
       int size = sizeof(int);
       byte[] Temp = new byte[size];
       BinaryPrimitives.WriteInt32BigEndian(Temp, Val);
-      Temp.CopyTo(Data, mPosition);
-      mLength += size;
-      mPosition += size;
+      SendData.AddRange(Temp);
     }
 
     public void AddData(long Val)
@@ -136,9 +183,7 @@ namespace Core.Administration
       int size = sizeof(long);
       byte[] Temp = new byte[size];
       BinaryPrimitives.WriteInt64BigEndian(Temp, Val);
-      Temp.CopyTo(Data, mPosition);
-      mLength += size;
-      mPosition += size;
+      SendData.AddRange(Temp);
     }
 
     public void AddData(DateTime Val)
@@ -159,9 +204,7 @@ namespace Core.Administration
       {
         byte[] tempBytes = new byte[size];
         BinaryPrimitives.WriteInt32BigEndian(tempBytes, temp[x]);
-        tempBytes.CopyTo(Data, mPosition);
-        mLength += size;
-        mPosition += size;
+        SendData.AddRange(tempBytes);
       }
     }
 
@@ -169,10 +212,7 @@ namespace Core.Administration
     {
       byte[] Temp = Encoding.UTF8.GetBytes(Val);
       AddData(Temp.Length); //Add the length of the string to the packet
-      Temp.CopyTo(Data, mPosition);
-
-      mPosition += Temp.Length;
-      mLength += Temp.Length;
+      SendData.AddRange(Temp);
     }
 
     public void GetData(out Core.Administration.Messages.BaseResponse.RESPONSE_CODE Val)
@@ -182,41 +222,34 @@ namespace Core.Administration
       Val = (RESPONSE_CODE)temp;
     }
 
-    //public void GetData(out byte[] Val)
-    //{
-    //  Val = new byte[mLength - (mPosition - 4)];
-    //  Array.Copy(Data, mPosition, Val, 0, mLength - (mPosition - 4));
-    //  mPosition += Val.Length;
-    //}
     public void PeekData(out byte[] Val, int length)
     {
       Val = new byte[length];
-      Array.Copy(Data, mPosition, Val, 0, length);
-      //mPosition += length;
+      Array.Copy(ReceiveData, mReadPosition, Val, 0, length);
     }
 
 
     public void GetData(out byte[] Val, int length)
     {
       Val = new byte[length];
-      Array.Copy(Data, mPosition, Val, 0, length);
-      mPosition += length;
+      Array.Copy(ReceiveData, mReadPosition, Val, 0, length);
+      mReadPosition += length;
     }
 
     public void GetData(out bool Val)
     {
       Val = false;
-      byte temp = Data[mPosition];
+      byte temp = ReceiveData[mReadPosition];
       if (temp != 0)
         Val = true;
-      mPosition += 1;
+      mReadPosition += 1;
     }
 
     public void GetData(out byte Val)
     {
       Val = 0;
-      Val = Data[mPosition];
-      mPosition += 1;
+      Val = ReceiveData[mReadPosition];
+      mReadPosition += 1;
     }
 
     public void GetData(out short Val)
@@ -284,8 +317,8 @@ namespace Core.Administration
       Val = "";
       int Len;
       GetData(out Len);
-      Val = Encoding.UTF8.GetString(Data, mPosition, Len);
-      mPosition += Len;
+      Val = Encoding.UTF8.GetString(ReceiveData, mReadPosition, Len);
+      mReadPosition += Len;
     }
 
     /// <summary>
@@ -294,8 +327,11 @@ namespace Core.Administration
     public void FinalizePacketBeforeSending()
     {
       byte[] Temp = new byte[sizeof(int)];
-      BinaryPrimitives.WriteInt32BigEndian(Temp, mLength);
-      Temp.CopyTo(Data, 0);
+      BinaryPrimitives.WriteInt32BigEndian(Temp, SendData.Count);
+      for (int x = 0; x < Temp.Length; x++)
+      {
+        SendData[x] = Temp[x];
+      }
     }
 
 

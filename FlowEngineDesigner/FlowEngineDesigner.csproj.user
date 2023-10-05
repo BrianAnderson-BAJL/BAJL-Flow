@@ -4,6 +4,15 @@
   <ItemGroup />
   <ItemGroup />
   <ItemGroup>
+    <Compile Update="frmAdministrationSecurityProfileProperties.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="frmAdministrationSecurityProfiles.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="frmAdministrationUserChangePassword.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="frmAdministrationUserLogin.cs">
       <SubType>Form</SubType>
     </Compile>

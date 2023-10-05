@@ -1,6 +1,7 @@
 ﻿using Core;
 using System.Drawing;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using static Core.PARM;
 
@@ -60,6 +61,10 @@ namespace FlowCore
       f.OutputClear();
       f.OutputAdd("Complete", Output.SUCCESS_POS);
       Functions.Add(f);
+
+      //MethodInfo[] m = typeof(System.Threading.Thread).GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+      //f = new Function("System.Threading.Thread.SpinWait", this);
+      //System.Threading.Thread.SpinWait
 
       f = new Function("Stop", this, Stop);
 
@@ -196,6 +201,7 @@ namespace FlowCore
       if (p != null)
       {
         Thread.Sleep((int)p.Value);
+        
       }
       return RESP.SetSuccess();
     }

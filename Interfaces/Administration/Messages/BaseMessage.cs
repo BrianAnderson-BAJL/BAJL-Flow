@@ -13,12 +13,12 @@ namespace Core.Administration.Messages
 
     public Core.Administration.Packet.PACKET_TYPE PacketType;
 
-    protected BaseMessage(Packet.PACKET_TYPE packetType)
+    public BaseMessage(Packet.PACKET_TYPE packetType)
     {
       PacketType = packetType;
     }
 
-    protected BaseMessage(string serverKey, string sessionKey, Packet.PACKET_TYPE packetType)
+    public BaseMessage(string serverKey, string sessionKey, Packet.PACKET_TYPE packetType)
     {
       PacketType = packetType;
       ServerKey = serverKey;

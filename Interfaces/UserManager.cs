@@ -9,12 +9,6 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-  public enum USER_RESULT
-  {
-    Success,
-    Error,
-    DuplicateLoginId,
-  }
   internal class UserManager
   {
     private static List<User> Users = new List<User>(128);
@@ -66,7 +60,7 @@ namespace Core
       return null;
     }
 
-    public static USER_RESULT CheckLoginIdInUse(string loginId, out string newLoginId)
+    public static RECORD_RESULT CheckLoginIdInUse(string loginId, out string newLoginId)
     {
       int Count = 1;
       newLoginId = loginId;
@@ -80,12 +74,12 @@ namespace Core
       }
       if (TempLoginId == loginId)
       {
-        return USER_RESULT.Success;
+        return RECORD_RESULT.Success;
       }
       else
       {
         newLoginId = TempLoginId;
-        return USER_RESULT.DuplicateLoginId;
+        return RECORD_RESULT.Duplicate;
       }
     }
 
@@ -132,10 +126,10 @@ namespace Core
 
 
 
-    public static USER_RESULT Add(UserAdd? userMessage)
+    public static RECORD_RESULT Add(UserAdd? userMessage)
     {
       if (userMessage is null)
-        return USER_RESULT.Error;
+        return RECORD_RESULT.Error;
 
       User user = new User();
       user.LoginId = userMessage.LoginId;
@@ -144,19 +138,19 @@ namespace Core
       user.NameSur = userMessage.NameSur;
       user.ModifiedDateTime = DateTime.UtcNow;
       user.SecurityProfile = userMessage.SecurityProfile;
-
+      user.NeedToChangePassword = true;
       lock (mCriticalSection)
       {
         if (FindByLoginId(userMessage.LoginId) is not null)
-          return USER_RESULT.DuplicateLoginId;
+          return RECORD_RESULT.Duplicate;
 
         Users.Add(user);
+        FileWrite();
       }
-      FileWrite();
-      return USER_RESULT.Success;
+      return RECORD_RESULT.Success;
     }
 
-    public static USER_RESULT Add(string loginId, string password, string firstName, string surName, string securityProfile, DateTime modifiedDateTime)
+    public static RECORD_RESULT Add(string loginId, string password, string firstName, string surName, string securityProfile, DateTime modifiedDateTime)
     {
 
       User user = new User();
@@ -165,15 +159,17 @@ namespace Core
       user.NameFirst = firstName;
       user.NameSur = surName;
       user.ModifiedDateTime = DateTime.UtcNow;
+      user.SecurityProfile = securityProfile;
+      user.NeedToChangePassword = true;
       lock (mCriticalSection)
       {
         if (FindByLoginId(loginId) is not null)
-          return USER_RESULT.DuplicateLoginId;
+          return RECORD_RESULT.Duplicate;
 
         Users.Add(user);
+        FileWrite();
       }
-      FileWrite();
-      return USER_RESULT.Success;
+      return RECORD_RESULT.Success;
     }
 
     public static bool Delete(string loginId) 

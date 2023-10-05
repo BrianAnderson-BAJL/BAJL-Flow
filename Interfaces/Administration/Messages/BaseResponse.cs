@@ -14,19 +14,33 @@ namespace Core.Administration.Messages
       Error = 1,
       AccessDenied,
       SessionInvalid,
-      LoginIdDuplicate,
+      Duplicate,
     }
     public RESPONSE_CODE ResponseCode = RESPONSE_CODE.Success;
     public Packet.PACKET_TYPE PacketType = Packet.PACKET_TYPE._Unknown;
-
-    public BaseResponse(Packet.PACKET_TYPE packetType)
+    public int PacketId;
+    public BaseResponse(int packetId, Packet.PACKET_TYPE packetType)
     {
       PacketType = packetType;
+      PacketId = packetId;
     }
-    public BaseResponse(RESPONSE_CODE responseCode, Packet.PACKET_TYPE packetType)
+    public BaseResponse(int packetId, RECORD_RESULT results, Packet.PACKET_TYPE packetType)
+    {
+      if (results == RECORD_RESULT.Success)
+        ResponseCode = RESPONSE_CODE.Success;
+      else if (results == RECORD_RESULT.Error)
+        ResponseCode = RESPONSE_CODE.Duplicate;
+      else
+        ResponseCode = RESPONSE_CODE.Error;
+
+      PacketType = packetType;
+      PacketId = packetId;
+    }
+    public BaseResponse(int packetId, RESPONSE_CODE responseCode, Packet.PACKET_TYPE packetType)
     {
       ResponseCode = responseCode;
       PacketType = packetType;
+      PacketId = packetId;
     }
 
     public BaseResponse(Core.Administration.Packet packet)
@@ -36,7 +50,7 @@ namespace Core.Administration.Messages
 
     public virtual Core.Administration.Packet GetPacket()
     {
-      Packet packet = new Packet(PacketType);
+      Packet packet = new Packet(PacketType, PacketId);
       packet.AddData((int)ResponseCode);
       return packet;
     }

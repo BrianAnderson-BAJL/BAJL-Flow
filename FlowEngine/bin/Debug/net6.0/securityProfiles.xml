@@ -1,0 +1,26 @@
+﻿<Profiles>
+	<Profile>
+		<Name>Admin</Name>
+		<AdministrationUsers>Full</AdministrationUsers>
+		<AdministrationSecurityProfiles>Full</AdministrationSecurityProfiles>
+		<AdministrationFlows>Full</AdministrationFlows>
+	</Profile>
+	<Profile>
+		<Name>Readonly</Name>
+		<AdministrationUsers>Readonly</AdministrationUsers>
+		<AdministrationSecurityProfiles>Readonly</AdministrationSecurityProfiles>
+		<AdministrationFlows>Readonly</AdministrationFlows>
+	</Profile>
+	<Profile>
+		<Name>No Access</Name>
+		<AdministrationUsers>None</AdministrationUsers>
+		<AdministrationSecurityProfiles>None</AdministrationSecurityProfiles>
+		<AdministrationFlows>None</AdministrationFlows>
+	</Profile>
+	<Profile>
+		<Name>Users only</Name>
+		<AdministrationUsers>Full</AdministrationUsers>
+		<AdministrationSecurityProfiles>None</AdministrationSecurityProfiles>
+		<AdministrationFlows>None</AdministrationFlows>
+	</Profile>
+</Profiles>

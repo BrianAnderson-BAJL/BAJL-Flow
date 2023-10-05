@@ -147,7 +147,7 @@ namespace Core
           string[] ValueArray = strings[1].Split(":");
           if (ValueArray.Length == 2)
           {
-            DataType = (DATA_TYPE)Enum.Parse(typeof(DATA_TYPE), ValueArray[0]);
+            DataType = Enum.Parse<DATA_TYPE>(ValueArray[0], true);
             if (DataType == DATA_TYPE.Color)
             {
               Value = ColorTranslator.FromHtml(HttpUtility.UrlDecode(ValueArray[1]));
