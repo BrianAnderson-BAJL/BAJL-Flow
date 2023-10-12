@@ -172,7 +172,7 @@ namespace Core
 
       Variable? var = new Variable();
       var.Name = "data";
-      JsonParser parser = new JsonParser();
+      ParserJson parser = new ParserJson();
       parser.ParseJsonBlock(ref jsonStr, var);
       return var;
     }
@@ -189,14 +189,72 @@ namespace Core
     }
 
 
-    public static Variable XmlParse(string xmlStr)
+    public static Variable XmlParse(ref string xmlStr)
     {
+      if (xmlStr == null)
+        throw new ArgumentNullException(nameof(xmlStr));
+      xmlStr = xmlStr.Trim();
+      if (xmlStr.Length == 0)
+        throw new ArgumentException("XML is a zero length string");
+      if (xmlStr[0] != '<')
+        throw new ArgumentException("XML is invalid, it doesn't start with '<'");
       Variable xml = new Variable();
-
+      xml.Name = "data";
+      ParserXml parser = new ParserXml();
+      parser.ParseXml(ref xmlStr, xml);
       return xml;
     }
 
-    
+
+    public void GetValue(out string value)
+    {
+      value = "";
+      VariableString? vs = this as VariableString;
+      if (vs is not null)
+        value = vs.Value;
+    }
+
+    public void GetValue(out long value)
+    {
+      value = 0;
+      VariableInteger? vi = this as VariableInteger;
+      if (vi is not null)
+      {
+        value = vi.Value;
+      }
+      return;
+    }
+
+    public void GetValue(out decimal value)
+    {
+      value = 0;
+      VariableDecimal? vd = this as VariableDecimal;
+      if (vd is not null)
+      {
+        value = vd.Value;
+      }
+      return;
+    }
+
+    public void GetValue(out bool value)
+    {
+      value = false;
+      VariableBoolean? vb = this as VariableBoolean;
+      if (vb is not null)
+      {
+        value = vb.Value;
+      }
+      return;
+    }
+
+    public void GetValue(out object value)
+    {
+      value = "";
+      VariableObject? vs = this as VariableObject;
+      if (vs is not null)
+        value = vs.Value;
+    }
+
   }
 
   public class VariableString : Variable
@@ -209,9 +267,9 @@ namespace Core
       this.DataType = DATA_TYPE.String;
     }
 
-    public VariableString(string key, string value)
+    public VariableString(string name, string value)
     {
-      Name = key;
+      Name = name;
       Value = value;
       DataType = DATA_TYPE.String;
     }
@@ -241,6 +299,10 @@ namespace Core
       this.SubVariables = v.SubVariables;
       this.DataType = DATA_TYPE.Integer;
     }
+    public VariableInteger(string name, long val)
+    {
+      this.Value = val;
+    }
 
     public override string JsonCreate(bool stripNameAndAddBlock = false)
     {
@@ -268,6 +330,13 @@ namespace Core
       this.SubVariables = v.SubVariables;
       this.DataType = DATA_TYPE.Decimal;
     }
+    public VariableDecimal(string name, decimal value)
+    {
+      this.Name = name;
+      this.Value= value;
+      this.DataType = DATA_TYPE.Decimal;
+    }
+
     public override string JsonCreate(bool stripNameAndAddBlock = false)
     {
       string jsonStr = "";
@@ -291,6 +360,12 @@ namespace Core
     {
       this.Name = v.Name;
       this.SubVariables = v.SubVariables;
+      this.DataType = DATA_TYPE.Boolean;
+    }
+    public VariableBoolean(string name, bool value)
+    {
+      this.Name = name;
+      this.Value = value;
       this.DataType = DATA_TYPE.Boolean;
     }
 

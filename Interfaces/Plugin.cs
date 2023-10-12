@@ -8,6 +8,11 @@ namespace Core
 
 //#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
+  /// <summary>
+  /// New Plugin creation notes
+  ///   1. Don't forget to use the mFlowsCriticalSection lock when finding a flow in the 'Flows' list This list could also be accessed by a user saving a flow with the 'FlowGoLive' option set
+  /// </summary>
+
 
   public class Plugin
   {
@@ -40,11 +45,21 @@ namespace Core
     /// Information so the flow engine knows what flow to start based on the plugin that is requesting a flow to start
     /// </summary>
     public PARMS FlowStartCommands = new PARMS();
+    public PARM_VARS FlowStartCommandsParmVars = new PARM_VARS();
 
     /// <summary>
     /// The flows that this plugin could start, this is used only by the Flow Engine
     /// </summary>
-    public List<Core.Flow> Flows = new();
+    protected List<Core.Flow> Flows = new();
+    protected object mFlowsCriticalSection = new object();
+
+    public void FlowAdd(Core.Flow flow)
+    {
+      lock (mFlowsCriticalSection)
+      {
+        Flows.Add(flow);
+      }
+    }
 
     /// <summary>
     /// Used in the Flow Engine Designer, allows users to see what variables will be in the flow when it starts.

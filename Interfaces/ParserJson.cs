@@ -7,7 +7,7 @@ using static Core.Variable;
 
 namespace Core
 {
-  public class JsonParser
+  public class ParserJson
   {
     private struct JSON_NEXT_TYPE_STRUCT
     {
@@ -18,7 +18,6 @@ namespace Core
     {
       Unknown,
       None,
-      Root,
       Block,
       Key,
       Value,

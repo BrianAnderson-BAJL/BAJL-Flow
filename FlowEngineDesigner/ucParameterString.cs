@@ -13,19 +13,25 @@ namespace FlowEngineDesigner
 {
   public partial class ucParameterString : ucParameter
   {
-    private PARM_Various mParm;
+    private PARM_VAR mParmVar;
     private cFlowWrapper mFlow;
     private FunctionStep? mStep;
-    public ucParameterString(PARM_Various parm, FunctionStep? step, cFlowWrapper flow)
+    public ucParameterString(PARM_VAR parmVar, FunctionStep? step, cFlowWrapper flow)
     {
       InitializeComponent();
-      mParm = parm;
+      mParmVar = parmVar;
       mFlow = flow;
       mStep = step;
-      txtKey.Text = mParm.Name;
-      txtDataType.Text = mParm.DataType.ToString();
-      txtValue.Text = mParm.Value;
-      if (mParm.ParmLiteral == PARM.PARM_L_OR_V.Variable)
+      txtKey.Text = mParmVar.Parm.Name;
+      txtDataType.Text = mParmVar.Parm.DataType.ToString();
+      mParmVar.GetValue(out string val);
+      txtValue.Text = val;
+
+      if (mParmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal)
+      {
+        chkVariable.Checked = false;
+      }
+      else 
       {
         chkVariable.Checked = true;
       }
@@ -34,7 +40,14 @@ namespace FlowEngineDesigner
 
     public override void UpdateValues()
     {
-      mParm.Value = txtValue.Text;
+      if (chkVariable.Checked)
+      {
+        mParmVar.SetVarRef(txtValue.Text);
+      }
+      else
+      {
+        mParmVar.SetVariableLiteral(txtValue.Text);
+      }
     }
 
     private void ucParameterString_Load(object sender, EventArgs e)
@@ -44,10 +57,11 @@ namespace FlowEngineDesigner
 
     private void btnSelectVariable_Click(object sender, EventArgs e)
     {
-      frmVariableSelection f = new frmVariableSelection(mParm, mStep, mFlow);
+      frmVariableSelection f = new frmVariableSelection(mParmVar, mStep, mFlow);
       if (f.ShowDialog() == DialogResult.OK)
       {
-        txtValue.Text = mParm.Value;
+        mParmVar.GetValue(out string val);
+        txtValue.Text = val;
         chkVariable.Checked = true;
       }
     }
@@ -56,11 +70,11 @@ namespace FlowEngineDesigner
     {
       if (chkVariable.Checked)
       {
-        mParm.ParmLiteral = PARM.PARM_L_OR_V.Variable;
+        mParmVar.ParmLiteralOrVariable = PARM_VAR.PARM_L_OR_V.Variable;
       }
       else
       {
-        mParm.ParmLiteral = PARM.PARM_L_OR_V.Literal;
+        mParmVar.ParmLiteralOrVariable = PARM_VAR.PARM_L_OR_V.Literal;
       }
     }
   }

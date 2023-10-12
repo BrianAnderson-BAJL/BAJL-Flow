@@ -123,11 +123,11 @@ namespace Core
       return null;
     }
 
-    public RESP Execute(PARMS parms)
+    public RESP Execute(params Variable[] vars) //PARMS parms
     {
       //All plugin functions are required to return a RESP object in the response
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-      RESP resp = Fun.DynamicInvoke(parms) as RESP;
+      RESP resp = Fun.DynamicInvoke(vars) as RESP;
 #pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
       return resp!;
     }

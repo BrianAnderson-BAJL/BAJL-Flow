@@ -1,7 +1,8 @@
 ﻿<Settings>
 	<PluginPath>C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Plugins</PluginPath>
 	<PluginGraphicsPath>./Plugins/Graphics/</PluginGraphicsPath>
-	<FlowPath>C:\Users\brian\Documents</FlowPath>
+	<FlowPath>C:\Users\brian\Documents\Flows</FlowPath>
+	<FlowPathAllowSubDirectories>True</FlowPathAllowSubDirectories>
 	<FlowUserHistoryMax>10</FlowUserHistoryMax>
 	<UserPath>./users.xml</UserPath>
 	<Administration>
@@ -11,5 +12,6 @@
 		<AdministrationHashSize>32</AdministrationHashSize>
 		<AdministrationHashInterations>20000</AdministrationHashInterations>
 		<AdministrationPortNumber>7000</AdministrationPortNumber>
+		<AdministrationUserSessionKeyTimeoutInMinutes>720</AdministrationUserSessionKeyTimeoutInMinutes>
 	</Administration>
 </Settings>

@@ -25,7 +25,7 @@ namespace Core
     protected List<User> previousUsers = new List<User>(10);
     protected Dictionary<string, Variable> Variables = new Dictionary<string, Variable>();
     public Plugin? StartPlugin;
-    public PARMS StartCommands = new PARMS(); //Used so the flow engine knows when to start this flow.
+    public PARM_VARS StartCommands = new PARM_VARS(); //Used so the flow engine knows when to start this flow.
     public string SampleData = "";
     public DATA_FORMAT SampleDataFormat = DATA_FORMAT._None;
     public List<Comment> Comments = new List<Comment>(4);
@@ -311,7 +311,25 @@ namespace Core
       return newName;
     }
 
-    public virtual void XmlRead(string fileName)
+    public string FormatStartCommands()
+    {
+      string startCommands = "";
+      for (int x = 0; x < StartCommands.Count; x++)
+      {
+        startCommands += StartCommands[x].Parm.Name;
+        startCommands += String.Format(" [{0}]", StartCommands[x].ToString());
+        if (x < StartCommands.Count - 1)
+          startCommands += " : ";
+      }
+      return startCommands;
+    }
+
+    public enum READ_TIL
+    {
+      All,
+      TilSteps, //Only read the header info for the flow, this is for when opening flows.
+    }
+    public virtual void XmlRead(string fileName, READ_TIL til = READ_TIL.All)
     {
       functionSteps.Clear();
       FileName = fileName;
@@ -351,15 +369,16 @@ namespace Core
       if (pluginName != "")
       {
         StartPlugin = PluginManager.FindPluginByName(pluginName);
-        if (StartPlugin != null)
-        {
-          StartCommands = StartPlugin.FlowStartCommands.Clone();
-        }
       }
-      if (StartCommands.Count > 0) //This plugin doesn't have any start commands currently (probably there is no plugin assigned as the startPlugin)
+
+      if (StartPlugin is not null && StartPlugin.FlowStartCommands.Count > 0)
       {
-        ParseParameters(StartCommands, ref startCommands);
+        ParseVariables(StartPlugin.FlowStartCommands, StartCommands, ref startCommands);
       }
+
+      if (til == READ_TIL.TilSteps)
+        return;
+
       //Load all the steps
       string step = "";
       do
@@ -376,10 +395,9 @@ namespace Core
           bool saveRespVar = Xml.GetXMLChunkAsBool(ref step, "SaveResponseVariable");
           string saveRespVarName = Xml.GetXMLChunk(ref step, "SaveResponseVariableName");
           string links = Xml.GetXMLChunk(ref step, "Links"); //Can't fully parse the links here since we haven't loaded all the steps yet
-          string parameters = Xml.GetXMLChunk(ref step, "Parameters");
+          string parameters = Xml.GetXMLChunk(ref step, "Variables");
           FunctionStep fs = new FunctionStep(this, stepId, pluginName, functionName, stepPos, links); //Store the links XML with the step for now so we can link the steps together below
-          fs.parms = fs.Function.Parms.Clone();
-          ParseParameters(fs.parms, ref parameters);
+          ParseVariables(fs.Function.Parms, fs.ParmVars, ref parameters);
           functionSteps.Add(fs);
         }
       } while (step.Length > 0);
@@ -408,65 +426,73 @@ namespace Core
       }
     }
 
-    private void ParseParameters(PARMS parms, ref string parameters)
+    private void ParseVariables(PARMS parms, PARM_VARS parmVars, ref string variables)
     {
       string lastParmName = "";
-      string parm = "";
+      string var = "";
       do
       {
-        parm = Xml.GetXMLChunk(ref parameters, "Parameter");
-        if (parm.Length > 0)
+        var = Xml.GetXMLChunk(ref variables, "Variable");
+        if (var.Length <= 0)
+          break; //We have reached the end, lets exit
+
+        PARM2? p = null;
+        string name = Xml.GetXMLChunk(ref var, "Name");
+        p = parms.FindParmByName(name);
+        if (p is null)
+          throw new ExceptionFlowLoad(String.Format("Bad Parameter name [{0}], could not find parameter with that name for flow [{}1]", name, this.FileName));
+
+        PARM_VAR? pv;
+        lastParmName = name;
+        string temp = Xml.GetXMLChunk(ref var, "Literal");
+        PARM_VAR.PARM_L_OR_V lOrV = Enum.Parse<PARM_VAR.PARM_L_OR_V>(temp, true);
+        if (lOrV == PARM_VAR.PARM_L_OR_V.Literal)
         {
-          PARM? p = null;
-          string name = Xml.GetXMLChunk(ref parm, "Name");
-          if (name == lastParmName) //Need to perform some special cloning if this is a multiple parameter
+          string dataType = Xml.GetXMLChunk(ref var, "DataType");
+          if (dataType == "Integer" && p.DataType == DATA_TYPE.Integer)
           {
-            p = parms.FindParmByName(name);
-            if (p is not null && p.AllowMultiple == PARM_ALLOW_MULTIPLE.Multiple)
-            {
-              p = p.Clone();
-              parms.Add(p);
-            }
+            long value = Xml.GetXMLChunkAsLong(ref var, "Value");
+            pv = new PARM_VAR(p, value);
+          }
+          else if (dataType == "Decimal" && p.DataType == DATA_TYPE.Decimal)
+          {
+            decimal value = Xml.GetXMLChunkAsDecimal(ref var, "Value");
+            pv = new PARM_VAR(p, value);
+          }
+          else if (dataType == "DropDownList" && p.DataType == DATA_TYPE.DropDownList)
+          {
+            string value = Xml.GetXMLChunk(ref var, "Value");
+            pv = new PARM_VAR(p, value);
+          }
+          else if (dataType == "String" && p.DataType == DATA_TYPE.String)
+          {
+            string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
+            pv = new PARM_VAR(p, value);
+          }
+          else if (dataType == "Object" && p.DataType == DATA_TYPE.Object)
+          {
+            string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
+            pv = new PARM_VAR(p, value);
+          }
+          else if (dataType == "Boolean" && p.DataType == DATA_TYPE.Boolean)
+          {
+            bool value = Xml.GetXMLChunkAsBool(ref var, "Value");
+            pv = new PARM_VAR(p, value);
           }
           else
           {
-            p = parms.FindParmByName(name);
-          }
-          lastParmName = name;
-
-          if (p != null)
-          {
-            string dataType = Xml.GetXMLChunk(ref parm, "DataType");
-            if (dataType == "Integer" && p.DataType == DATA_TYPE.Integer)
-            {
-              long value = Xml.GetXMLChunkAsLong(ref parm, "Value");
-              p.SetValue(value);
-            }
-            else if (dataType == "Decimal" && p.DataType == DATA_TYPE.Decimal)
-            {
-              decimal value = Xml.GetXMLChunkAsDecimal(ref parm, "Value");
-              p.SetValue(value);
-            }
-            else if (dataType == "DropDownList" && p.DataType == DATA_TYPE.DropDownList)
-            {
-              string value = Xml.GetXMLChunk(ref parm, "Value");
-              p.SetValue(value);
-            }
-            else if ((dataType == "String" && p.DataType == DATA_TYPE.String) || (dataType == "Object" && p.DataType == DATA_TYPE.Object) || (dataType == "Block" && p.DataType == DATA_TYPE.Block)) //Object data types are just strings under the covers, they just hold the varialble name
-            {
-              string value = Xml.GetXMLChunk(ref parm, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
-              p.SetValue(value);
-            }
-            else if (dataType == "Boolean" && p.DataType == DATA_TYPE.Boolean)
-            {
-              bool value = Xml.GetXMLChunkAsBool(ref parm, "Value");
-              p.SetValue(value);
-            }
-            string lit = Xml.GetXMLChunk(ref parm, "Literal");
-            p.ParmLiteral = System.Enum.Parse<PARM_L_OR_V>(lit, true);
+            throw new ExceptionFlowLoad(String.Format("Unknown Datatype [{0}] for parameter [{1}] in flow [{2}]", dataType, name, this.FileName));
           }
         }
-      } while (parm.Length > 0);
+        else //Variable
+        {
+          string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
+          pv = new PARM_VAR(p, new VarRef(value));
+        }
+        parmVars.Add(pv);
+      } while (var.Length > 0) ;
+
+      //TODO: Check that all required parameters have been assigned to
     }
 
     private void ParseLinks(FunctionStep function)

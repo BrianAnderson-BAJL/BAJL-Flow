@@ -654,6 +654,17 @@ namespace Core
       return ReturnValue;
     }
 
+    public static string GetXMLChunkBeforeTag(ref string XML, string Tag)
+    {
+      string ReturnValue = "";
+      int StartPos = (int)XML.IndexOf("<" + Tag + ">", StringComparison.OrdinalIgnoreCase);
+      if (StartPos < 0)
+        return "";
+      ReturnValue = XML.Substring(0, StartPos - 1);
+      XML = XML.Substring(StartPos);
+      return ReturnValue;
+    }
+
     /// <summary>
     /// Retrieve an XML value that can be Base 64 encoded (HTML or XML stored in XML, or similar)
     /// </summary>
@@ -669,7 +680,7 @@ namespace Core
     }
 
 
-      public static string GetXMLChunk(ref string XML, string Tag)
+    public static string GetXMLChunk(ref string XML, string Tag, string? ParentTag = null)
     {
       string ReturnValue = "";
 
@@ -680,8 +691,15 @@ namespace Core
       {
         return "";
       }
-      EndPos = (int)XML.IndexOf("</" + Tag + ">", StartPos, StringComparison.OrdinalIgnoreCase);
+      //EndPos = (int)XML.IndexOf("</" + Tag + ">", StartPos, StringComparison.OrdinalIgnoreCase);
+      EndPos = FindCorrectEndTagIndex(ref XML, StartPos + 1, Tag);
 
+      if (ParentTag is not null)
+      {
+        int ParentTagPos = XML.IndexOf("<" + ParentTag + ">", StringComparison.OrdinalIgnoreCase);
+        if (ParentTagPos != -1 && ParentTagPos < StartPos) //We have found a recursive tag, lets exit
+          return "";
+      }
 
       if ((StartPos > -1) && (EndPos > -1))
       {
@@ -693,6 +711,35 @@ namespace Core
         XML = StartCharacters + EndCharacters;
       }
       return ReturnValue;
+    }
+
+    public static int FindCorrectEndTagIndex(ref string XML, int StartPos, string Tag)
+    {
+      string startTag = "<" + Tag + ">";
+      string endTag = "</" + Tag + ">";
+
+      int count = 0;
+      int start = XML.IndexOf(startTag, StartPos, StringComparison.OrdinalIgnoreCase);
+      int end = XML.IndexOf(endTag, StartPos, StringComparison.OrdinalIgnoreCase);
+      if (start == -1 || start > end)
+        return end;
+      while (start < end)
+      {
+        count++;
+        StartPos = start + 1;
+        start = XML.IndexOf(startTag, StartPos, StringComparison.OrdinalIgnoreCase);
+      }
+      end = start;
+      while (count > 0)
+      {
+        count--;
+        StartPos = end + 1;
+        start = XML.IndexOf(startTag, StartPos, StringComparison.OrdinalIgnoreCase);
+        end = XML.IndexOf(endTag, StartPos, StringComparison.OrdinalIgnoreCase);
+        if (start < end)
+          count++;
+      }
+      return end;
     }
 
   }

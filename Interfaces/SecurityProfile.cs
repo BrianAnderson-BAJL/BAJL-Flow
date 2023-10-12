@@ -60,6 +60,13 @@ namespace Core
         case Packet.PACKET_TYPE.SecurityProfileAdd:
         case Packet.PACKET_TYPE.SecurityProfileDelete:
           rc = AdministrationSecurityProfiles >= SECURITY_ACCESS_LEVEL.Full; break;
+
+        case Packet.PACKET_TYPE.FlowsGet:
+        case Packet.PACKET_TYPE.FlowOpen:
+          rc = AdministrationFlows >= SECURITY_ACCESS_LEVEL.Readonly; break;
+        case Packet.PACKET_TYPE.FlowSave:
+          rc = AdministrationFlows >= SECURITY_ACCESS_LEVEL.Full; break;
+
         default:
           rc = false;
           break;

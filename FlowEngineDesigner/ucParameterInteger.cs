@@ -13,17 +13,18 @@ namespace FlowEngineDesigner
 {
   public partial class ucParameterInteger : ucParameter
   {
-    private PARM_Integer mParm;
-    public ucParameterInteger(PARM_Integer parm)
+    private PARM_VAR mParmVar;
+    public ucParameterInteger(PARM_VAR parmVar)
     {
       InitializeComponent();
-      mParm = parm;
-      txtKey.Text = mParm.Name;
-      txtDataType.Text = mParm.DataType.ToString();
-      nudValue.Minimum = mParm.Min;
-      nudValue.Maximum = mParm.Max;
-      nudValue.Increment = mParm.Increment;
-      nudValue.Value = mParm.Value;
+      mParmVar = parmVar;
+      txtKey.Text = mParmVar.Parm.Name;
+      txtDataType.Text = mParmVar.Parm.DataType.ToString();
+      //nudValue.Minimum = mParmVar.Parm.Min;
+      //nudValue.Maximum = mParmVar.Parm.Max;
+      //nudValue.Increment = mParmVar.Parm.Increment;
+      mParmVar.GetValue(out long val);
+      nudValue.Value = val;
     }
 
     private void ucParameterInteger_Load(object sender, EventArgs e)
@@ -32,7 +33,7 @@ namespace FlowEngineDesigner
     }
     public override void UpdateValues()
     {
-      mParm.Value = (long)nudValue.Value;
+      mParmVar.SetVariableLiteral((long)nudValue.Value);
     }
   }
 }

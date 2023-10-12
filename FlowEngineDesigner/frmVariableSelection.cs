@@ -14,24 +14,25 @@ namespace FlowEngineDesigner
   public partial class frmVariableSelection : Form
   {
     cFlowWrapper Flow;
-    PARM Parm;
+    PARM_VAR ParmVar;
     FunctionStep? Step;
-    public frmVariableSelection(PARM parm, FunctionStep? step, cFlowWrapper flow)
+    public frmVariableSelection(PARM_VAR parmVar, FunctionStep? step, cFlowWrapper flow)
     {
       Flow = flow;
-      Parm = parm;
+      ParmVar = parmVar;
       Step = step;
       InitializeComponent();
 
-      this.Text = "Variable [" + Parm.Name + "]";
+      this.Text = "Variable [" + ParmVar.Parm.Name + "]";
     }
 
     private void VariableSelection_Load(object sender, EventArgs e)
     {
       LoadVariables();
-      if (Parm.ParmLiteral == PARM.PARM_L_OR_V.Variable)
+      if (ParmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Variable)
       {
-        string? val = PARM.GetValueAsString(Parm);
+
+        string? val = ParmVar.VariableName;
         string[] varNames = val!.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
         if (varNames.Length > 0)
         {
@@ -118,8 +119,8 @@ namespace FlowEngineDesigner
 
     private void tvVariables_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
     {
-      Parm.SetValue(GetSelectedVariableName());
-      Parm.ParmLiteral = PARM.PARM_L_OR_V.Variable;
+      ParmVar.SetVarRef(GetSelectedVariableName());
+      ParmVar.ParmLiteralOrVariable = PARM_VAR.PARM_L_OR_V.Variable;
       this.DialogResult = DialogResult.OK;
       this.Close();
     }
@@ -131,8 +132,8 @@ namespace FlowEngineDesigner
 
     private void btnOk_Click(object sender, EventArgs e)
     {
-      Parm.SetValue(GetSelectedVariableName());
-      Parm.ParmLiteral = PARM.PARM_L_OR_V.Variable;
+      ParmVar.SetVarRef(GetSelectedVariableName());
+      ParmVar.ParmLiteralOrVariable = PARM_VAR.PARM_L_OR_V.Variable;
       this.DialogResult = DialogResult.OK;
       this.Close();
     }

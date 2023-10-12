@@ -32,6 +32,7 @@ namespace Core
     }
 
     public string Name = "";
+    public string VarName = "";
     public string Tooltip = "";
     public DATA_TYPE DataType = DATA_TYPE.String;
     public PARM_REQUIRED Required = PARM_REQUIRED.Yes;
@@ -72,6 +73,11 @@ namespace Core
         return ps.Value.ToString();
       }
       return "";
+    }
+
+    public virtual Variable Resolve()
+    {
+      throw new NotImplementedException();
     }
 
   }

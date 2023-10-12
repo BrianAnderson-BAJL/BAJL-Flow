@@ -58,7 +58,7 @@ namespace FlowEngineDesigner
       Flow.StartPlugin = cmbPlugins.SelectedItem as Core.Plugin;
       if (Flow.StartPlugin != null)
       {
-        Flow.StartCommands = Flow.StartPlugin.FlowStartCommands.Clone();
+        Flow.StartCommands = Flow.StartPlugin.FlowStartCommands.ToParmVars();
       }
       AddFlowStartCommands();
     }
@@ -80,37 +80,37 @@ namespace FlowEngineDesigner
       for (int x = 0; x < Flow.StartCommands.Count; x++)
       {
 
-        PARM p = Flow.StartCommands[x];
+        PARM_VAR parmVar = Flow.StartCommands[x];
 
 
-        PARM_Integer? ParmInt = p as PARM_Integer;
-        if (ParmInt != null)
+        if (parmVar.Parm.DataType == DATA_TYPE.Integer)
         {
-          ucParameterInteger uc = new ucParameterInteger(ParmInt);
+          ucParameterInteger uc = new ucParameterInteger(parmVar);
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
           uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
           gbStartOptions.Controls.Add(uc);
           userControls.Add(uc);
         }
-        PARM_Various? ParmStr = p as PARM_Various;
-        if (ParmStr != null)
+        if (parmVar.Parm.DataType == DATA_TYPE.String || parmVar.Parm.DataType == DATA_TYPE.Object)
         {
-          ucParameterString uc = new ucParameterString(ParmStr, null, Flow);
+          ucParameterString uc = new ucParameterString(parmVar, null, Flow);
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
           uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
           gbStartOptions.Controls.Add(uc);
           userControls.Add(uc);
 
         }
-        PARM_Decimal? ParmDec = p as PARM_Decimal;
-        if (ParmDec != null)
+        if (parmVar.Parm.DataType == DATA_TYPE.Decimal)
         {
           //txtValue.Text = ParmDec.Value.ToString();
         }
-        PARM_DropDownList? ParmDdl = p as PARM_DropDownList;
-        if (ParmDdl != null)
+        if (parmVar.Parm.DataType == DATA_TYPE.Boolean)
         {
-          ucParameterDropDownList uc = new ucParameterDropDownList(ParmDdl);
+          
+        }
+        if (parmVar.Parm.DataType == DATA_TYPE.DropDownList)
+        {
+          ucParameterDropDownList uc = new ucParameterDropDownList(parmVar);
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
           uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
           gbStartOptions.Controls.Add(uc);

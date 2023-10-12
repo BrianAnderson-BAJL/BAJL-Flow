@@ -20,6 +20,9 @@ namespace Http
     private const string PARM_CONNECTION_HANDLE = "connection_handle";
     private const string PARM_DATA_FORMAT = "data_format";
 
+    private const string PARM_DATA_FORMAT_RAW = "RAW";
+    private const string PARM_DATA_FORMAT_JSON = "JSON";
+    private const string PARM_DATA_FORMAT_XML = "XML";
     private const string VAR_HEADERS = "headers";
 
 
@@ -48,24 +51,24 @@ namespace Http
       //FUNCTIONS
       {
         Function f = new Function("Connect", this, Connect);
-        f.Parms.Add(PARM_URL, "");
-        f.Parms.Add("Port", 443);
-        f.Parms.Add("Timeout in ms", 5000);
+        f.Parms.Add(PARM_URL, DATA_TYPE.String, "");
+        f.Parms.Add("Port", DATA_TYPE.Integer, "443");
+        f.Parms.Add("Timeout in ms", DATA_TYPE.Integer, "5000");
         f.DefaultSaveResponseVariable = true;
         f.RespNames = new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
         Functions.Add(f); //Connect
         f = new Function("Send", this, Send);
         f.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
-        f.Parms.Add(Flow.VAR_DATA, "");
-        PARM_DropDownList pddl = new PARM_DropDownList(PARM_DATA_FORMAT, PARM.PARM_REQUIRED.Yes, "JSON");
-        pddl.OptionAdd("RAW");
-        pddl.OptionAdd("JSON");
-        pddl.OptionAdd("XML");
+        f.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String, "");
+        PARM2 pddl = new PARM2(PARM_DATA_FORMAT, DATA_TYPE.DropDownList, PARM_DATA_FORMAT_JSON, PARM2.PARM_REQUIRED.Yes);
+        pddl.OptionAdd(PARM_DATA_FORMAT_RAW);
+        pddl.OptionAdd(PARM_DATA_FORMAT_JSON);
+        pddl.OptionAdd(PARM_DATA_FORMAT_XML);
         f.Parms.Add(pddl);
         Functions.Add(f); //Send
         f = new Function("Receive", this, Receive);
-        f.Parms.Add(PARM_CONNECTION_HANDLE, "");
-        f.Parms.Add("Timeout in ms", 10000);
+        f.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
+        f.Parms.Add("Timeout in ms", DATA_TYPE.Integer, "10000");
         f.DefaultSaveResponseVariable = true;
         f.RespNames = new Variable(Flow.VAR_REQUEST);
         f.RespNames.Add(new Variable(VAR_HEADERS));
@@ -75,11 +78,11 @@ namespace Http
         f.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
         Functions.Add(f); //Disconnect
         f = new Function("ConnectSendReceiveDisconnect", this, ConnectSendReceiveDisconnect);
-        f.Parms.Add(PARM_URL, "");
-        f.Parms.Add("Port", 443);
-        f.Parms.Add(Flow.VAR_DATA, "");
-        f.Parms.Add("Connect Timeout in ms", 5000);
-        f.Parms.Add("Receive Timeout in ms", 10000);
+        f.Parms.Add(PARM_URL, DATA_TYPE.String, "");
+        f.Parms.Add("Port", DATA_TYPE.Integer, "443");
+        f.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String, "");
+        f.Parms.Add("Connect Timeout in ms", DATA_TYPE.Integer, "5000");
+        f.Parms.Add("Receive Timeout in ms", DATA_TYPE.Integer, "10000");
         f.DefaultSaveResponseVariable = true;
         f.RespNames = new Variable(Flow.VAR_REQUEST);
         f.RespNames.Add(new Variable(VAR_HEADERS));
@@ -90,14 +93,15 @@ namespace Http
 
       //FLOW START COMMANDS
       {
-        FlowStartCommands.Add(PARM_URL, "/");
-        PARM_DropDownList pddl = new PARM_DropDownList(PARM_METHOD, PARM.PARM_REQUIRED.Yes, "GET");
+        FlowStartCommands.Add(PARM_URL, DATA_TYPE.String, "/");
+        
+        PARM2 pddl = new PARM2(PARM_METHOD, DATA_TYPE.DropDownList, "GET");
         pddl.OptionAdd("GET");
         pddl.OptionAdd("POST");
         pddl.OptionAdd("PUT");
         pddl.OptionAdd("DELETE");
         FlowStartCommands.Add(pddl);
-        FlowStartCommands.Add(PARM_HOST, "");
+        FlowStartCommands.Add(PARM_HOST, DATA_TYPE.String, "");
       }
       //FLOW START COMMANDS
 
@@ -248,17 +252,23 @@ namespace Http
       string url = uri.LocalPath.ToString();
       url = Options.FixUrl(url);
       Global.Write(String.Format("Http Looking for flow Url [{0}], method [{1}], host [{2}]", url, method, host));
-      for (int x = 0; x < Flows.Count; x++)
+      lock (mFlowsCriticalSection)
       {
-        Flow f = Flows[x];
-        PARM_Various? pUrl = f.StartCommands.FindParmByName(PARM_URL) as PARM_Various;
-        PARM_DropDownList? pMethod = f.StartCommands.FindParmByName(PARM_METHOD) as PARM_DropDownList;
-        PARM_Various? pHost = f.StartCommands.FindParmByName(PARM_HOST) as PARM_Various;
-        if (pUrl != null && pMethod != null && pHost != null)
+        for (int x = 0; x < Flows.Count; x++)
         {
-          if (Options.FixUrl(pUrl.Value) == url && pMethod.Value == method && HostsMatch(pHost.Value, host) == true)
+          Flow f = Flows[x];
+          PARM_VAR? pUrl = f.StartCommands.FindByParmName(PARM_URL);
+          PARM_VAR? pMethod = f.StartCommands.FindByParmName(PARM_METHOD);
+          PARM_VAR? pHost = f.StartCommands.FindByParmName(PARM_HOST);
+          if (pUrl is not null && pMethod is not null && pHost is not null)
           {
-            result.Add(f);
+            pUrl.GetValue(out string flowUrl, f);
+            pMethod.GetValue(out string flowMethod, f);
+            pHost.GetValue(out string flowHost, f);
+            if (Options.FixUrl(flowUrl) == url && flowMethod == method && HostsMatch(flowHost, host) == true)
+            {
+              result.Add(f);
+            }
           }
         }
       }
@@ -321,28 +331,29 @@ namespace Http
     /// <param name="Parms 1">"data"</param>
     /// <param name="Resps">Output Index 0 = SUCCESS</param>
     /// <param name="Resps">Output Index 1 = ERROR</param>
-    public static RESP Send(PARMS Parms)
+    public static RESP Send(Variable[] vars)
     {
       Global.Write("Http.Send");
-      if (Parms.Count != 3)
-        return RESP.SetError(1, "Missing parameters");
 
-      HttpListenerContext? context = Parms.ResolveObjectValue(PARM_CONNECTION_HANDLE) as HttpListenerContext;
-      string? dataformat = Parms.ResolveDropDownListValue(PARM_DATA_FORMAT);
-      Variable? data = Parms.ResolveVariable("data");
+      vars[0].GetValue(out object obj);
+      Variable data = vars[1];
+      vars[2].GetValue(out string dataformat);
+      HttpListenerContext? context = obj as HttpListenerContext;
+
       if (context is null)
         return RESP.SetError(1, String.Format("Unable to resolve [{0}] parameter", PARM_CONNECTION_HANDLE));
       if (data is null)
         return RESP.SetError(1, "Unable to resolve [data] parameter");
-      if (dataformat is null)
-        return RESP.SetError(1, String.Format("Unable to resolve [{0}] parameter", PARM_DATA_FORMAT));
+      if (dataformat != PARM_DATA_FORMAT_XML && dataformat != PARM_DATA_FORMAT_RAW && dataformat != PARM_DATA_FORMAT_JSON)
+        return RESP.SetError(1, String.Format("Unknown data format [{0}] for parameter [{1}]", dataformat, PARM_DATA_FORMAT));
 
       string rawData = "";
-      if (dataformat == "JSON")
+      if (dataformat == PARM_DATA_FORMAT_JSON)
         rawData = data.JsonCreate(true);
-      else if (dataformat == "XML")
-        rawData = ""; //TODO: Handle XML Data
-
+      else if (dataformat == PARM_DATA_FORMAT_XML)
+        throw new NotImplementedException();
+      else if (dataformat == PARM_DATA_FORMAT_RAW)
+        throw new NotImplementedException();
 
       HttpListenerResponse response = context.Response;
       response.Headers.Clear();

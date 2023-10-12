@@ -23,7 +23,7 @@ namespace FlowEngineDesigner
       InitializeComponent();
       mStep = step;
       mFlow = flow;
-      userControls = new List<UserControl>(mStep.parms.Count);
+      userControls = new List<UserControl>(mStep.ParmVars.Count);
 
     }
 
@@ -32,12 +32,12 @@ namespace FlowEngineDesigner
       txtSaveResponseName.Text = mStep.RespNames.Name;
       chkSaveResponse.Checked = mStep.SaveResponseVariable;
       txtType.Text = mStep.Name;
-      for (int x = 0; x < mStep.parms.Count; x++)
+      for (int x = 0; x < mStep.ParmVars.Count; x++)
       {
 
-        PARM p = mStep.parms[x];
+        PARM_VAR pv = mStep.ParmVars[x];
 
-        ucParameter? uc = CreateParameterInput(p);
+        ucParameter? uc = CreateParameterInput(pv);
         if (uc != null)
         {
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
@@ -47,7 +47,7 @@ namespace FlowEngineDesigner
           userControls.Add(uc);
         }
 
-        if (uc is not null && p.AllowMultiple == PARM.PARM_ALLOW_MULTIPLE.Multiple && x == mStep.parms.Count - 1)
+        if (uc is not null && pv.Parm.AllowMultiple == PARM2.PARM_ALLOW_MULTIPLE.Multiple && x == mStep.ParmVars.Count - 1)
         {
           btnAddParameter.Visible = true;
           btnAddParameter.Location = new Point(StartX, StartY + (uc.Size.Height * (x + 1)) + 5);
@@ -59,28 +59,24 @@ namespace FlowEngineDesigner
       }
     }
 
-    private ucParameter? CreateParameterInput(PARM p)
+    private ucParameter? CreateParameterInput(PARM_VAR pv)
     {
-      PARM_Integer? ParmInt = p as PARM_Integer;
       ucParameter? uc = null;
-      if (ParmInt != null)
+      if (pv.Parm.DataType == DATA_TYPE.Integer)
       {
-        uc = new ucParameterInteger(ParmInt);
+        uc = new ucParameterInteger(pv);
       }
-      PARM_Various? ParmStr = p as PARM_Various;
-      if (ParmStr != null)
+      else if (pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.Object)
       {
-        uc = new ucParameterString(ParmStr, mStep, mFlow);
+        uc = new ucParameterString(pv, mStep, mFlow);
       }
-      PARM_Decimal? ParmDec = p as PARM_Decimal;
-      if (ParmDec != null)
+      else if (pv.Parm.DataType == DATA_TYPE.Decimal)
       {
 
       }
-      PARM_DropDownList? ParmDdl = p as PARM_DropDownList;
-      if (ParmDdl != null)
+      else if (pv.Parm.DataType == DATA_TYPE.DropDownList)
       {
-        uc = new ucParameterDropDownList(ParmDdl);
+        uc = new ucParameterDropDownList(pv);
       }
       return uc;
     }
@@ -116,9 +112,9 @@ namespace FlowEngineDesigner
 
     private void btnAddParameter_Click(object sender, EventArgs e)
     {
-      PARM p = mStep.parms[mStep.parms.Count - 1]; //Get the last parameter
+      PARM_VAR p = mStep.ParmVars[mStep.ParmVars.Count - 1]; //Get the last parameter
       p = p.Clone();
-      mStep.parms.Add(p);
+      mStep.ParmVars.Add(p);
       ucParameter? uc = CreateParameterInput(p);
       if (uc != null)
       {

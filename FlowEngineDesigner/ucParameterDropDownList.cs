@@ -15,15 +15,15 @@ namespace FlowEngineDesigner
   {
     Core.FunctionStep? Step;
     Core.Flow? Flow;
-    Core.PARM_DropDownList Parm;
-    public ucParameterDropDownList(Core.PARM_DropDownList parm)
+    Core.PARM_VAR ParmVar;
+    public ucParameterDropDownList(Core.PARM_VAR parmVar)
     {
-      Parm = parm;
+      ParmVar = parmVar;
       InitializeComponent();
     }
-    public ucParameterDropDownList(Core.PARM_DropDownList parm, Core.FunctionStep step, Core.Flow flow)
+    public ucParameterDropDownList(Core.PARM_VAR parmVar, Core.FunctionStep step, Core.Flow flow)
     {
-      Parm = parm;
+      ParmVar = parmVar;
       Step = step;
       Flow = flow;
       InitializeComponent();
@@ -31,26 +31,28 @@ namespace FlowEngineDesigner
 
     private void ucParameterDropDownList_Load(object sender, EventArgs e)
     {
-      txtKey.Text = Parm.Name;
-      txtDataType.Text = Parm.DataType.ToString();
+      txtKey.Text = ParmVar.Parm.Name;
+      txtDataType.Text = ParmVar.Parm.DataType.ToString();
       cmbItems.Items.Clear();
-      for (int x = 0; x < Parm.Options.Count; x++)
+      if (ParmVar.Parm.Options is not null)
       {
-        cmbItems.Items.Add(Parm.Options[x]);
-        if (Parm.Value == Parm.Options[x])
+        ParmVar.GetValue(out string currentVal);
+        for (int x = 0; x < ParmVar.Parm.Options.Count; x++)
         {
-          cmbItems.SelectedIndex = x;
+          cmbItems.Items.Add(ParmVar.Parm.Options[x]);
+          if (currentVal == ParmVar.Parm.Options[x])
+          {
+            cmbItems.SelectedIndex = x;
+          }
         }
       }
     }
 
     public override void UpdateValues()
     {
-      if (cmbItems.SelectedItem != null)
+      if (cmbItems.SelectedItem is not null)
       {
-#pragma warning disable CS8601 // Possible null reference assignment. It seems like Visual studio is fucking up here, there is zero chance of it being null, but the warning won't go away, so I'm supressing it
-        Parm.Value = cmbItems.SelectedItem.ToString();
-#pragma warning restore CS8601 // Possible null reference assignment.
+        ParmVar.SetVariableLiteral(cmbItems.SelectedItem.ToString()!);
       }
     }
 

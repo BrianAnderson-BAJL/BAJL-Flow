@@ -146,7 +146,7 @@
       txtLoginId.Name = "txtLoginId";
       txtLoginId.Size = new Size(224, 23);
       txtLoginId.TabIndex = 18;
-      txtLoginId.Text = "Jleung";
+      txtLoginId.Text = "Banderson";
       txtLoginId.TextChanged += txtLoginId_TextChanged;
       // 
       // frmServerConnect

@@ -42,3 +42,4 @@ C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windo
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmAdministrationUserChangePassword.resources
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmAdministrationSecurityProfiles.resources
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmAdministrationSecurityProfileProperties.resources
+C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmAdministrationFile.resources

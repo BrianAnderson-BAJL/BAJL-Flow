@@ -29,8 +29,7 @@ namespace Core.Administration
       Processors.Add(Packet.PACKET_TYPE.SecurityProfileAdd, ProcessSecurityProfileAdd);
       Processors.Add(Packet.PACKET_TYPE.SecurityProfileEdit, ProcessSecurityProfileEdit);
       Processors.Add(Packet.PACKET_TYPE.SecurityProfileDelete, ProcessSecurityProfileDelete);
-      
-
+      Processors.Add(Packet.PACKET_TYPE.FlowsGet, ProcessFlowsGet);
 
     }
 
@@ -297,5 +296,50 @@ namespace Core.Administration
       BaseResponse response = new BaseResponse(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileDeleteResponse);
       client.Send(response.GetPacket());
     }
+    private static void ProcessFlowsGet(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      FlowsGet data = new FlowsGet(packet);
+      string path = Options.GetFullPath(Options.FlowPath);
+      string relativePath = "";
+      Xml xml = new Xml();
+      xml.WriteMemoryNew();
+      xml.WriteTagStart("Directories");
+      WriteSubDirectory(path, relativePath, xml, 0);
+      xml.WriteTagEnd("Directories");
+      string flowsXml = xml.ReadMemory();
+      FlowsGetResponse response = new FlowsGetResponse(packet.PacketId, flowsXml);
+      client.Send(response.GetPacket());
+    }
+
+    private static void WriteSubDirectory(string path, string relativePath, Xml xml, int depth)
+    {
+      xml.WriteTagStart("Directory" + depth.ToString()); //Adding depth to the Directory tag to make my XML parsing easier, cheap hack! //TODO: Fix the cheesy/cheap XML hack with a real XML parser
+      xml.WriteTagAndContents("Path", relativePath);
+      string[] files = Directory.GetFiles(path, "*.flow");
+      for (int y = 0; y < files.Length; y++)
+      {
+        Flow flow = new Flow();
+        flow.XmlRead(files[y], Flow.READ_TIL.TilSteps);
+        xml.WriteTagStart("File");
+        xml.WriteTagAndContents("FileName", Path.GetFileName(files[y]));
+        xml.WriteTagAndContents("ModifiedDateTime", flow.ModifiedLastDateTime);
+        if (flow.StartPlugin is not null)
+          xml.WriteTagAndContents("PluginStarting", flow.StartPlugin.Name);
+        xml.WriteTagAndContents("StartCommands", flow.FormatStartCommands());
+        xml.WriteTagEnd("File");
+      }
+
+      if (Options.FlowPathAllowSubDirectories == true)
+      {
+        string[] dirs = Directory.GetDirectories(path);
+        for (int x = 0; x < dirs.Length; x++)
+        {
+          string strippedPath = Global.StripOff(path, dirs[x]);
+          WriteSubDirectory(path + "/" + strippedPath, relativePath + "/" + strippedPath, xml, depth + 1);
+        }
+      }
+      xml.WriteTagEnd("Directory" + depth.ToString());
+    }
+
   }
 }

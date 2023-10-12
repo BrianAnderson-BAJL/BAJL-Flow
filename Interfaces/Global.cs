@@ -11,14 +11,13 @@ namespace Core
   public enum DATA_TYPE
   {
     _None,
-    Object,
+    Object,  //Could be a connection handle, or other custom object
     String,
     Integer,
     Decimal,
     Boolean,
     Color,
     DropDownList,
-    DropDownAllowCustom,
     Block, //Json or XML block of elements
     Array, //Json array
   }
@@ -56,6 +55,11 @@ namespace Core
     public static void Write(string val, params string[] otherVals)
     {
       Console.WriteLine(String.Format(val, otherVals));
+    }
+
+    public static string StripOff(string rootPath, string path)
+    {
+      return path.Substring(rootPath.Length + 1);
     }
   }
 
@@ -110,6 +114,7 @@ namespace Core
       }
       return Found;
     }
+
 
   }
 

@@ -17,6 +17,12 @@ namespace FlowEngineDesigner
     ReadOnly,
   }
 
+  public enum FILE_MODE
+  {
+    Open,
+    Save,
+  }
+
   internal class Global
   {
 

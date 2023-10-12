@@ -185,5 +185,12 @@ namespace FlowEngineDesigner
       frmAdministrationUserProperties f = new frmAdministrationUserProperties(FORM_MODE.ReadOnly, cServer.UserLoggedIn);
       f.Show();
     }
+
+    private void flowOpenToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Open);
+      f.Show();
+    }
+
   }
 }

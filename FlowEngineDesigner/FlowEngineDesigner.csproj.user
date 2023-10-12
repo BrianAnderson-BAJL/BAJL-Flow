@@ -4,6 +4,9 @@
   <ItemGroup />
   <ItemGroup />
   <ItemGroup>
+    <Compile Update="frmAdministrationFile.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Update="frmAdministrationSecurityProfileProperties.cs">
       <SubType>Form</SubType>
     </Compile>

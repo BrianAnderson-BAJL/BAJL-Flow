@@ -48,5 +48,17 @@ namespace Core
     {
       Value = (long)value;
     }
+
+    //public virtual Variable Resolve()
+    //{
+    //  if (this.ParmLiteral == PARM_L_OR_V.Literal)
+    //  {
+    //    return new VariableInteger(this.Value);
+    //  }
+    //  else
+    //  {
+    //  }
+    //}
+
   }
 }

@@ -154,7 +154,7 @@ namespace FlowEngineDesigner
       Core.Function function = Core.PluginManager.FindFunctionByName(name);
       Core.FunctionStep step = new FunctionStep(this, getNextId(), name, pos);
       step.Function = function;
-      step.parms = step.Function.Parms.Clone();
+      step.ParmVars = step.Function.Parms.ToParmVars();
 
       step.ExtraValues[Global.EXTRA_VALUE_IMAGE] = new Bitmap(cOptions.GetFullPath(cOptions.PluginGraphicsPath) + name + ".png");
 
@@ -634,7 +634,7 @@ namespace FlowEngineDesigner
       {
         xml.WriteTagAndContents("StartPlugin", "");
       }
-      XmlWriteParms(xml, StartCommands);
+      XmlWriteVariables(xml, StartCommands);
       xml.WriteTagEnd("StartCommands");
 
       for (int x = 0; x < functionSteps.Count; x++)
@@ -647,28 +647,44 @@ namespace FlowEngineDesigner
       xml.WriteFileClose();
     }
 
-    private void XmlWriteParms(Xml xml, PARMS parms)
+    private void XmlWriteVariables(Xml xml, PARM_VARS parms)
     {
       for (int x = 0; x < parms.Count; x++)
       {
-        xml.WriteTagStart("Parameter");
-        PARM parm = parms[x];
-        xml.WriteTagAndContents("Name", parm.Name);
-        xml.WriteTagAndContents("Literal", parm.ParmLiteral);
-        xml.WriteTagAndContents("DataType", parm.DataType);
-        PARM_Integer? ParmInt = parm as PARM_Integer;
-        if (ParmInt != null)
-          xml.WriteTagAndContents("Value", ParmInt.Value);
-        PARM_Decimal? ParmDec = parm as PARM_Decimal;
-        if (ParmDec != null)
-          xml.WriteTagAndContents("Value", ParmDec.Value);
-        PARM_DropDownList? ParmDd = parm as PARM_DropDownList;
-        if (ParmDd != null)
-          xml.WriteTagAndContents("Value", ParmDd.Value);
-        PARM_Various? ParmStr = parm as PARM_Various;
-        if (ParmStr != null)
-          xml.WriteTagAndContents("Value", ParmStr.Value, Xml.BASE_64_ENCODE.Encoded);
-        xml.WriteTagEnd("Parameter");
+        xml.WriteTagStart("Variable");
+        PARM_VAR pv = parms[x];
+        xml.WriteTagAndContents("Name", pv.Parm.Name);
+        xml.WriteTagAndContents("Literal", pv.ParmLiteralOrVariable);
+        xml.WriteTagAndContents("DataType", pv.Parm.DataType);
+
+        if (pv.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Variable)
+        {
+          xml.WriteTagAndContents("Value", pv.VariableName, Xml.BASE_64_ENCODE.Encoded); //Value will store the variable name if it a Variable
+        }
+        else if (pv.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal)
+        {
+          if (pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.DropDownList || pv.Parm.DataType == DATA_TYPE.Object)
+          {
+            pv.GetValue(out string val);
+            xml.WriteTagAndContents("Value", val, Xml.BASE_64_ENCODE.Encoded);
+          }
+          else if (pv.Parm.DataType == DATA_TYPE.Integer)
+          {
+            pv.GetValue(out long val);
+            xml.WriteTagAndContents("Value", val);
+          }
+          else if (pv.Parm.DataType == DATA_TYPE.Decimal)
+          {
+            pv.GetValue(out decimal val);
+            xml.WriteTagAndContents("Value", val);
+          }
+          else if (pv.Parm.DataType == DATA_TYPE.Boolean)
+          {
+            pv.GetValue(out bool val);
+            xml.WriteTagAndContents("Value", val);
+          }
+        }
+        xml.WriteTagEnd("Variable");
       }
 
     }
@@ -701,9 +717,9 @@ namespace FlowEngineDesigner
       xml.WriteTagAndContents("Position", step.Position);
       xml.WriteTagAndContents("SaveResponseVariable", step.SaveResponseVariable);
       xml.WriteTagAndContents("SaveResponseVariableName", step.RespNames.Name);
-      xml.WriteTagStart("Parameters");
-      XmlWriteParms(xml, step.parms);
-      xml.WriteTagEnd("Parameters");
+      xml.WriteTagStart("Variables");
+      XmlWriteVariables(xml, step.ParmVars);
+      xml.WriteTagEnd("Variables");
       xml.WriteTagStart("Links");
       for (int x = 0; x < step.LinkOutputs.Count; x++)
       {
@@ -729,9 +745,9 @@ namespace FlowEngineDesigner
     /// Append ExtraValues to FunctionStep (the images for the designer)
     /// </summary>
     /// <param name="fileName"></param>
-    public override void XmlRead(string fileName)
+    public override void XmlRead(string fileName, READ_TIL til = READ_TIL.All)
     {
-      base.XmlRead(fileName);
+      base.XmlRead(fileName, til);
       for (int x = 0; x < functionSteps.Count; x++)
       {
         FunctionStep step = functionSteps[x];

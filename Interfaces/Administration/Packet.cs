@@ -43,6 +43,12 @@ namespace Core.Administration
       SecurityProfileEditResponse,
       SecurityProfileDelete,
       SecurityProfileDeleteResponse,
+      FlowSave,
+      FlowSaveResponse,
+      FlowOpen,
+      FlowOpenResponse,
+      FlowsGet,
+      FlowsGetResponse,
     }
     private static int NextPacketId = 0;
     public PACKET_TYPE PacketType = PACKET_TYPE._Unknown;
@@ -107,11 +113,9 @@ namespace Core.Administration
         int length = BinaryPrimitives.ReadInt32BigEndian(temp);
 
         ReceiveData = br.ReadBytes(length);
-        short packetType;
-        GetData(out packetType);
+        GetData(out short packetType);
         PacketType = (PACKET_TYPE)packetType;
-        int val;
-        GetData(out val);
+        GetData(out int val);
         PacketId = val;
       }
     }
@@ -125,8 +129,7 @@ namespace Core.Administration
         int length = BinaryPrimitives.ReadInt32BigEndian(temp);
         ReceiveData = new byte[length];
         stream.Read(ReceiveData, 0, length);
-        short packetType;
-        GetData(out packetType);
+        GetData(out short packetType);
         PacketType = (PACKET_TYPE)packetType;
         int val;
         GetData(out val);
@@ -217,8 +220,7 @@ namespace Core.Administration
 
     public void GetData(out Core.Administration.Messages.BaseResponse.RESPONSE_CODE Val)
     {
-      int temp;
-      GetData(out temp);
+      GetData(out int temp);
       Val = (RESPONSE_CODE)temp;
     }
 
@@ -247,51 +249,41 @@ namespace Core.Administration
 
     public void GetData(out byte Val)
     {
-      Val = 0;
       Val = ReceiveData[mReadPosition];
       mReadPosition += 1;
     }
 
     public void GetData(out short Val)
     {
-      Val = 0;
-      byte[] temp;
-      GetData(out temp, sizeof(short));
+      GetData(out byte[] temp, sizeof(short));
       Val = BinaryPrimitives.ReadInt16BigEndian(temp);
       //mPosition was added to already in the GetData above.
     }
 
     public void PeekData(out int Val)
     {
-      Val = 0;
-      byte[] temp;
-      PeekData(out temp, sizeof(int));
+      PeekData(out byte[] temp, sizeof(int));
       Val = BinaryPrimitives.ReadInt32BigEndian(temp);
       //mPosition was added to already in the GetData above.
     }
 
     public void GetData(out int Val)
     {
-      Val = 0;
-      byte[] temp;
-      GetData(out temp, sizeof(int));
+      GetData(out byte[] temp, sizeof(int));
       Val = BinaryPrimitives.ReadInt32BigEndian(temp);
       //mPosition was added to already in the GetData above.
     }
 
     public void GetData(out long Val)
     {
-      Val = 0;
-      byte[] temp;
-      GetData(out temp, sizeof(long));
+      GetData(out byte[] temp, sizeof(long));
       Val = BinaryPrimitives.ReadInt64BigEndian(temp);
       //mPosition was added to already in the GetData above.
     }
 
     public void GetData(out DateTime Val)
     {
-      long ticks;
-      GetData(out ticks);
+      GetData(out long ticks);
       Val = new DateTime(ticks);
     }
 
@@ -303,8 +295,7 @@ namespace Core.Administration
       Val = 0;
       for (int x = 0; x < temp.Length; x++)
       {
-        byte[] tempData;
-        GetData(out tempData, size);
+        GetData(out byte[] tempData, size);
         temp[x] = BinaryPrimitives.ReadInt32BigEndian(tempData);
         //mPosition was added to already in the GetData above.
       }
@@ -315,8 +306,7 @@ namespace Core.Administration
     public void GetData(out string Val)
     {
       Val = "";
-      int Len;
-      GetData(out Len);
+      GetData(out int Len);
       Val = Encoding.UTF8.GetString(ReceiveData, mReadPosition, Len);
       mReadPosition += Len;
     }

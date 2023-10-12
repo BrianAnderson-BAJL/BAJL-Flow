@@ -14,6 +14,7 @@ namespace Core
     public static string PluginGraphicsPath = "./Plugins/Graphics/";
     public static string PluginStaticGraphicsPath = "./Plugins/StaticGraphics/";
     public static string FlowPath = @"C:\Users\brian\Documents";
+    public static bool FlowPathAllowSubDirectories = true;
     public static string UserPath = "./users.xml";
     public static string SecurityProfilesPath = "./securityProfiles.xml";
     public static bool FocusOnMouseEnter = true;
@@ -121,6 +122,7 @@ namespace Core
       PluginPath = Xml.GetXMLChunk(ref settings, "PluginPath");
       PluginGraphicsPath = Xml.GetXMLChunk(ref settings, "PluginGraphicsPath");
       FlowPath = Xml.GetXMLChunk(ref settings, "FlowPath");
+      FlowPathAllowSubDirectories = Xml.GetXMLChunkAsBool(ref settings, "FlowPathAllowSubDirectories", FlowPathAllowSubDirectories);
       FlowUserHistoryMax = Xml.GetXMLChunkAsInt(ref settings, "FlowUserHistoryMax");
 
       string adminXml = Xml.GetXMLChunk(ref settings, "Administration");
@@ -138,10 +140,10 @@ namespace Core
       Core.Xml xml = new Core.Xml();
       xml.WriteFileNew(SettingsPath);
       xml.WriteTagStart("Settings");
-
       xml.WriteTagAndContents("PluginPath", PluginPath);
       xml.WriteTagAndContents("PluginGraphicsPath", PluginGraphicsPath);
       xml.WriteTagAndContents("FlowPath", FlowPath);
+      xml.WriteTagAndContents("FlowPathAllowSubDirectories", FlowPathAllowSubDirectories);
       xml.WriteTagAndContents("FlowUserHistoryMax", FlowUserHistoryMax);
       xml.WriteTagAndContents("UserPath", UserPath);
       

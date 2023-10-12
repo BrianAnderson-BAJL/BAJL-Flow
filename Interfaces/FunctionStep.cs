@@ -14,12 +14,13 @@ namespace Core
     public string Name = "";
     public Function Function;
     public RESP resps = new RESP();
-    public PARMS parms = new PARMS();
+    //public PARMS parms = new PARMS();
     public List<Link> LinkOutputs = new List<Link>(2);
     public string LinkStr = "";
     public Dictionary<string, object> ExtraValues = new Dictionary<string, object>(); //This is only for the designer, in case they want to store some extra stuff with the step (step image data)
     public bool SaveResponseVariable = false;
     public Variable RespNames = new Variable();
+    public PARM_VARS ParmVars = new PARM_VARS();
 
     public FunctionStep(Flow flow, int id, string pluginName, string functionName, Vector2 pos, string linkStr)
     {
@@ -74,8 +75,20 @@ namespace Core
 
     public virtual RESP Execute(Core.Flow flow)
     {
-      parms.Flow = flow;
-      resps = Function.Execute(parms);
+      if (ParmVars.Count < Function.Parms.Count) //ParmVars could have more parameters than Function.Parms if one of them is multiple
+        return RESP.SetError(1, "Not enough parameters to execute step");
+
+      Variable[] vars = new Variable[ParmVars.Count];
+      for (int x = 0; x < ParmVars.Count; x++)
+      {
+        PARM_VAR pv = ParmVars[x];
+        pv.GetValue(out Variable? var, flow);
+        if (var is null)
+          return RESP.SetError(2, String.Format("Could not resolve variable [{0}]", pv.VariableName));
+        vars[x] = var;
+      }
+
+     resps = Function.Execute(vars);
       
       return resps;
     }
@@ -85,15 +98,11 @@ namespace Core
     {
       FunctionStep f = new FunctionStep(flow, this.Id, Name, Position);
       f.Name = Name;
-      f.parms = parms.Clone();
       f.Function = Function;
       f.RespNames.Name = RespNames.Name;
       f.SaveResponseVariable = SaveResponseVariable;
-      for (int x = 0; x < LinkOutputs.Count; x++)
-      {
-        Link link = LinkOutputs[x];
-        f.LinkAdd(flow, link.Output, link.Input);
-      }
+      f.LinkOutputs = this.LinkOutputs; //We don't need a deep copy of the links, they aren't modified
+      f.ParmVars = this.ParmVars.Clone();
       return f;
     }
   }
