@@ -18,22 +18,31 @@ namespace FlowEngineDesigner
 
     public static event EventHandler<TracerEventArgs>? Tracer;
 
-    public static void RaiseEventTracer(object sender, string data, BaseResponse.RESPONSE_CODE response)
+    public static void RaiseEventTracer(object sender, string data, BaseResponse.RESPONSE_CODE response, long ticks = 0)
     {
       TRACER_TYPE tracer = TRACER_TYPE.Information;
       if (response == BaseResponse.RESPONSE_CODE.AccessDenied)
         tracer = TRACER_TYPE.Warning;
       else if (response == BaseResponse.RESPONSE_CODE.Error)
         tracer = TRACER_TYPE.Error;
-      RaiseEventTracer(sender, data, tracer);
+      RaiseEventTracer(sender, data, tracer, ticks);
     }
 
-    public static void RaiseEventTracer(object sender, string data, TRACER_TYPE tracerType = TRACER_TYPE.Information)
+    public static void RaiseEventTracer(object sender, string data, TRACER_TYPE tracerType = TRACER_TYPE.Information, long ticks = 0, string xmlData = "")
     {
       if (Tracer != null)
       {
-        Tracer(sender, new TracerEventArgs(data, tracerType));
+        Tracer(sender, new TracerEventArgs(data, tracerType, xmlData, ticks));
       }
+    }
+
+    public static void RaiseEventTracer(Core.Administration.Packet packet)
+    {
+      if (packet.PacketType != Core.Administration.Packet.PACKET_TYPE.Trace)
+        return;
+
+      Core.Administration.Messages.TraceResponse trace = new TraceResponse(packet);
+      RaiseEventTracer("Flow Debug", trace.PreviousStepName, TRACER_TYPE.Information, trace.ExecutionTicks, trace.ResponseXml);
     }
   }
 
@@ -41,10 +50,14 @@ namespace FlowEngineDesigner
   {
     public string Trace;
     public cEventManager.TRACER_TYPE TracerType;
-    public TracerEventArgs(string trace, cEventManager.TRACER_TYPE tracerType)
+    public string XmlData = "";
+    public long Ticks = 0;
+    public TracerEventArgs(string trace, cEventManager.TRACER_TYPE tracerType, string xmlData = "", long ticks = 0)
     {
       Trace = trace;
       TracerType = tracerType;
+      XmlData = xmlData;
+      Ticks = ticks;
     }
   }
 }

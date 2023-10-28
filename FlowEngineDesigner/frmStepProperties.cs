@@ -32,6 +32,10 @@ namespace FlowEngineDesigner
       txtSaveResponseName.Text = mStep.RespNames.Name;
       chkSaveResponse.Checked = mStep.SaveResponseVariable;
       txtType.Text = mStep.Name;
+      if (mStep.ParmVars.Count == 0)
+      {
+        btnAddParameter.Visible = false;
+      }
       for (int x = 0; x < mStep.ParmVars.Count; x++)
       {
 
@@ -47,7 +51,7 @@ namespace FlowEngineDesigner
           userControls.Add(uc);
         }
 
-        if (uc is not null && pv.Parm.AllowMultiple == PARM2.PARM_ALLOW_MULTIPLE.Multiple && x == mStep.ParmVars.Count - 1)
+        if (uc is not null && pv.Parm.AllowMultiple == PARM.PARM_ALLOW_MULTIPLE.Multiple && x == mStep.ParmVars.Count - 1)
         {
           btnAddParameter.Visible = true;
           btnAddParameter.Location = new Point(StartX, StartY + (uc.Size.Height * (x + 1)) + 5);
@@ -64,7 +68,7 @@ namespace FlowEngineDesigner
       ucParameter? uc = null;
       if (pv.Parm.DataType == DATA_TYPE.Integer)
       {
-        uc = new ucParameterInteger(pv);
+        uc = new ucParameterInteger(pv, mStep, mFlow);
       }
       else if (pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.Object)
       {

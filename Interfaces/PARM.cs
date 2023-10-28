@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,7 +9,6 @@ namespace Core
 {
   public class PARM
   {
-    
 
     public enum PARM_REQUIRED
     {
@@ -22,64 +22,127 @@ namespace Core
       Multiple,
     }
 
-    /// <summary>
-    /// Is the parameter a literal or a variable
-    /// </summary>
-    public enum PARM_L_OR_V
+    public enum PARM_VALIDATION
     {
-      Literal,
-      Variable,
+      //String Validators
+      StringMaxLength,
+      StringMinLength,
+      StringDefaultValue,
+      //Integer/Decimal Validators
+      NumberMax,
+      NumberMin,
+      NumberDefaultValue,
+      NumberDecimalPlaces,
+      NumberIncrement,
     }
+
+    public enum PARM_RESOLVE_VARIABLES
+    {
+      Yes,
+      No,
+    }
+
 
     public string Name = "";
-    public string VarName = "";
-    public string Tooltip = "";
     public DATA_TYPE DataType = DATA_TYPE.String;
     public PARM_REQUIRED Required = PARM_REQUIRED.Yes;
-    public PARM_L_OR_V ParmLiteral = PARM_L_OR_V.Literal;
     public PARM_ALLOW_MULTIPLE AllowMultiple = PARM_ALLOW_MULTIPLE.Single; //If Multiple, this parameter can be duplicated to allow multiple values to be passed in.
-    //public Variable? Variable;
+    public PARM_RESOLVE_VARIABLES ResolveVariables = PARM_RESOLVE_VARIABLES.Yes;
+    public List<string>? Options = null; //For drop down list
+    public List<ParmValidator> Validators = new List<ParmValidator>();
 
-    public PARM()
+    public PARM(string parmName, DATA_TYPE dataType)
     {
-      DataType = DATA_TYPE.String;
+      Name = parmName;
+      DataType = dataType;
       Required = PARM_REQUIRED.Yes;
     }
-
-    public virtual PARM Clone()
+   
+    public PARM(string parmName, DATA_TYPE dataType, PARM_REQUIRED required = PARM_REQUIRED.Yes, PARM_ALLOW_MULTIPLE multiple = PARM_ALLOW_MULTIPLE.Single, PARM_RESOLVE_VARIABLES resolveVariables = PARM_RESOLVE_VARIABLES.Yes)
     {
-      return new PARM();
+      Name = parmName;
+      DataType = dataType;
+      Required = required;
+      AllowMultiple = multiple;
+      ResolveVariables = resolveVariables;
     }
 
-    public virtual void SetValue(object value)
+
+    public void OptionAdd(string option)
     {
+      if (DataType != DATA_TYPE.DropDownList)
+        throw new Exception(String.Format("DataType [{0}] is not 'DropDownList'", DataType.ToString()));
+      if (Options is null)
+        Options = new List<string>();
+      Options.Add(option);
     }
 
-    public virtual object GetValue()
+    public void ValidatorAdd(PARM_VALIDATION validator, decimal val)
     {
-      return "";
+      if (validator == PARM_VALIDATION.NumberDecimalPlaces && (val > 30 || val < 0))
+        throw new ArgumentException("ValidatorAdd - NumberDecimalPlaces must be between 0-30 (zero to thirty)");
+      Validators.Add(new ParmValidator(validator, val));
     }
 
-    public static string GetValueAsString(PARM parm)
+    public void ValidatorAdd(PARM_VALIDATION validator, string stringDefaultValue)
     {
-      PARM_Various? ps = parm as PARM_Various;
-      if (ps != null)
+      Validators.Add(new ParmValidator(stringDefaultValue));
+    }
+
+    public void ValidatorGetValue(PARM_VALIDATION validator, out decimal val)
+    {
+      if (validator == PARM_VALIDATION.StringMaxLength)
+        val = int.MaxValue;
+      else if (validator == PARM_VALIDATION.NumberMax)
+        val = long.MaxValue;
+      else if (validator == PARM_VALIDATION.NumberMin)
+        val = long.MinValue;
+      else if (validator == PARM_VALIDATION.NumberIncrement)
+        val = 1;
+      else
+        val = 0; //NumberDecimalPlaces, NumberDefaultValue both default to zero
+      ParmValidator? pv = FindValidator(validator);
+      if (pv is not null)
+        val = pv.Value;
+    }
+
+    public void ValidatorGetValue(PARM_VALIDATION validator, out string val)
+    {
+      val = "";
+
+      ParmValidator? pv = FindValidator(PARM_VALIDATION.StringDefaultValue);
+      if (pv is not null)
+        val = pv.StringDefaultValue;
+    }
+
+    private ParmValidator? FindValidator(PARM_VALIDATION validator)
+    {
+      for (int x = 0; x < Validators.Count; x++)
       {
-        return ps.Value;
+        if (Validators[x].Validator == validator)
+          return Validators[x];
       }
-      PARM_Integer? pi = parm as PARM_Integer;
-      if (ps != null)
-      {
-        return ps.Value.ToString();
-      }
-      return "";
+      return null;
     }
 
-    public virtual Variable Resolve()
+  }
+
+  public class ParmValidator
+  {
+    public PARM.PARM_VALIDATION Validator;
+    public string StringDefaultValue = "";
+    public decimal Value = 0;
+
+    public ParmValidator(PARM.PARM_VALIDATION validator, decimal val)
     {
-      throw new NotImplementedException();
+      this.Validator = validator;
+      Value = val;
     }
-
+    public ParmValidator(string defaultValue)
+    {
+      this.Validator = PARM.PARM_VALIDATION.StringDefaultValue;
+      StringDefaultValue = defaultValue;
+    }
   }
 
 }

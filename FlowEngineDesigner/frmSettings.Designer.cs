@@ -45,7 +45,7 @@
       lstSettings.GridLines = true;
       lstSettings.Location = new Point(2, 12);
       lstSettings.Name = "lstSettings";
-      lstSettings.Size = new Size(570, 399);
+      lstSettings.Size = new Size(642, 399);
       lstSettings.TabIndex = 0;
       lstSettings.UseCompatibleStateImageBehavior = false;
       lstSettings.View = View.Details;
@@ -56,7 +56,7 @@
       // chKey
       // 
       chKey.Text = "Key";
-      chKey.Width = 180;
+      chKey.Width = 240;
       // 
       // chDataType
       // 
@@ -71,7 +71,7 @@
       // btnOk
       // 
       btnOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      btnOk.Location = new Point(477, 449);
+      btnOk.Location = new Point(549, 449);
       btnOk.Name = "btnOk";
       btnOk.Size = new Size(86, 33);
       btnOk.TabIndex = 1;
@@ -83,7 +83,7 @@
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(575, 494);
+      ClientSize = new Size(647, 494);
       Controls.Add(btnOk);
       Controls.Add(lstSettings);
       Name = "frmSettings";

@@ -37,6 +37,9 @@ namespace FlowEngineDesigner
       if (ParmVar.Parm.Options is not null)
       {
         ParmVar.GetValue(out string currentVal);
+        if (currentVal is null || currentVal == "")
+          ParmVar.Parm.ValidatorGetValue(PARM.PARM_VALIDATION.StringDefaultValue, out currentVal);
+
         for (int x = 0; x < ParmVar.Parm.Options.Count; x++)
         {
           cmbItems.Items.Add(ParmVar.Parm.Options[x]);

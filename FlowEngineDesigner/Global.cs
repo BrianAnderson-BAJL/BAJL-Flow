@@ -65,6 +65,24 @@ namespace FlowEngineDesigner
       }
     }
 
+    public static TreeNode? TreeViewSelectNodeByText(TreeNodeCollection collection, string Text)
+    {
+      foreach (TreeNode node in collection)
+      {
+        if (node.Text == Text)
+        {
+          return node;
+        }
+        else
+          return Global.TreeViewSelectNodeByText(node.Nodes, Text);
+      }
+      return null;
+    }
+
+    public static string ConvertToString(long ticks)
+    {
+      return ConvertToString(TimeSpan.FromTicks(ticks));
+    }
 
     public static string ConvertToString(TimeSpan ts)
     {

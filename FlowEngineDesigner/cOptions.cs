@@ -19,6 +19,7 @@ namespace FlowEngineDesigner
     public static Color CommentColorBackgroundDefault = Color.FromArgb(255, 188, 255, 189);
     public static Color CommentColorTextDefault = Color.Black;
     public static bool AdministrationAutoConnect = true;
+    public static string AdministrationLastFilePath = "/Http";
 
     public static string AdministrationPrivateKey = "BAJL_HASH~V1~20000~E13iVFBdofhxSbrk2jUGoTRGVvs/APQBsJZkDjfBj4sMj1PMwfbUjg/gmAR4faaLyKGtZ6MYBKxe/hcY3jVh+A==";
 

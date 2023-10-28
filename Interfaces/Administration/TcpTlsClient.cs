@@ -124,9 +124,10 @@ namespace Core.Administration
             Global.Write(ex.Message);
             break;
           }
-          catch (EndOfStreamException)
+          catch (EndOfStreamException ex)
           {
             //Connection Closed
+            Global.Write(ex.Message);
             break;
           }
           catch (IOException ex)

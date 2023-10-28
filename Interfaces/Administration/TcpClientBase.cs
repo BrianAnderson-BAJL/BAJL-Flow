@@ -113,8 +113,8 @@ namespace Core.Administration
       bool Rc = false;
       try
       {
-        Packet.FinalizePacketBeforeSending();
-        Stream.Write(Packet.DataToSend, 0, Packet.SendLength); //Need to add the 4 byte header to the length being sent
+        Packet.FinalizePacketBeforeSending(); //Need to add the 4 byte header to the length being sent
+        Stream.Write(Packet.DataToSend, 0, Packet.SendLength);
         Rc = true;
       }
       catch (Exception ex)

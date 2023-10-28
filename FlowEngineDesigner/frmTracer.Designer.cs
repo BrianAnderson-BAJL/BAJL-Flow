@@ -30,8 +30,9 @@
     {
       System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmTracer));
       lvTracer = new ListView();
-      columnHeader1 = new ColumnHeader();
-      columnHeader2 = new ColumnHeader();
+      chItem = new ColumnHeader();
+      chData = new ColumnHeader();
+      chTime = new ColumnHeader();
       toolStrip1 = new ToolStrip();
       tsbClear = new ToolStripButton();
       toolStrip1.SuspendLayout();
@@ -40,32 +41,37 @@
       // lvTracer
       // 
       lvTracer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      lvTracer.Columns.AddRange(new ColumnHeader[] { columnHeader1, columnHeader2 });
+      lvTracer.Columns.AddRange(new ColumnHeader[] { chItem, chData, chTime });
       lvTracer.FullRowSelect = true;
       lvTracer.GridLines = true;
       lvTracer.Location = new Point(0, 28);
       lvTracer.Name = "lvTracer";
-      lvTracer.Size = new Size(800, 422);
+      lvTracer.Size = new Size(938, 422);
       lvTracer.TabIndex = 0;
       lvTracer.UseCompatibleStateImageBehavior = false;
       lvTracer.View = View.Details;
       // 
-      // columnHeader1
+      // chItem
       // 
-      columnHeader1.Text = "Item";
-      columnHeader1.Width = 180;
+      chItem.Text = "Item";
+      chItem.Width = 180;
       // 
-      // columnHeader2
+      // chData
       // 
-      columnHeader2.Text = "Data";
-      columnHeader2.Width = 600;
+      chData.Text = "Data";
+      chData.Width = 600;
+      // 
+      // chTime
+      // 
+      chTime.Text = "Time";
+      chTime.Width = 120;
       // 
       // toolStrip1
       // 
       toolStrip1.Items.AddRange(new ToolStripItem[] { tsbClear });
       toolStrip1.Location = new Point(0, 0);
       toolStrip1.Name = "toolStrip1";
-      toolStrip1.Size = new Size(800, 25);
+      toolStrip1.Size = new Size(938, 25);
       toolStrip1.TabIndex = 1;
       toolStrip1.Text = "toolStrip1";
       toolStrip1.MouseEnter += toolStrip1_MouseEnter;
@@ -85,7 +91,7 @@
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(800, 450);
+      ClientSize = new Size(938, 450);
       Controls.Add(toolStrip1);
       Controls.Add(lvTracer);
       Name = "frmTracer";
@@ -101,9 +107,10 @@
     #endregion
 
     private ListView lvTracer;
-    private ColumnHeader columnHeader1;
-    private ColumnHeader columnHeader2;
+    private ColumnHeader chItem;
+    private ColumnHeader chData;
     private ToolStrip toolStrip1;
     private ToolStripButton tsbClear;
+    private ColumnHeader chTime;
   }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO.Enumeration;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -9,6 +10,13 @@ namespace Core
 {
   public class Options
   {
+    public enum SERVER_TYPE
+    {
+      Development,
+      Production,
+    }
+    public const string SettingsFileVersionExpected = "0.0.1"; //Increment this when you make changes to the settings options, the settings.xml file will be recreated with the new values.
+    public static string SettingsFileVersion = "";
     public static string SettingsPath = "./settings.xml";
     public static string PluginPath = @"C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Plugins";  //"./Plugins/";
     public static string PluginGraphicsPath = "./Plugins/Graphics/";
@@ -19,9 +27,8 @@ namespace Core
     public static string SecurityProfilesPath = "./securityProfiles.xml";
     public static bool FocusOnMouseEnter = true;
     public static int FlowUserHistoryMax = 10;
-    public static int ThreadPoolSize = 0;
     public static bool IgnoreEndingForwardSlash = true;
-
+    public static SERVER_TYPE ServerType = SERVER_TYPE.Development;
     /// <summary>
     /// The Private key every user must have to get access to this server instance, this value is global to all users, it is used in conjunction with the users LoginId and password
     /// This value provides more security over just a basic loginid and password.
@@ -119,11 +126,13 @@ namespace Core
       Core.Xml xml = new Core.Xml();
       string settings = xml.FileRead(SettingsPath);
       settings = Xml.GetXMLChunk(ref settings, "Settings");
+      SettingsFileVersion = Xml.GetXMLChunk(ref settings, "SettingsFileVersion");
       PluginPath = Xml.GetXMLChunk(ref settings, "PluginPath");
       PluginGraphicsPath = Xml.GetXMLChunk(ref settings, "PluginGraphicsPath");
       FlowPath = Xml.GetXMLChunk(ref settings, "FlowPath");
       FlowPathAllowSubDirectories = Xml.GetXMLChunkAsBool(ref settings, "FlowPathAllowSubDirectories", FlowPathAllowSubDirectories);
       FlowUserHistoryMax = Xml.GetXMLChunkAsInt(ref settings, "FlowUserHistoryMax");
+      ServerType = Xml.GetXmlChunkAsEnum<SERVER_TYPE>(ref settings, "ServerType", SERVER_TYPE.Production);
 
       string adminXml = Xml.GetXMLChunk(ref settings, "Administration");
       AdministrationPrivateKey = Xml.GetXMLChunk(ref adminXml, "AdministrationPrivateKey");
@@ -133,6 +142,9 @@ namespace Core
       AdministrationHashInterations = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationHashInterations", AdministrationHashInterations);
       AdministrationPortNumber = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationPortNumber", AdministrationPortNumber);
       AdministrationUserSessionKeyTimeoutInMinutes = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationUserSessionKeyTimeoutInMinutes", AdministrationUserSessionKeyTimeoutInMinutes);
+
+      if (SettingsFileVersion != SettingsFileVersionExpected)
+        SaveSettings();
     }
 
     public static void SaveSettings()
@@ -140,12 +152,14 @@ namespace Core
       Core.Xml xml = new Core.Xml();
       xml.WriteFileNew(SettingsPath);
       xml.WriteTagStart("Settings");
+      xml.WriteTagAndContents("SettingsFileVersion", SettingsFileVersionExpected);
       xml.WriteTagAndContents("PluginPath", PluginPath);
       xml.WriteTagAndContents("PluginGraphicsPath", PluginGraphicsPath);
       xml.WriteTagAndContents("FlowPath", FlowPath);
       xml.WriteTagAndContents("FlowPathAllowSubDirectories", FlowPathAllowSubDirectories);
       xml.WriteTagAndContents("FlowUserHistoryMax", FlowUserHistoryMax);
       xml.WriteTagAndContents("UserPath", UserPath);
+      xml.WriteTagAndContents("ServerType", ServerType);
       
       xml.WriteTagStart("Administration");
       xml.WriteTagAndContents("AdministrationPrivateKey", AdministrationPrivateKey);
@@ -161,7 +175,7 @@ namespace Core
       xml.WriteFileClose();
     }
 
-    public static string GetFullPath(string path)
+    public static string GetFullPath(string path, string fileName = "")
     {
       string FullPath = path;
       if (FullPath[0] == '.')
@@ -170,8 +184,18 @@ namespace Core
         UriBuilder uri = new UriBuilder(codeBase);
         path = Uri.UnescapeDataString(uri.Path);
         FullPath = FullPath.Replace(".", Path.GetDirectoryName(path));
-
       }
+      if (fileName != "")
+      {
+        if (FullPath.EndsWith("/") == false && FullPath.EndsWith("\\") == false)
+        {
+          if (fileName.StartsWith("/") == false && fileName.StartsWith("\\") == false)
+            FullPath += "/";
+        }
+        FullPath += fileName;
+      }
+
+
       return FullPath;
     }
 

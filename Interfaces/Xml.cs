@@ -277,10 +277,26 @@ namespace Core
     public static char[] DelimiterColon = new char[] { ':' };
     public static char[] DelimiterForwardSlash = new char[] { '/' };
 
-    //public string ReadTag(string TagName)
-    //{
-    //    return GetXMLChunk(ref mFileContents, TagName);
-    //}
+    public static T GetXmlChunkAsEnum<T>(ref string XML, string Tag)  where T : struct
+    {
+      string val = GetXMLChunk(ref XML, Tag);
+      return Enum.Parse<T>(val);
+    }
+    public static T GetXmlChunkAsEnum<T>(ref string XML, string Tag, T defaultValue) where T : struct, System.Enum
+    {
+      string val = GetXMLChunk(ref XML, Tag);
+      try
+      {
+        T enumVal = Enum.Parse<T>(val);
+        return enumVal;
+      }
+      catch
+      { 
+        return defaultValue; 
+      }
+
+    }
+
     public static TimeSpan GetXMLChunkAsTimeSpan(ref string XML, string Tag)
     {
       TimeSpan Time = TimeSpan.Zero;

@@ -12,7 +12,8 @@ namespace Core
 {
   public class Function
   {
-    public Delegate Fun;
+    public delegate RESP FunctionDelegate(Core.Flow flow, Variable[] vars);
+    public FunctionDelegate Fun;
     public PARMS Parms;
     public RESP Resps;
     private string mName;
@@ -56,11 +57,11 @@ namespace Core
       get { return mPlugin; }
     }
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-    public Function(string name, Plugin plugin, Delegate function)
+    public Function(string name, Plugin plugin, FunctionDelegate function)
     {
       Initialize(name, plugin, function, "", "");
     }
-    public Function(string name, Plugin plugin, Delegate function, string tooltip, string description)
+    public Function(string name, Plugin plugin, FunctionDelegate function, string tooltip, string description)
     {
       Initialize(name, plugin, function, tooltip, description);
     }
@@ -85,7 +86,7 @@ namespace Core
     }
 #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
-    private void Initialize(string name, Plugin plugin, Delegate function, string tooltip, string description)
+    private void Initialize(string name, Plugin plugin, FunctionDelegate function, string tooltip, string description)
     {
       mName = name;
       Fun = function;
@@ -95,8 +96,8 @@ namespace Core
       mDescription = "";
       mPlugin = plugin;
       Input = new Input("Input", new Vector2(10, 50));
-      OutputAdd("Success", Output.SUCCESS_POS);
-      OutputAdd("Error", Output.ERROR_POS);
+      OutputAddSuccess();
+      OutputAddError();
     }
 
     /// <summary>
@@ -104,10 +105,22 @@ namespace Core
     /// </summary>
     /// <param name="label"></param>
     /// <param name="pos"></param>
-    public void OutputAdd(string label, Vector2 pos)
+    public void OutputAdd(string label)
     {
-      mOutputs.Add(new Output(label, pos, Outputs.Count));
+      mOutputs.Add(new Output(label, Outputs.Count));
     }
+
+    public void OutputAddSuccess()
+    {
+      mOutputs.Clear();
+      mOutputs.Add(new Output(Output.SUCCESS_LABEL, Outputs.Count));
+    }
+
+    public void OutputAddError()
+    {
+      mOutputs.Add(new Output(Output.ERROR_LABEL, Outputs.Count));
+    }
+
 
     public void OutputClear()
     {
@@ -123,12 +136,10 @@ namespace Core
       return null;
     }
 
-    public RESP Execute(params Variable[] vars) //PARMS parms
+    public RESP Execute(Core.Flow flow, Variable[] vars) 
     {
       //All plugin functions are required to return a RESP object in the response
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-      RESP resp = Fun.DynamicInvoke(vars) as RESP;
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+      RESP resp = Fun.Invoke(flow, vars);
       return resp!;
     }
 

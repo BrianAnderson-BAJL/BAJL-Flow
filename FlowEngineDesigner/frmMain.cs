@@ -28,8 +28,8 @@ namespace FlowEngineDesigner
     {
       Global.FormMain = this;
       Application.SetHighDpiMode(HighDpiMode.PerMonitorV2);
-      cPluginManager.LoadPlugins(cOptions.GetFullPath(cOptions.PluginPath));
-      cPluginManager.CreateAllGrphics();
+      cPluginManagerWrapper.LoadPlugins(cOptions.GetFullPath(cOptions.PluginPath));
+      cPluginManagerWrapper.CreateAllGrphics();
       Global.LoadStaticImages();
       cLayoutForm formlayout1 = new cLayoutForm();
       formlayout1.layoutForm = cLayoutForm.LAYOUT_FORM.Main;
@@ -188,8 +188,31 @@ namespace FlowEngineDesigner
 
     private void flowOpenToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Open);
+      frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Open, new cFlowWrapper(), FlowWrapperChanged_Callback);
       f.Show();
+    }
+
+    private void FlowWrapperChanged_Callback(cFlowWrapper flowWrapper)
+    {
+      frmFlow f = new frmFlow(flowWrapper);
+      f.Show();
+      flowWrapper.PopulateSampleVariablesFromPlugin();
+      f.pictureBox1.Refresh();
+
+    }
+    /// <summary>
+    /// I use this to activate the form if it isn't the active window. If this isn't there it will take 2 clicks to activate a menu or toolstrip button, makes it rather annoying.
+    /// </summary>
+    /// <param name="m"></param>
+    protected override void WndProc(ref Message m)
+    {
+      int WM_PARENTNOTIFY = 0x0210;
+      if (this.Focused == false && m.Msg == WM_PARENTNOTIFY)
+      {
+        // Make this form auto-grab the focus when menu/controls are clicked
+        this.Activate();
+      }
+      base.WndProc(ref m);
     }
 
   }

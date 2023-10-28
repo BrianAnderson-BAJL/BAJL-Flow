@@ -96,7 +96,7 @@ namespace Core
     public Variable() { }
     public Variable(string name) 
     {
-      Name = name;
+      Name = name.ToLower();
     }
     public Variable(string name, DATA_TYPE dataType)
     {
@@ -152,6 +152,16 @@ namespace Core
       return jsonStr;
     }
 
+    public virtual string XmlCreate()
+    {
+      Xml xml = new Xml();
+      xml.WriteMemoryNew();
+      xml.WriteTagStart("Variables");
+
+      xml.WriteTagEnd("Variables");
+      return xml.ReadMemory();
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -186,6 +196,20 @@ namespace Core
           return v;
       }
       return null;
+    }
+
+    public bool DeleteSubVariableByName(string name)
+    {
+      for (int x = 0; x < this.SubVariables.Count; x++)
+      {
+        Variable v = this.SubVariables[x];
+        if (v.Name == name)
+        {
+          this.SubVariables.RemoveAt(x);
+          return true;
+        }
+      }
+      return true; //Didn't find the variable, so it isn't there, it wasn't deleted, but it is gone, so still a success
     }
 
 
@@ -255,6 +279,14 @@ namespace Core
         value = vs.Value;
     }
 
+    public void GetValue<T>(out T? value) where T : class
+    {
+      value = null;
+      VariableObject? vs = this as VariableObject;
+      if (vs is not null)
+        value = (T)vs.Value;
+    }
+
   }
 
   public class VariableString : Variable
@@ -301,7 +333,9 @@ namespace Core
     }
     public VariableInteger(string name, long val)
     {
+      this.Name = name;
       this.Value = val;
+      this.DataType = DATA_TYPE.Integer;
     }
 
     public override string JsonCreate(bool stripNameAndAddBlock = false)
@@ -358,7 +392,7 @@ namespace Core
     public bool Value;
     public VariableBoolean(Variable v)
     {
-      this.Name = v.Name;
+      this.Name = v.Name.ToLower();
       this.SubVariables = v.SubVariables;
       this.DataType = DATA_TYPE.Boolean;
     }
@@ -394,6 +428,8 @@ namespace Core
     {
       Name = key;
       Value = v;
+      this.DataType = DATA_TYPE.Object;
+
     }
     public override string ToString()
     {

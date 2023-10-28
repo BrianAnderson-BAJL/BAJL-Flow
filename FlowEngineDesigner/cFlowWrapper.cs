@@ -151,6 +151,7 @@ namespace FlowEngineDesigner
     /// <param name="pos"></param>
     public void StepAdd(string name, Vector2 pos)
     {
+ 
       Core.Function function = Core.PluginManager.FindFunctionByName(name);
       Core.FunctionStep step = new FunctionStep(this, getNextId(), name, pos);
       step.Function = function;
@@ -332,7 +333,7 @@ namespace FlowEngineDesigner
       mCurrentlyExecutingStep.Clear();
       mPictureBox.Refresh();
       TimeSpan ts = DateTime.UtcNow - StartTime;
-      cEventManager.RaiseEventTracer(this, String.Format("Flow Complete: [{0}], Execution time [{1}]", FileName, Global.ConvertToString(ts)));
+      cEventManager.RaiseEventTracer(this, $"Flow Complete: [{FileName}]", cEventManager.TRACER_TYPE.Information, ts.Ticks);
     }
 
 
@@ -585,11 +586,7 @@ namespace FlowEngineDesigner
       camera.Position = new Vector2(CenterX, CenterY);
     }
 
-    /// <summary>
-    /// Write out the flow XML data. All the reading of XML data is handled in Core.Flow since the flow engine needs to load flows also, but only the designer writes flows.
-    /// </summary>
-    /// <param name="fileName"></param>
-    public void XmlWrite(string fileName = "")
+    public void XmlWriteFile(string fileName = "")
     {
       if (fileName != "")
       {
@@ -597,6 +594,27 @@ namespace FlowEngineDesigner
       }
       Xml xml = new Xml();
       xml.WriteFileNew(FileName);
+      XmlWrite(xml);
+      xml.WriteFileClose();
+
+    }
+
+    public string XmlWriteMemory()
+    {
+      Xml xml = new Xml();
+      xml.WriteMemoryNew();
+      XmlWrite(xml);
+      string data = xml.ReadMemory();
+      xml.WriteFileClose();
+      return data;
+    }
+
+    /// <summary>
+    /// Write out the flow XML data. All the reading of XML data is handled in Core.Flow since the flow engine needs to load flows also, but only the designer writes flows.
+    /// </summary>
+    /// <param name="fileName"></param>
+    private void XmlWrite(Xml xml)
+    {
       xml.WriteTagStart("Base");
       xml.WriteTagStart("MetaData");
       xml.WriteTagAndContents("FileFormatVersion", 1); //If we introduce newer tags, will will increment this, this way we can convert the v1 file to a v2
@@ -644,7 +662,6 @@ namespace FlowEngineDesigner
       XmlWriteComments(xml);
       xml.WriteTagEnd("Flow");
       xml.WriteTagEnd("Base");
-      xml.WriteFileClose();
     }
 
     private void XmlWriteVariables(Xml xml, PARM_VARS parms)
@@ -745,9 +762,20 @@ namespace FlowEngineDesigner
     /// Append ExtraValues to FunctionStep (the images for the designer)
     /// </summary>
     /// <param name="fileName"></param>
-    public override void XmlRead(string fileName, READ_TIL til = READ_TIL.All)
+    public override void XmlReadFile(string fileName, READ_TIL til = READ_TIL.All)
     {
-      base.XmlRead(fileName, til);
+      base.XmlReadFile(fileName, til);
+      for (int x = 0; x < functionSteps.Count; x++)
+      {
+        FunctionStep step = functionSteps[x];
+        step.ExtraValues[Global.EXTRA_VALUE_IMAGE] = new Bitmap(cOptions.GetFullPath(cOptions.PluginGraphicsPath) + step.Function.Plugin.Name + "." + step.Function.Name + ".png");
+
+      }
+    }
+
+    public override void XmlRead(ref string content, READ_TIL til = READ_TIL.All)
+    {
+      base.XmlRead(ref content, til);
       for (int x = 0; x < functionSteps.Count; x++)
       {
         FunctionStep step = functionSteps[x];

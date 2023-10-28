@@ -10,11 +10,13 @@ namespace Core.Administration.Messages
   {
     public enum RESPONSE_CODE
     {
-      Success = 0,
-      Error = 1,
-      AccessDenied,
-      SessionInvalid,
+      Success = 200,
+      BadRequest = 400,
+      AccessDenied = 401,
+      Error = 500,
       Duplicate,
+      NoStartPluginDefined,
+      DebugOnlyAllowedInDevelopmentServer,
     }
     public RESPONSE_CODE ResponseCode = RESPONSE_CODE.Success;
     public Packet.PACKET_TYPE PacketType = Packet.PACKET_TYPE._Unknown;
@@ -45,7 +47,7 @@ namespace Core.Administration.Messages
 
     public BaseResponse(Core.Administration.Packet packet)
     {
-      packet.GetData(out this.ResponseCode);
+      packet.GetData<RESPONSE_CODE>(out this.ResponseCode);
     }
 
     public virtual Core.Administration.Packet GetPacket()

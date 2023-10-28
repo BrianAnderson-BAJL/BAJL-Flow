@@ -24,12 +24,12 @@ namespace Core
       Variable,
     }
 
-    public PARM2 Parm;
+    public PARM Parm;
     private Variable Var;
     private VarRef? VarName = null;
     public PARM_L_OR_V ParmLiteralOrVariable; //This value will determine if we use Var or VarName when accessing the data
 
-    private PARM_VAR(PARM2 parm, Variable var)
+    private PARM_VAR(PARM parm, Variable var)
     {
       this.Parm = parm;
       this.Var = var;
@@ -50,6 +50,7 @@ namespace Core
     {
       VarName = new VarRef(varName);
       Var = new Variable();
+      ParmLiteralOrVariable = PARM_L_OR_V.Variable;
     }
 
     public void SetVariableLiteral(string val)
@@ -163,15 +164,15 @@ namespace Core
       }
     }
 
-    public PARM_VAR(PARM2 parm, VarRef value)
+    public PARM_VAR(PARM parm, VarRef value)
     {
       Parm = parm;
       Var = new Variable();
       VarName = value;
-      ParmLiteralOrVariable = PARM_L_OR_V.Literal;
+      ParmLiteralOrVariable = PARM_L_OR_V.Variable;
     }
 
-    public PARM_VAR(PARM2 parm, long value)
+    public PARM_VAR(PARM parm, long value)
     {
       Parm = parm;
       Var = new VariableInteger(parm.Name, value);
@@ -185,7 +186,7 @@ namespace Core
     /// <param name="parm">The parameter that this value will be assigned to</param>
     /// <param name="value">If this is a literal, then this should be the actual string value. If it is a Variable then it should be fully qualified Variable name (flow_start.json.val1)</param>
     /// <param name="litOrVar"></param>
-    public PARM_VAR(PARM2 parm, string value)
+    public PARM_VAR(PARM parm, string value)
     {
       Parm = parm;
       Var = new VariableString(parm.Name, value);
@@ -193,7 +194,7 @@ namespace Core
       ParmLiteralOrVariable = PARM_L_OR_V.Literal;
     }
 
-    public PARM_VAR(PARM2 parm, object value)
+    public PARM_VAR(PARM parm, object value)
     {
       Parm = parm;
       Var = new VariableObject(parm.Name, value);
@@ -201,7 +202,7 @@ namespace Core
       ParmLiteralOrVariable = PARM_L_OR_V.Literal;
     }
 
-    public PARM_VAR(PARM2 parm, decimal value)
+    public PARM_VAR(PARM parm, decimal value)
     {
       Parm = parm;
       Var = new VariableDecimal(parm.Name, value);
@@ -209,7 +210,7 @@ namespace Core
       ParmLiteralOrVariable = PARM_L_OR_V.Literal;
     }
 
-    public PARM_VAR(PARM2 parm, bool value)
+    public PARM_VAR(PARM parm, bool value)
     {
       Parm = parm;
       Var = new VariableBoolean(parm.Name, value);

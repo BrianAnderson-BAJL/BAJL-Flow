@@ -16,6 +16,7 @@ namespace Core
     public delegate void PluginsChangedHandler(List<Plugin> Plugins);
     public static event PluginsChangedHandler? OnPluginsChanged;
     public static bool PluginsLoaded = false;
+    public static Dictionary<string, object> GlobalPluginValues = new Dictionary<string, object>();
 
     public static ReadOnlyCollection<Plugin> Plugins => mPlugins.AsReadOnly();
 
@@ -49,12 +50,14 @@ namespace Core
 
     public static void StartPlugins()
     {
-      for (int x = 0; x < mPlugins.Count; x++)
+      List<Plugin> sortedByStartPriority = mPlugins.OrderBy(p => p.StartPriority).ToList();
+      for (int x = 0; x < sortedByStartPriority.Count; x++)
       {
-        Global.Write("Starting plugin [{0}]", mPlugins[x].Name);
-        mPlugins[x].StartPlugin();
+        Plugin plugin = sortedByStartPriority[x];
+        plugin.StartPlugin(GlobalPluginValues);
       }
     }
+
 
     public static void StopPlugins()
     {

@@ -33,6 +33,7 @@
       chkVariable = new CheckBox();
       txtKey = new TextBox();
       nudValue = new NumericUpDown();
+      txtVariableName = new TextBox();
       ((System.ComponentModel.ISupportInitialize)nudValue).BeginInit();
       SuspendLayout();
       // 
@@ -54,6 +55,7 @@
       btnSelectVariable.TabIndex = 13;
       btnSelectVariable.Text = "...";
       btnSelectVariable.UseVisualStyleBackColor = true;
+      btnSelectVariable.Click += btnSelectVariable_Click;
       // 
       // chkVariable
       // 
@@ -65,6 +67,7 @@
       chkVariable.TabIndex = 11;
       chkVariable.Text = "Variable";
       chkVariable.UseVisualStyleBackColor = true;
+      chkVariable.CheckedChanged += chkVariable_CheckedChanged;
       // 
       // txtKey
       // 
@@ -82,11 +85,22 @@
       nudValue.Name = "nudValue";
       nudValue.Size = new Size(166, 23);
       nudValue.TabIndex = 15;
+      nudValue.ValueChanged += nudValue_ValueChanged;
+      // 
+      // txtVariableName
+      // 
+      txtVariableName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+      txtVariableName.Location = new Point(321, 2);
+      txtVariableName.Name = "txtVariableName";
+      txtVariableName.Size = new Size(166, 23);
+      txtVariableName.TabIndex = 16;
+      txtVariableName.Visible = false;
       // 
       // ucParameterInteger
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
+      Controls.Add(txtVariableName);
       Controls.Add(nudValue);
       Controls.Add(txtDataType);
       Controls.Add(btnSelectVariable);
@@ -107,5 +121,6 @@
     private CheckBox chkVariable;
     private TextBox txtKey;
     private NumericUpDown nudValue;
+    private TextBox txtVariableName;
   }
 }

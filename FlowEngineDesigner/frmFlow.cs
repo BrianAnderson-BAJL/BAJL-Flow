@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using Microsoft.VisualBasic.Devices;
 using Core;
+using Core.Administration.Messages;
 
 namespace FlowEngineDesigner
 {
@@ -21,10 +22,14 @@ namespace FlowEngineDesigner
 
     HIT_RESULT SelectedItem;
 
-    public frmFlow()
+    public frmFlow(cFlowWrapper? flowWrapper = null)
     {
       InitializeComponent();
       Camera = new cCamera(this);
+      if (flowWrapper is not null)
+      {
+        Flow = flowWrapper;
+      }
     }
 
     private void pictureBox1_Paint(object sender, PaintEventArgs e)
@@ -47,7 +52,7 @@ namespace FlowEngineDesigner
         Pen p = new Pen(Color.Blue, 3);
 
         Vector2 v1 = Camera.CreateDrawingPosition(cMouse.DraggingStart.Value);
-        Vector2 v2 = cMouse.pos; 
+        Vector2 v2 = cMouse.pos;
         e.Graphics.DrawLine(p, v1.ToPoint(), v2.ToPoint());
       }
 
@@ -142,7 +147,7 @@ namespace FlowEngineDesigner
       }
       else if (cMouse.OverallState == cMouse.OVERALL_STATE.DrawComment && cMouse.ButtonLeft == cMouse.BUTTON_STATE.Down == true)
       {
-        
+
       }
 
       pictureBox1.Refresh();
@@ -289,7 +294,7 @@ namespace FlowEngineDesigner
       DialogResult dr = saveFileDialog1.ShowDialog();
       if (dr == DialogResult.OK)
       {
-        Flow.XmlWrite(saveFileDialog1.FileName);
+        Flow.XmlWriteFile(saveFileDialog1.FileName);
         TitleText();
       }
     }
@@ -309,7 +314,7 @@ namespace FlowEngineDesigner
       if (dr == DialogResult.OK)
       {
         Flow = new cFlowWrapper();
-        Flow.XmlRead(openFileDialog1.FileName);
+        Flow.XmlReadFile(openFileDialog1.FileName);
         Flow.PopulateSampleVariablesFromPlugin();
         pictureBox1.Refresh();
         TitleText();
@@ -331,17 +336,24 @@ namespace FlowEngineDesigner
       }
       else
       {
-        Flow.XmlWrite();
+        Flow.XmlWriteFile();
       }
     }
 
     private void tsbPlay_Click(object sender, EventArgs e)
     {
-      cFlowWrapper flowRun = Flow.Clone();  //Need to clone it before running
-      flowRun.Execute(pictureBox1);
+      //cFlowWrapper flowRun = Flow.Clone();  //Need to clone it before running
+      //flowRun.Execute(pictureBox1);
+
+      FlowDebug flowDebug = new FlowDebug(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, Flow.FileName, FlowRequest.START_TYPE.Now, Flow.XmlWriteMemory(), "", "");
+      cServer.SendAndResponse(flowDebug.GetPacket(), Callback_FlowDebug);
     }
 
-    private void TsbComment_Click(object sender, EventArgs e)
+    private void Callback_FlowDebug(Core.Administration.EventArgsPacket e)
+    {
+    }
+
+      private void TsbComment_Click(object sender, EventArgs e)
     {
       if (cMouse.OverallState == cMouse.OVERALL_STATE.None)
       {
@@ -452,6 +464,46 @@ namespace FlowEngineDesigner
     {
       frmFlowProperties f = new frmFlowProperties(Flow);
       f.Show();
+    }
+
+    private void frmFlow_Activated(object sender, EventArgs e)
+    {
+      serverToolStripMenuItem.Enabled = cServer.IsConnectedToServer();
+    }
+
+    /// <summary>
+    /// I use this to activate the form if it isn't the active window. If this isn't there it will take 2 clicks to activate a menu or toolstrip button, makes it rather annoying.
+    /// </summary>
+    /// <param name="m"></param>
+    protected override void WndProc(ref Message m)
+    {
+      int WM_PARENTNOTIFY = 0x0210;
+      if (this.Focused == false && m.Msg == WM_PARENTNOTIFY)
+      {
+        // Make this form auto-grab the focus when menu/controls are clicked
+        this.Activate();
+      }
+      base.WndProc(ref m);
+    }
+
+    private void saveToolStripMenuItem1_Click(object sender, EventArgs e)
+    {
+      frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Save, Flow, FlowWrapperChanged_Callback);
+      f.Show();
+    }
+
+    private void openToolStripMenuItem1_Click(object sender, EventArgs e)
+    {
+      frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Open, Flow, FlowWrapperChanged_Callback);
+      f.Show();
+    }
+
+    private void FlowWrapperChanged_Callback(cFlowWrapper flowWrapper)
+    {
+      Flow = flowWrapper;
+      Flow.PopulateSampleVariablesFromPlugin();
+      pictureBox1.Refresh();
+
     }
   }
 }

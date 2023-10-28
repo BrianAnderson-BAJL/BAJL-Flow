@@ -19,24 +19,25 @@ namespace FlowEngineDesigner
     {
       public ResponseDelegate Callback;
       public ResponseDelegate? Callback_AlsoNotify;
-      public DateTime CreationDateTime;
+      public TimeElapsed ElapsedTime;
 
       public CALLBACK_INFO(ResponseDelegate callback, ResponseDelegate? callback_also = null)
       {
         Callback = callback;
         Callback_AlsoNotify = callback_also;
-        CreationDateTime = DateTime.UtcNow;
+        ElapsedTime = new TimeElapsed();
       }
     }
     public delegate void ResponseDelegate(Core.Administration.EventArgsPacket e);
     private static Core.Administration.TcpTlsClient? Client;
     private static Dictionary<int, CALLBACK_INFO> responseHandlers = new Dictionary<int, CALLBACK_INFO>(8);
     private static object CriticalSection = new object();
-    public static Core.User? UserLoggedIn = null;
+    public static Core.User UserLoggedIn = new User();
     public static List<Core.SecurityProfile>? SecurityProfiles;
 
     public static bool Connect(string domainName, int port)
     {
+      TimeElapsed te = new TimeElapsed(); //Starts a timer
       lock (CriticalSection)
       {
         if (Client is not null && Client.Connected == true) //Already connected, just return true, they need to call Disconnect to create a new connection first.
@@ -49,13 +50,20 @@ namespace FlowEngineDesigner
         {
           Client.NewPacket += Client_NewPacket;
           Client.ConnectionClosed += Client_ConnectionClosed;
-          cEventManager.RaiseEventTracer("Server", String.Format("Connected to [{0}], [{1}]", domainName, port));
+          cEventManager.RaiseEventTracer("Server", String.Format("Connected to [{0}], [{1}]", domainName, port), cEventManager.TRACER_TYPE.Information, te.End().Ticks);
           Global.FormMain!.tsServer.Text = "Connected";
           Global.FormMain!.tsServer.ForeColor = Color.Green;
           return true;
         }
 
       }
+    }
+
+    public static bool IsConnectedToServer()
+    {
+      if (Client is null)
+        return false;
+      return Client.Connected;
     }
 
     public static void RefreshSecurityProfiles(ResponseDelegate? callback = null)
@@ -125,6 +133,7 @@ namespace FlowEngineDesigner
 
     private static void Client_NewPacket(object? sender, Core.Administration.EventArgsPacket e)
     {
+      
       CALLBACK_INFO? callbackInfo = null;
       lock (CriticalSection)
       {
@@ -141,7 +150,7 @@ namespace FlowEngineDesigner
 
           Global.FormMain!.Invoke((MethodInvoker)delegate
           {
-            cEventManager.RaiseEventTracer("Server", String.Format("Received [{0}], Response code [{1}]", e.Packet.PacketType.ToString(), e.Packet.PeekResponseCode().ToString()), e.Packet.PeekResponseCode());
+            cEventManager.RaiseEventTracer("Server", $"Received [{e.Packet.PacketType}], Response code [{e.Packet.PeekResponseCode()}]", e.Packet.PeekResponseCode(), callbackInfo.Value.ElapsedTime.End().Ticks);
             callbackInfo.Value.Callback(e);
             if (callbackInfo.Value.Callback_AlsoNotify is not null)
             {
@@ -155,6 +164,23 @@ namespace FlowEngineDesigner
           MessageBox.Show(ex.Message);
         }
       }
+      else //Not a response to an outstanding request, could be a Trace message or something else unsolicited.
+      {
+        Global.FormMain!.Invoke((MethodInvoker)delegate
+        {
+          ProcessMessage(e.Client, e.Packet);
+        });
+      }
+    }
+
+    private static void ProcessMessage(TcpClientBase client, Packet packet)
+    {
+      if (packet.PacketType == Packet.PACKET_TYPE.Trace)
+      {
+        //Trace trace = new Trace(packet);
+        cEventManager.RaiseEventTracer(packet);
+      }
+
     }
 
     public static void RequestSingleResponse(Core.Administration.Packet.PACKET_TYPE packetType)
@@ -171,18 +197,11 @@ namespace FlowEngineDesigner
         }
         if (Client is not null)
           Client.Close();
-        cServer.UserLoggedIn = null;
+        cServer.UserLoggedIn = new User();
         cEventManager.RaiseEventTracer("Server", "Disconnected");
       }
     }
 
-    public static bool UserHasAccess()
-    {
-      if (UserLoggedIn is null)
-        return false;
-
-      return false;
-    }
 
     private static bool Send(Core.Administration.Packet packet)
     {

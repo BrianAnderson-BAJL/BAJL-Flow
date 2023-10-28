@@ -21,10 +21,19 @@ namespace Core
     public bool SaveResponseVariable = false;
     public Variable RespNames = new Variable();
     public PARM_VARS ParmVars = new PARM_VARS();
+    public string DebugTraceXml = "";
 
     public FunctionStep(Flow flow, int id, string pluginName, string functionName, Vector2 pos, string linkStr)
     {
-      Function? f = PluginManager.FindFunctionByName(pluginName, functionName);
+      Function? f = null;
+      try
+      {
+        f = PluginManager.FindFunctionByName(pluginName, functionName);
+      } 
+      catch 
+      {
+        Global.Write($"Failed to FindFunctionByName({pluginName}, {functionName})", DEBUG_TYPE.Error);
+      }
       if (f == null)
       {
         throw new ArgumentException("[" + pluginName + "] plugin and [" + functionName + "] function not found");
@@ -82,14 +91,30 @@ namespace Core
       for (int x = 0; x < ParmVars.Count; x++)
       {
         PARM_VAR pv = ParmVars[x];
-        pv.GetValue(out Variable? var, flow);
-        if (var is null)
-          return RESP.SetError(2, String.Format("Could not resolve variable [{0}]", pv.VariableName));
-        vars[x] = var;
+        if (pv.Parm.ResolveVariables == PARM.PARM_RESOLVE_VARIABLES.Yes) //Most functions will resolve the variables, but some want the raw variable names (VariableDelete, ...)
+        {
+          pv.GetValue(out Variable? pvVar, flow);
+          if (pvVar is null)
+            return RESP.SetError(2, String.Format("Could not resolve variable [{0}]", pv.VariableName));
+          vars[x] = pvVar;
+        }
+        else
+        {
+          vars[x] = new VariableString("varName" + x.ToString(), pv.VariableName);
+        }
       }
 
-     resps = Function.Execute(vars);
-      
+      resps = Function.Execute(flow, vars);
+
+      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
+      var.SubVariables.Add(new VariableObject("resp", resps));
+      var.SubVariables.Add(new VariableObject("step", this));
+      flow.VariableAdd(Flow.VAR_NAME_PREVIOUS_STEP, var);  //Previous step variable always contains the last steps values
+      if (this.SaveResponseVariable == true)
+      {
+        flow.VariableAdd(this.RespNames.Name, resps.Variable);  //If the flow author wants/needs the response later, they can store it in a new flow variable
+      }
+
       return resps;
     }
 

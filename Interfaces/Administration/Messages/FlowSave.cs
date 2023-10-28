@@ -13,7 +13,7 @@ namespace Core.Administration.Messages
   {
     public string FileName = "";
     public bool FlowGoLive = false;
-    public string FlowData = "";
+    public string FlowXml = "";
     /// <summary>
     /// Used when parsing a response from a client
     /// </summary>
@@ -21,14 +21,14 @@ namespace Core.Administration.Messages
     public FlowSave(Core.Administration.Packet packet) : base(packet)
     {
       packet.GetData(out this.FileName);
-
-      packet.GetData(out this.FlowData);
+      packet.GetData(out this.FlowGoLive);
+      packet.GetData(out this.FlowXml);
     }
-    public FlowSave(string serverKey, string sessionKey, string fileName, bool flowGoLive, string flowData) : base(serverKey, sessionKey, Packet.PACKET_TYPE.FlowSave)
+    public FlowSave(string serverKey, string sessionKey, string fileName, bool flowGoLive, string flowXml) : base(serverKey, sessionKey, Packet.PACKET_TYPE.FlowSave)
     {
       this.FileName = fileName;
       this.FlowGoLive = flowGoLive;
-      this.FlowData = flowData;
+      this.FlowXml = flowXml;
     }
 
     public override Core.Administration.Packet GetPacket()
@@ -36,7 +36,7 @@ namespace Core.Administration.Messages
       Packet packet = base.GetPacket();
       packet.AddData(this.FileName);
       packet.AddData(this.FlowGoLive);
-      packet.AddData(this.FlowData);
+      packet.AddData(this.FlowXml);
       return packet;
     }
 

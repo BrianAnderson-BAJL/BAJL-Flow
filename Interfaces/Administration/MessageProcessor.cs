@@ -30,6 +30,9 @@ namespace Core.Administration
       Processors.Add(Packet.PACKET_TYPE.SecurityProfileEdit, ProcessSecurityProfileEdit);
       Processors.Add(Packet.PACKET_TYPE.SecurityProfileDelete, ProcessSecurityProfileDelete);
       Processors.Add(Packet.PACKET_TYPE.FlowsGet, ProcessFlowsGet);
+      Processors.Add(Packet.PACKET_TYPE.FlowSave, ProcessFlowSave);
+      Processors.Add(Packet.PACKET_TYPE.FlowOpen, ProcessFlowOpen);
+      Processors.Add(Packet.PACKET_TYPE.FlowDebug, ProcessFlowDebug);
 
     }
 
@@ -109,7 +112,7 @@ namespace Core.Administration
       if (user is null)
       {
         Global.Write("SECURITY ERROR!  Missing Session Key");
-        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.SessionInvalid);
+        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
         return false;
       }
       if (user.SessionKeyExpiration < DateTime.UtcNow)
@@ -117,7 +120,7 @@ namespace Core.Administration
         user.SessionKey = "";
         user.SessionKeyExpiration = DateTime.MinValue;
         Global.Write("SECURITY ERROR!  Session Key has expired");
-        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.SessionInvalid);
+        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
         return false;
       }
 
@@ -319,7 +322,7 @@ namespace Core.Administration
       for (int y = 0; y < files.Length; y++)
       {
         Flow flow = new Flow();
-        flow.XmlRead(files[y], Flow.READ_TIL.TilSteps);
+        flow.XmlReadFile(files[y], Flow.READ_TIL.TilSteps);
         xml.WriteTagStart("File");
         xml.WriteTagAndContents("FileName", Path.GetFileName(files[y]));
         xml.WriteTagAndContents("ModifiedDateTime", flow.ModifiedLastDateTime);
@@ -339,6 +342,157 @@ namespace Core.Administration
         }
       }
       xml.WriteTagEnd("Directory" + depth.ToString());
+    }
+
+    private static void ProcessFlowSave(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      FlowSave data = new FlowSave(packet);
+      string xmlData = data.FlowXml;
+      
+      RESPONSE_CODE responseCode = RESPONSE_CODE.Success;
+
+      for (int x = 0; x < Core.Global.IllegalFileNameCharacters.Length; x++)
+      {
+        if (data.FileName.Contains(Core.Global.IllegalFileNameCharacters[x]) == true)
+        {
+          responseCode = RESPONSE_CODE.BadRequest;
+          break;
+        }
+      }
+      for (int x = 0; x < Core.Global.IllegalFileNameStartCharacters.Length; x++)
+      {
+        if (data.FileName.StartsWith(Core.Global.IllegalFileNameStartCharacters[x]) == true)
+        {
+          responseCode = RESPONSE_CODE.BadRequest;
+          break;
+        }
+      }
+      if (data.FileName.Contains(".") == true && data.FileName.ToLower().Contains(".flow") == false)
+      {
+        responseCode = RESPONSE_CODE.BadRequest;
+        return;
+      }
+      if (data.FileName.ToLower().EndsWith(".flow") == false)
+      {
+        responseCode = RESPONSE_CODE.BadRequest;
+        return;
+      }
+
+
+      if (responseCode == RESPONSE_CODE.Success)
+      {
+        try
+        {
+          string path = Options.GetFullPath(Options.FlowPath, data.FileName);
+          System.IO.File.WriteAllText(path, data.FlowXml);
+          if (data.FlowGoLive == true)
+          {
+            FlowManager.LoadSingleFlow(path);
+          }
+        }
+        catch
+        {
+          responseCode = RESPONSE_CODE.Error;
+        }
+      }
+
+      BaseResponse response = new BaseResponse(packet.PacketId, responseCode, Packet.PACKET_TYPE.FlowSaveResponse);
+      client.Send(response.GetPacket());
+    }
+
+
+    private static void ProcessFlowOpen(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      FlowOpen data = new FlowOpen(packet);
+
+      RESPONSE_CODE responseCode = RESPONSE_CODE.Success;
+
+      for (int x = 0; x < Core.Global.IllegalFileNameCharacters.Length; x++)
+      {
+        if (data.FileName.Contains(Core.Global.IllegalFileNameCharacters[x]) == true)
+        {
+          responseCode = RESPONSE_CODE.BadRequest;
+          break;
+        }
+      }
+      for (int x = 0; x < Core.Global.IllegalFileNameStartCharacters.Length; x++)
+      {
+        if (data.FileName.StartsWith(Core.Global.IllegalFileNameStartCharacters[x]) == true)
+        {
+          responseCode = RESPONSE_CODE.BadRequest;
+          break;
+        }
+      }
+      if (data.FileName.Contains(".") == true && data.FileName.ToLower().Contains(".flow") == false)
+      {
+        responseCode = RESPONSE_CODE.BadRequest;
+        return;
+      }
+      if (data.FileName.ToLower().EndsWith(".flow") == false)
+      {
+        responseCode = RESPONSE_CODE.BadRequest;
+        return;
+      }
+
+      string flowXml = "";
+      if (responseCode == RESPONSE_CODE.Success)
+      {
+        try
+        {
+          string path = Options.GetFullPath(Options.FlowPath, data.FileName);
+          flowXml = System.IO.File.ReadAllText(path);
+        }
+        catch
+        {
+          responseCode = RESPONSE_CODE.Error;
+        }
+      }
+
+      FlowOpenResponse response = new FlowOpenResponse(packet.PacketId, responseCode, data.FileName, flowXml);
+      client.Send(response.GetPacket());
+    }
+
+
+    private static void ProcessFlowDebug(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      FlowDebug data = new FlowDebug(packet);
+      string xmlData = data.FlowXml;
+
+      if (Options.ServerType != Options.SERVER_TYPE.Development)
+      {
+        BaseResponse response = new BaseResponse(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, Packet.PACKET_TYPE.FlowDebugResponse);
+        client.Send(response.GetPacket());
+        return;
+      }
+
+      try
+      {
+        Flow flow = new Flow();
+        flow.DebugTcpClient = client;
+        flow.DebugPacket = packet;
+        flow.XmlRead(ref xmlData);
+        if (flow.StartPlugin is null && data.StartType == FlowRequest.START_TYPE.WaitForEvent)
+        {
+          BaseResponse response = new BaseResponse(packet.PacketId, RESPONSE_CODE.NoStartPluginDefined, Packet.PACKET_TYPE.FlowDebugResponse);
+          client.Send(response.GetPacket());
+          return;
+        }
+
+        if (data.StartType == FlowRequest.START_TYPE.Now)
+        {
+          FlowRequest fr = new FlowRequest(null, flow.StartPlugin, flow, FlowRequest.START_TYPE.Now, FlowRequest.CLONE_FLOW.DoNotCloneFlow);
+          FlowEngine.StartFlow(fr);
+        }
+        else if (flow.StartPlugin is not null && data.StartType == FlowRequest.START_TYPE.WaitForEvent)
+        {
+          flow.StartPlugin.FlowAdd(flow);
+        }
+      }
+      catch (Exception ex)
+      {
+        Global.Write($"Flow Debug Execution error [{ex.Message}]", DEBUG_TYPE.Error);
+      }
+
     }
 
   }

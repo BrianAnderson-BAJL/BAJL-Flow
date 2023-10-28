@@ -30,11 +30,11 @@ namespace Core
 
     public void Add(string name, DATA_TYPE dataType)
     {
-      PARM2 parm = new PARM2(name, dataType);
+      PARM parm = new PARM(name, dataType);
       Add(parm);
     }
 
-    public void Add(PARM2 parm)
+    public void Add(PARM parm)
     {
       PARM_VAR? pv;
       if (parm.DataType == DATA_TYPE.String || parm.DataType == DATA_TYPE.DropDownList )
@@ -48,7 +48,7 @@ namespace Core
       else if (parm.DataType == DATA_TYPE.Object)
         pv = new PARM_VAR(parm, new object());
       else
-        throw new Exception("Unknown data type being added to PARM_VARS.Add(PARM2)");
+        throw new Exception("Unknown data type being added to PARM_VARS.Add(PARM)");
       
       ParmVars.Add(pv);
     }

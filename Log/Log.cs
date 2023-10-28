@@ -14,7 +14,7 @@ namespace Logger
       Functions.Add(new Function("Create", this, Create));
       Function f = new Function("Write", this, Write);
       f.OutputClear();
-      f.OutputAdd("Complete", Output.SUCCESS_POS);
+      f.OutputAdd("Complete");
 
       Functions.Add(f);
 
@@ -40,13 +40,13 @@ namespace Logger
       //Nothing to dispose of yet!
     }
 
-    public static RESP Create(PARMS Parms)
+    public static RESP Create(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Log.Create");
       return RESP.SetSuccess();
     }
 
-    public static RESP Write(PARMS Parms)
+    public static RESP Write(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Log.Write");
       return RESP.SetSuccess();

@@ -15,10 +15,11 @@ namespace Core.Administration
     /// <summary>
     /// Response messages are allways one bigger in the enum, they MUST be 1 (one) bigger, the MessageProcessor will add 1 to the packet type to send an access denied response
     /// </summary>
-    public enum PACKET_TYPE : short
+    public enum PACKET_TYPE
     {
       _Unknown = 0,
       CloseConnection,
+      Trace,
       UserLogin,
       UserLoginResponse,
       UserLogout,
@@ -49,6 +50,9 @@ namespace Core.Administration
       FlowOpenResponse,
       FlowsGet,
       FlowsGetResponse,
+      FlowDebug,
+      FlowDebugResponse,
+
     }
     private static int NextPacketId = 0;
     public PACKET_TYPE PacketType = PACKET_TYPE._Unknown;
@@ -56,13 +60,24 @@ namespace Core.Administration
     private byte[] ReceiveData = { };
     private List<byte> SendData = new List<byte>(1024);
     public int PacketId { get; private set; } = 0;
+    public static bool ReversePacketId = false;
 
     private int GetNextPacketId()
     {
-      if (NextPacketId >= int.MaxValue)
-        NextPacketId = 1;
+      if (ReversePacketId == true)
+      {
+        if (NextPacketId <= int.MinValue)
+          NextPacketId = -1;
+        else
+          NextPacketId--;
+      }
       else
-        NextPacketId++;
+      {
+        if (NextPacketId >= int.MaxValue)
+          NextPacketId = 1;
+        else
+          NextPacketId++;
+      }
       return NextPacketId;
     }
 
@@ -93,7 +108,7 @@ namespace Core.Administration
         PacketId = GetNextPacketId();
       else
         PacketId = packetId;
-      AddData((short)packetType);
+      AddData(packetType);
       AddData(PacketId);
      
     }
@@ -113,9 +128,8 @@ namespace Core.Administration
         int length = BinaryPrimitives.ReadInt32BigEndian(temp);
 
         ReceiveData = br.ReadBytes(length);
-        GetData(out short packetType);
-        PacketType = (PACKET_TYPE)packetType;
-        GetData(out int val);
+        GetData(out PacketType);
+        GetData(out int val); //Can't put 'PacketId' property here, gives an error about using properties in out or ref parameters
         PacketId = val;
       }
     }
@@ -129,10 +143,8 @@ namespace Core.Administration
         int length = BinaryPrimitives.ReadInt32BigEndian(temp);
         ReceiveData = new byte[length];
         stream.Read(ReceiveData, 0, length);
-        GetData(out short packetType);
-        PacketType = (PACKET_TYPE)packetType;
-        int val;
-        GetData(out val);
+        GetData(out PacketType);
+        GetData(out int val); //Can't put 'PacketId' property here, gives an error about using properties in out or ref parameters
         PacketId = val;
       }
     }
@@ -230,6 +242,17 @@ namespace Core.Administration
       Array.Copy(ReceiveData, mReadPosition, Val, 0, length);
     }
 
+    
+    /// <summary>
+    /// This function will only work if the enum is using the default int (4 bytes) size of an enum
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="val"></param>
+    public void GetData<T>(out T val) where T : struct, System.Enum, IConvertible
+    {
+      GetData(out int temp);
+      val = (T)(object)temp; //That is rather ugly, convert to object, then to T (enum)
+    }
 
     public void GetData(out byte[] Val, int length)
     {
@@ -317,7 +340,7 @@ namespace Core.Administration
     public void FinalizePacketBeforeSending()
     {
       byte[] Temp = new byte[sizeof(int)];
-      BinaryPrimitives.WriteInt32BigEndian(Temp, SendData.Count);
+      BinaryPrimitives.WriteInt32BigEndian(Temp, SendData.Count - 4);
       for (int x = 0; x < Temp.Length; x++)
       {
         SendData[x] = Temp[x];

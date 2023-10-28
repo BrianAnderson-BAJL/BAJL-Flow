@@ -1,11 +1,11 @@
 ﻿THINGS TO ADD:
 
-Users
-Security
-Upload flows to server
-Breakpoints
-Trace log
-Jump points (a way to link to other areas of a flow)
-Comments
-Compile flows, check flows for errors (double links from output to same input, missing connections)
-Layouts, save, load
+See GitHub - https://github.com/dayofbrian/FlowEngine
+All issues / features are tracked in there now.
+
+
+
+Users - Working
+Security - Working
+Upload flows to server - Working
+Comments - Working

@@ -36,22 +36,39 @@ namespace Core
     Duplicate,
   }
 
+  public enum DEBUG_TYPE
+  {
+    Information,
+    Warning,
+    Error,
+  }
 
   public class Global
   {
+    public static string[] IllegalFileNameCharacters = { "..", "*", "?", "#", "<", ">", "&", "{", "}", "\\\\", "$", "!", "'", "\"", ":", "`", "|", "=" };
+    public static string[] IllegalFileNameStartCharacters = { " ", ".", "-", "_" };
+
     public static int XmlDepthMax = 100;
     public static int JsonDepthMax = 100;
 
-    public static void WriteAllways(string val)
+    public static void WriteAllways(string val, DEBUG_TYPE debug = DEBUG_TYPE.Information)
     {
       Console.WriteLine(val);
     }
 
     [Conditional("DEBUG")]
-    public static void Write(string val)
+    public static void Write(string val, DEBUG_TYPE debug = DEBUG_TYPE.Information)
     {
+      if (debug == DEBUG_TYPE.Information)
+        Console.ForegroundColor = ConsoleColor.White;
+      else if (debug == DEBUG_TYPE.Warning)
+        Console.ForegroundColor = ConsoleColor.Yellow;
+      else
+        Console.ForegroundColor = ConsoleColor.Red;
       Console.WriteLine(val);
     }
+
+    [Conditional("DEBUG")]
     public static void Write(string val, params string[] otherVals)
     {
       Console.WriteLine(String.Format(val, otherVals));
@@ -65,6 +82,28 @@ namespace Core
 
   public static class GlobalExtensions
   {
+
+    /// <summary>
+    /// Will return only the numeric characters only in the start of a string.
+    /// '200 - OK' - Will return '200'
+    /// '45Hello' - Will return '45'
+    /// </summary>
+    /// <param name="Text"></param>
+    /// <returns></returns>
+    public static string StartingNumericOnly(this string Text)
+    {
+      if (Text is null || Text.Length == 0)
+        return "";
+      string returnVal = "";
+      int x = 0;
+      char temp = Text[x++];
+      while ("-+0123456789".Contains(temp))
+      {
+        returnVal += temp;
+        temp = Text[x++];
+      }
+      return returnVal;
+    }
 
     public static string SubStr(this string Text, int Start, int Characters)
     {

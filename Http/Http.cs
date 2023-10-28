@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using static Core.PARM;
 
 namespace Http
 {
@@ -50,58 +51,98 @@ namespace Http
 
       //FUNCTIONS
       {
-        Function f = new Function("Connect", this, Connect);
-        f.Parms.Add(PARM_URL, DATA_TYPE.String, "");
-        f.Parms.Add("Port", DATA_TYPE.Integer, "443");
-        f.Parms.Add("Timeout in ms", DATA_TYPE.Integer, "5000");
-        f.DefaultSaveResponseVariable = true;
-        f.RespNames = new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
-        Functions.Add(f); //Connect
-        f = new Function("Send", this, Send);
-        f.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
-        f.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String, "");
-        PARM2 pddl = new PARM2(PARM_DATA_FORMAT, DATA_TYPE.DropDownList, PARM_DATA_FORMAT_JSON, PARM2.PARM_REQUIRED.Yes);
+        Function function = new Function("Connect", this, Connect);
+        function.Parms.Add(PARM_URL, DATA_TYPE.String);
+
+        PARM parm = function.Parms.Add("Port", DATA_TYPE.Integer);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberDefaultValue, 443);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMax, 64535);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMin, 1);
+
+        parm = function.Parms.Add("Timeout in ms", DATA_TYPE.Integer);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberDefaultValue, 5000);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMin, 0);
+        function.DefaultSaveResponseVariable = true;
+        function.RespNames = new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
+        Functions.Add(function); //Connect
+
+
+        function = new Function("Send", this, Send);
+        function.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
+        PARM pddl = function.Parms.Add("Http response code", DATA_TYPE.DropDownList);
+        pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, "200 - OK");
+
+        foreach (int val in Enum.GetValues(typeof(HttpStatusCode)))
+        {
+          String name = Enum.GetName(typeof(HttpStatusCode), val)!;
+          pddl.OptionAdd($"{val} - {name}");
+        }
+
+        function.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String);
+        pddl = new PARM(PARM_DATA_FORMAT, DATA_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
+        pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, PARM_DATA_FORMAT_JSON);
         pddl.OptionAdd(PARM_DATA_FORMAT_RAW);
         pddl.OptionAdd(PARM_DATA_FORMAT_JSON);
         pddl.OptionAdd(PARM_DATA_FORMAT_XML);
-        f.Parms.Add(pddl);
-        Functions.Add(f); //Send
-        f = new Function("Receive", this, Receive);
-        f.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
-        f.Parms.Add("Timeout in ms", DATA_TYPE.Integer, "10000");
-        f.DefaultSaveResponseVariable = true;
-        f.RespNames = new Variable(Flow.VAR_REQUEST);
-        f.RespNames.Add(new Variable(VAR_HEADERS));
-        f.RespNames.Add(new Variable(Flow.VAR_DATA));
-        Functions.Add(f); //Receive
-        f = new Function("Disconnect", this, Disconnect);
-        f.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
-        Functions.Add(f); //Disconnect
-        f = new Function("ConnectSendReceiveDisconnect", this, ConnectSendReceiveDisconnect);
-        f.Parms.Add(PARM_URL, DATA_TYPE.String, "");
-        f.Parms.Add("Port", DATA_TYPE.Integer, "443");
-        f.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String, "");
-        f.Parms.Add("Connect Timeout in ms", DATA_TYPE.Integer, "5000");
-        f.Parms.Add("Receive Timeout in ms", DATA_TYPE.Integer, "10000");
-        f.DefaultSaveResponseVariable = true;
-        f.RespNames = new Variable(Flow.VAR_REQUEST);
-        f.RespNames.Add(new Variable(VAR_HEADERS));
-        f.RespNames.Add(new Variable(Flow.VAR_DATA));
-        Functions.Add(f); //ConnectSendReceiveDisconnect
+        function.Parms.Add(pddl);
+        Functions.Add(function); //Send
+
+
+        function = new Function("Receive", this, Receive);
+        function.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
+        parm = function.Parms.Add("Timeout in ms", DATA_TYPE.Integer);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberDefaultValue, 10000);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMin, 0);
+        function.DefaultSaveResponseVariable = true;
+        function.RespNames = new Variable(Flow.VAR_REQUEST);
+        function.RespNames.Add(new Variable(VAR_HEADERS));
+        function.RespNames.Add(new Variable(Flow.VAR_DATA));
+        Functions.Add(function); //Receive
+
+
+        function = new Function("Disconnect", this, Disconnect);
+        function.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
+        Functions.Add(function); //Disconnect
+
+
+        function = new Function("Connect Send Receive Disconnect", this, ConnectSendReceiveDisconnect);
+        function.Parms.Add(PARM_URL, DATA_TYPE.String);
+        parm = function.Parms.Add("Port", DATA_TYPE.Integer);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberDefaultValue, 443);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMax, 64535);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMin, 1);
+
+        function.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String);
+
+        parm = function.Parms.Add("Connect Timeout in ms", DATA_TYPE.Integer);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberDefaultValue, 5000);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMin, 0);
+
+        parm = function.Parms.Add("Receive Timeout in ms", DATA_TYPE.Integer);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberDefaultValue, 10000);
+        parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMin, 0);
+
+        function.DefaultSaveResponseVariable = true;
+        function.RespNames = new Variable(Flow.VAR_REQUEST);
+        function.RespNames.Add(new Variable(VAR_HEADERS));
+        function.RespNames.Add(new Variable(Flow.VAR_DATA));
+        Functions.Add(function); //ConnectSendReceiveDisconnect
       }
       //FUNCTIONS
 
       //FLOW START COMMANDS
       {
-        FlowStartCommands.Add(PARM_URL, DATA_TYPE.String, "/");
-        
-        PARM2 pddl = new PARM2(PARM_METHOD, DATA_TYPE.DropDownList, "GET");
+        PARM parm = FlowStartCommands.Add(PARM_URL, DATA_TYPE.String);
+        parm.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, "/");
+
+        PARM pddl = new PARM(PARM_METHOD, DATA_TYPE.DropDownList);
+        pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, "GET");
         pddl.OptionAdd("GET");
         pddl.OptionAdd("POST");
         pddl.OptionAdd("PUT");
         pddl.OptionAdd("DELETE");
         FlowStartCommands.Add(pddl);
-        FlowStartCommands.Add(PARM_HOST, DATA_TYPE.String, "");
+        FlowStartCommands.Add(PARM_HOST, DATA_TYPE.String);
       }
       //FLOW START COMMANDS
 
@@ -299,7 +340,7 @@ namespace Http
       return match;
     }
 
-    public override void StartPlugin()
+    public override void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
       ListenerThread = new Thread(ListenerThreadRuntime);
       ListenerThread.Start();
@@ -327,17 +368,22 @@ namespace Http
     /// <summary>
     /// 
     /// </summary>
-    /// <param name="Parms 0">"connection_handle"</param>
-    /// <param name="Parms 1">"data"</param>
+    /// <param name="vars 0">"connection_handle"</param>
+    /// <param name="vars 1">"HTTP response code"</param>
+    /// <param name="vars 2">"data"</param>
+    /// <param name="vars 3">"data format"</param>
     /// <param name="Resps">Output Index 0 = SUCCESS</param>
     /// <param name="Resps">Output Index 1 = ERROR</param>
-    public static RESP Send(Variable[] vars)
+    public static RESP Send(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Http.Send");
 
       vars[0].GetValue(out object obj);
-      Variable data = vars[1];
-      vars[2].GetValue(out string dataformat);
+      vars[1].GetValue(out string tempStr);
+      string tempStr2 = tempStr.StartingNumericOnly();
+      int.TryParse(tempStr2, out int responseCode);
+      Variable data = vars[2];
+      vars[3].GetValue(out string dataformat);
       HttpListenerContext? context = obj as HttpListenerContext;
 
       if (context is null)
@@ -346,18 +392,20 @@ namespace Http
         return RESP.SetError(1, "Unable to resolve [data] parameter");
       if (dataformat != PARM_DATA_FORMAT_XML && dataformat != PARM_DATA_FORMAT_RAW && dataformat != PARM_DATA_FORMAT_JSON)
         return RESP.SetError(1, String.Format("Unknown data format [{0}] for parameter [{1}]", dataformat, PARM_DATA_FORMAT));
+      if (responseCode < 0)
+        return RESP.SetError(1, $"Http response code invalid value [{responseCode}], original value[{tempStr}]");
 
       string rawData = "";
       if (dataformat == PARM_DATA_FORMAT_JSON)
         rawData = data.JsonCreate(true);
       else if (dataformat == PARM_DATA_FORMAT_XML)
-        throw new NotImplementedException();
+        throw new NotImplementedException(PARM_DATA_FORMAT_XML + " is not implemented yet");
       else if (dataformat == PARM_DATA_FORMAT_RAW)
-        throw new NotImplementedException();
+        throw new NotImplementedException(PARM_DATA_FORMAT_RAW + " is not implemented yet");
 
       HttpListenerResponse response = context.Response;
       response.Headers.Clear();
-      response.StatusCode = (int)HttpStatusCode.OK;
+      response.StatusCode = responseCode;
       byte[] outputData = System.Text.Encoding.UTF8.GetBytes(rawData);
       response.ContentLength64 = outputData.Length;
       response.OutputStream.Write(outputData, 0, outputData.Length);
@@ -366,28 +414,28 @@ namespace Http
       return RESP.SetSuccess();
     }
 
-    public static RESP Disconnect(PARMS Parms)
+    public static RESP Disconnect(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Http.Disconnect");
       return RESP.SetSuccess();
     }
 
 
-    public static RESP ConnectSendReceiveDisconnect(PARMS Parms)
+    public static RESP ConnectSendReceiveDisconnect(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Http.ConnectSendReceiveDisconnect");
       return RESP.SetSuccess();
     }
 
 
-    public static RESP Connect(PARMS Parms)
+    public static RESP Connect(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Http.Connect");
       return RESP.SetSuccess();
     }
 
 
-    public static RESP Receive(PARMS Parms)
+    public static RESP Receive(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Http.Receive");
       return RESP.SetSuccess();

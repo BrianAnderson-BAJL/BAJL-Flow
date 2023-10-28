@@ -65,6 +65,13 @@ namespace Core
       DataType = DATA_TYPE.String;
       SubSettings = new List<Setting>(0);
     }
+    public Setting(string key, bool value)
+    {
+      Key = key;
+      Value = value;
+      DataType = DATA_TYPE.Boolean;
+      SubSettings = new List<Setting>(0);
+    }
 
     public Setting(string dropDownGroupName, string groupName, string key, string value)
     {
@@ -143,7 +150,7 @@ namespace Core
         string[] strings = data.Split('=');
         if (strings.Length == 2)
         {
-          Key = HttpUtility.HtmlDecode(strings[0]);
+          Key = HttpUtility.UrlDecode(strings[0]);
           string[] ValueArray = strings[1].Split(":");
           if (ValueArray.Length == 2)
           {
@@ -151,6 +158,10 @@ namespace Core
             if (DataType == DATA_TYPE.Color)
             {
               Value = ColorTranslator.FromHtml(HttpUtility.UrlDecode(ValueArray[1]));
+            }
+            else if (DataType == DATA_TYPE.Boolean)
+            {
+              Value = bool.Parse(ValueArray[1]);
             }
             else
             {

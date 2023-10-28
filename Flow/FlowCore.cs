@@ -4,7 +4,6 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
-//using static Core.PARM2;
 
 namespace FlowCore
 {
@@ -28,53 +27,66 @@ namespace FlowCore
       base.Init();
       FlowCore.Plugin = this;
 
-      Function f = new Function("Start", this, Start);
-      f.OutputClear();
-      f.OutputAdd("Start", new Vector2(160, 50));
-      f.Input = null;
-      
-      Functions.Add(f);
-      f = new Function("FlowRun", this, FlowRun);
-      f.Parms.Add(PARM_FLOW_NAME, DATA_TYPE.String);
-      f.Parms.Add("Variable", DATA_TYPE.Block);
-      Functions.Add(f);
+      Function function = new Function("Start", this, Start);
+      function.OutputClear();
+      function.OutputAdd("Start");
+      function.Input = null;
+      Functions.Add(function);
 
-      f = new Function("FlowRunAsync", this, FlowRunAsync);
-      f.Parms.Add(PARM_FLOW_NAME, DATA_TYPE.String);
-      f.Parms.Add("Variable", DATA_TYPE.Block);
-      Functions.Add(f);
+      function = new Function("Trace", this, Trace);
+      function.Parms.Add("Previous step results", DATA_TYPE.Block);
+      function.Input = new Input("Input", new System.Numerics.Vector2(10, 50));
+      function.OutputClear();
+      function.OutputAddSuccess();
+      Functions.Add(function);
 
-      f = new Function("FlowReturn", this, FlowReturn);
-      PARM2 pddl = new PARM2("Return", DATA_TYPE.DropDownList, PARM2.PARM_REQUIRED.Yes);
+
+      Functions.Add(function);
+      function = new Function("Flow Run", this, FlowRun);
+      function.Parms.Add(PARM_FLOW_NAME, DATA_TYPE.String);
+      function.Parms.Add("Variable", DATA_TYPE.Block);
+      Functions.Add(function);
+
+      function = new Function("Flow Run Async", this, FlowRunAsync);
+      function.Parms.Add(PARM_FLOW_NAME, DATA_TYPE.String);
+      function.Parms.Add("Variable", DATA_TYPE.Block);
+      Functions.Add(function);
+
+      function = new Function("Flow Return", this, FlowReturn);
+      PARM pddl = new PARM("Return", DATA_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
       pddl.OptionAdd(OPTION_SUCCESS);
       pddl.OptionAdd(OPTION_ERROR);
-      f.Parms.Add(pddl);
-      f.Parms.Add("Variable", DATA_TYPE.Block);
+      function.Parms.Add(pddl);
+      function.Parms.Add("Variable", DATA_TYPE.Block);
 
-      f.Parms.Add("Variable", DATA_TYPE.Block);
-      Functions.Add(f);
+      function.Parms.Add("Variable", DATA_TYPE.Block);
+      Functions.Add(function);
       Functions.Add(new Function("If", this, If));
 
-      f = new Function("VariablesExists", this, VariablesExists);
-      f.Outputs[1].Label = "Var Missing";
-      f.Parms.Add("Variable Name", DATA_TYPE.String, PARM2.PARM_REQUIRED.Yes, PARM2.PARM_ALLOW_MULTIPLE.Multiple);
-      Functions.Add(f);
+      function = new Function("Variables Exists", this, VariablesExists);
+      function.Outputs[1].Label = "Var Missing";
+      function.Parms.Add("Variable Name", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple);
+      Functions.Add(function);
 
-      f = new Function("Sleep", this, Sleep);
-      f.Parms.Add("Time in ms", DATA_TYPE.Integer);
-      f.OutputClear();
-      f.OutputAdd("Complete", Output.SUCCESS_POS);
-      Functions.Add(f);
+      function = new Function("Variables Delete", this, VariablesDelete);
+      function.Parms.Add("Variable Name to delete", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple, PARM.PARM_RESOLVE_VARIABLES.No); //We want raw variable names in this function so we can delete the actual variable objects
+      Functions.Add(function);
+
+      function = new Function("Sleep", this, Sleep);
+      PARM parm = function.Parms.Add("Time in ms", DATA_TYPE.Integer);
+      parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMin, 0);
+      function.OutputClear();
+      function.OutputAdd("Complete");
+      Functions.Add(function);
 
       //MethodInfo[] m = typeof(System.Threading.Thread).GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
       //f = new Function("System.Threading.Thread.SpinWait", this);
       //System.Threading.Thread.SpinWait
 
-      f = new Function("Stop", this, Stop);
-
-      f.Input = new Input("Input", new System.Numerics.Vector2(10, 50));
-      f.OutputClear();
-      Functions.Add(f);
+      function = new Function("Stop", this, Stop);
+      function.Input = new Input("Input", new System.Numerics.Vector2(10, 50));
+      function.OutputClear();
+      Functions.Add(function);
       
       Function fun = new Function("Switch", this, Switch) { OutputsModifiable = true, }; //This is a switch the flow programmer needs to be able to modify the number of outputs (case val = 36, case val = 0, case default, ...)
       Functions.Add(fun);
@@ -83,7 +95,7 @@ namespace FlowCore
       SettingAddIfMissing(new Setting("", "Designer", "BorderColor", Color.Green));
       SettingAddIfMissing(new Setting("", "Designer", "FontColor", Color.White));
 
-      pddl = new PARM2(EVENT, DATA_TYPE.DropDownList, PARM2.PARM_REQUIRED.Yes);
+      pddl = new PARM(EVENT, DATA_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
       pddl.OptionAdd(EVENT_START);
       pddl.OptionAdd(EVENT_STOP);
       pddl.OptionAdd(EVENT_MANUAL);
@@ -101,7 +113,7 @@ namespace FlowCore
       //SAMPLE VARIABLES FOR DESIGNER
     }
 
-    public override void StartPlugin()
+    public override void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
       List<Flow> flows = FindFlows(EVENT_START);
       for (int i = 0; i < flows.Count; i++)
@@ -178,18 +190,44 @@ namespace FlowCore
       return null;
     }
 
-    private static RESP Start(Variable[] vars)
+    private static RESP Start(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Flow.Start");
       return RESP.SetSuccess();
     }
-    private static RESP Stop(Variable[] vars)
+    private static RESP Stop(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Flow.Stop");
       return RESP.SetSuccess();
     }
 
-    private static RESP VariablesExists(Variable[] vars)
+    private static RESP Trace(Core.Flow flow, Variable[] vars)
+    {
+      Variable varPreviousStepResp = vars[0];
+      VariableObject? varResp = varPreviousStepResp.FindSubVariableByName("resp") as VariableObject;
+      if (varResp is null)
+        return RESP.SetSuccess();
+      VariableObject? varStep = varPreviousStepResp.FindSubVariableByName("step") as VariableObject;
+      if (varStep is null)
+        return RESP.SetSuccess();
+
+      RESP? resp = varResp.Value as RESP;
+      if (resp is null)
+        return RESP.SetSuccess();
+      FunctionStep? step = varStep.Value as FunctionStep;
+      if (step is null)
+        return RESP.SetSuccess();
+
+      long elapsedTicks = flow.DebugStepTime.End().Ticks;
+      flow.DebugStepTime = new TimeElapsed();
+
+      flow.SendFlowDebugTraceStep(resp, step, elapsedTicks);
+      Global.Write($"Previous Step [{step.Name}] Success [{resp.Success}], error number [{resp.ErrorNumber}], error message [{resp.ErrorDescription}]");
+
+      return RESP.SetSuccess();
+    }
+
+    private static RESP VariablesExists(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Flow.VariableExists");
 
@@ -198,7 +236,22 @@ namespace FlowCore
       return RESP.SetSuccess();
     }
 
-    private static RESP Sleep(Variable[] vars)  
+    private static RESP VariablesDelete(Core.Flow flow, Variable[] vars)
+    {
+      Global.Write("Flow.VariablesDelete");
+
+      for (int x = 0; x < vars.Length; x++)
+      {
+        vars[x].GetValue(out string varName);
+        Global.Write($"Deleting variable [{varName}]");
+        flow.DeleteVariable(varName);
+      }
+      //If we got into this function, then all the variables exist (FunctionStep.Execute validates all the variables before calling the function), just return success. Easist function ever!
+
+      return RESP.SetSuccess();
+    }
+
+    private static RESP Sleep(Core.Flow flow, Variable[] vars)  
     {
       Global.Write("Flow.Sleep");
       if (vars.Length == 0)
@@ -219,7 +272,7 @@ namespace FlowCore
     /// <param name="vars[0]">Flow name to start</param>
     /// <param name="vars[1]">Variables to pass to new flow</param>
     /// <returns></returns>
-    private static RESP FlowRun(Variable[] vars)
+    private static RESP FlowRun(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Flow.FlowRun");
       RESP? resp = null;
@@ -229,11 +282,11 @@ namespace FlowCore
         return RESP.SetError(10, "No flow name specified to start");
 
       Global.Write("Flow.FlowRun - flowName = " + flowName);
-      Flow? flow = FlowCore.Plugin!.FindFlowByName(flowName);
-      if (flow is null)
+      Flow? flowToRun = FlowCore.Plugin!.FindFlowByName(flowName);
+      if (flowToRun is null)
         return RESP.SetError(0, String.Format("Could not find flow to run [{0}]", flowName));
 
-      Flow clonedFlow = FlowEngine.StartFlowSameThread(new FlowRequest(var, FlowCore.Plugin, flow));
+      Flow clonedFlow = FlowEngine.StartFlowSameThread(new FlowRequest(var, FlowCore.Plugin, flowToRun));
       resp = clonedFlow.Resp;
 
       if (resp is null) //If the flow didn't return a response, we will assume it failed. Flow Author must specify SUCCESS!
@@ -252,7 +305,7 @@ namespace FlowCore
     /// <param name="vars[0]">Flow name to start</param>
     /// <param name="vars[1]">Variables to pass to new flow</param>
     /// <returns></returns>
-    public static RESP FlowRunAsync(Variable[] vars)
+    public static RESP FlowRunAsync(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Flow.FlowRunAsync");
       RESP? resp = null;
@@ -263,18 +316,18 @@ namespace FlowCore
         return RESP.SetError(10, "No flow name specified to start");
 
       Global.Write("Flow.FlowRun - flowName = " + flowName);
-      Flow? flow = FlowCore.Plugin!.FindFlowByName(flowName);
-      if (flow is null)
+      Flow? flowToRun = FlowCore.Plugin!.FindFlowByName(flowName);
+      if (flowToRun is null)
         return RESP.SetError(0, String.Format("Could not find flow to run [{0}]", flowName));
 
 
-      FlowEngine.StartFlow(new FlowRequest(var, FlowCore.Plugin, flow));
+      FlowEngine.StartFlow(new FlowRequest(var, FlowCore.Plugin, flowToRun));
       resp = RESP.SetSuccess(); //This flow is running asynchronously so just return success
 
       return resp;
     }
 
-    public static RESP FlowReturn(Variable[] vars)
+    public static RESP FlowReturn(Core.Flow flow, Variable[] vars)
     {
       //Global.Write("Flow.FlowReturn");
       //Variable? var = Parms.ResolveVariable("Variable");
@@ -295,13 +348,13 @@ namespace FlowCore
     }
 
 
-    public static RESP If(Variable[] vars)
+    public static RESP If(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Flow.If");
       return RESP.SetSuccess();
     }
 
-    public static RESP Switch(Variable[] vars)
+    public static RESP Switch(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Flow.Switch");
       return RESP.SetSuccess();

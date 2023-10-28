@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Core.Administration;
+using Core.Administration.Messages;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
-using static Core.PARM;
 
 namespace Core
 {
@@ -29,6 +30,11 @@ namespace Core
     public string SampleData = "";
     public DATA_FORMAT SampleDataFormat = DATA_FORMAT._None;
     public List<Comment> Comments = new List<Comment>(4);
+
+    public TcpClientBase? DebugTcpClient;
+    public Packet? DebugPacket;
+    public TimeElapsed DebugStartTime = new TimeElapsed();
+    public TimeElapsed DebugStepTime = new TimeElapsed();
 
     private int currentId = 1;
 
@@ -67,7 +73,7 @@ namespace Core
     {
       if (var != null)
       {
-        name = name.ToLower(); //The flow engine will be case insensitive
+        name = name.ToLower(); //The flow engine is case insensitive
         if (Variables.ContainsKey(name))
         {
           Variables[name] = var; //If the key exists, just overwrite it
@@ -103,6 +109,41 @@ namespace Core
       return currentId++;
     }
 
+    /// <summary>
+    /// Will insert Trace steps between each normal step to allow debug results to be sent to the designer.
+    /// Will only be called if the Options.ServerType == Development
+    /// </summary>
+    private void PrepareFlowForTracing()
+    {
+      if (start is null)
+        return;
+
+      //Find all the links between steps, we need to insert a trace step between each of these links
+      List<Link> links = new List<Link>(functionSteps.Count * 3); //About how many outbound links are in each step, good starting point
+      for (int x = 0; x < functionSteps.Count; x++)
+      {
+        //if (functionSteps[x] != start) //We don't want to trace the start step
+          links.AddRange(functionSteps[x].LinkOutputs);
+      }
+
+      //Insert a FlowCore.Trace step inbetween each existing step link.
+      for (int x = 0; x < links.Count; x++)
+      {
+        Link link = links[x];
+        FunctionStep? oldInput = link.Input.Step;
+        if (oldInput is null || oldInput.Function.Input is null)
+          continue; //Not linked to another step, skip it
+
+        FunctionStep stepTrace = new FunctionStep(this, getNextId(), "FlowCore.Trace", Vector2.Zero);
+        link.Input.Step = stepTrace;
+        Output outputNew = stepTrace.Function.Outputs[0].Clone(stepTrace);
+        Input inputNew = oldInput.Function.Input.Clone(oldInput);
+        stepTrace.LinkOutputs.Add(new Link(getNextId(), outputNew, inputNew));
+        stepTrace.ParmVars.Add(new PARM_VAR(stepTrace.Function.Parms[0], new VarRef(VAR_NAME_PREVIOUS_STEP)));
+        this.functionSteps.Add(stepTrace);
+      }
+    }
+
     public virtual RESP? Execute()
     {
       if (start == null)
@@ -112,9 +153,13 @@ namespace Core
         {
           return RESP.SetError(1, "Flow is missing Start step"); ;
         }
+        if (Options.ServerType == Options.SERVER_TYPE.Development)
+        {
+          PrepareFlowForTracing();
+        }
       }
 
-
+      start.Execute(this);
       //start.RuntimeParms = start.parms.Clone();
       List<FunctionStep> nextSteps = GetNextSteps(start);
       List<FunctionStep> nextNextSteps = new List<FunctionStep>(16);
@@ -125,7 +170,58 @@ namespace Core
         nextSteps.AddRange(nextNextSteps);
         nextNextSteps.Clear();
       } while (nextSteps.Count > 0);
+
+      //if (Options.ServerType == Options.SERVER_TYPE.Development)
+        //SendFlowDebugResponse();
+
       return this.resp;
+    }
+
+    /// <summary>
+    /// ONLY USED WHEN ServerType == Development
+    /// Will send flow results back to the designer when a flow finishes executing
+    /// </summary>
+    private void SendFlowDebugResponse()
+    {
+      if (Options.ServerType != Options.SERVER_TYPE.Development)
+        return;
+
+      if (this.DebugTcpClient is null || this.DebugPacket is null)
+        return;
+
+      Xml xml = new Xml();
+      xml.WriteMemoryNew();
+      xml.WriteTagStart("DebugResults");
+      for (int x = 0; x < this.functionSteps.Count; x++)
+      {
+        xml.WriteXml(this.functionSteps[x].DebugTraceXml);
+      }
+      xml.WriteTagEnd("DebugResults");
+
+      FlowDebugResponse flowDebugResponse = new FlowDebugResponse(this.DebugPacket.PacketId, BaseResponse.RESPONSE_CODE.Success, this.FileName, this.DebugStartTime.End().Ticks, xml.ReadMemory());
+      this.DebugTcpClient.Send(flowDebugResponse.GetPacket());
+    }
+
+    public void SendFlowDebugTraceStep(RESP resp, FunctionStep previousStep, long ticks)
+    {
+      if (this.DebugTcpClient is null || this.DebugPacket is null)
+        return;
+
+      Xml xml = new Xml();
+      xml.WriteMemoryNew();
+      xml.WriteTagStart("Trace");
+      xml.WriteTagAndContents("StepId", previousStep.Id);
+      xml.WriteTagAndContents("StepName", previousStep.Name);
+      xml.WriteTagAndContents("Success", resp.Success);
+      xml.WriteTagAndContents("ErrorNumber", resp.ErrorNumber);
+      xml.WriteTagAndContents("ErrorDescription", resp.ErrorDescription);
+      if (resp.Variable is not null)
+        xml.WriteTagAndContents("Variables", resp.Variable.JsonCreate(), Xml.BASE_64_ENCODE.Encoded); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
+      xml.WriteTagEnd("Trace");
+      string xmlStr = xml.ReadMemory();
+      previousStep.DebugTraceXml = xmlStr;
+      Core.Administration.Messages.TraceResponse trace = new Core.Administration.Messages.TraceResponse(previousStep.Id, previousStep.Name, xmlStr, ticks);
+      this.DebugTcpClient.Send(trace.GetPacket());
     }
 
     protected virtual List<FunctionStep> ExecuteSteps(List<FunctionStep> steps)
@@ -135,11 +231,7 @@ namespace Core
       {
         FunctionStep step = steps[x];
         RESP resp = step.Execute(this);
-        this.VariableAdd(VAR_NAME_PREVIOUS_STEP, resp.Variable);  //Previous step variable always contains the last steps values
-        if (step.SaveResponseVariable == true)
-        {
-          this.VariableAdd(step.RespNames.Name, resp.Variable);  //If the flow author wants/needs the response later, they can store it in a new flow variable
-        }
+
         nextSteps.AddRange(step.GetNextStepsBasedOnResp());
       }
 
@@ -259,6 +351,58 @@ namespace Core
     }
 
 
+    public bool DeleteVariable(string name)
+    {
+      string[] varSplit = name.Split('.');
+      Variable? baseVar = null;
+
+      if (varSplit.Length > 1)
+      {
+        if (Variables.ContainsKey(varSplit[0]) == true)
+        {
+          baseVar = Variables[varSplit[0]];
+        }
+      }
+      else if (varSplit.Length == 1)
+      {
+        Variables.Remove(varSplit[0]);
+      }
+
+      if (baseVar is not null)
+        return DeleteVariable(baseVar, varSplit);
+      else
+        return true;
+    }
+
+    public bool DeleteVariable(Variable var, params string[] varNames)
+    {
+      Variable? varTemp = var;
+      int x = 0;
+      if (varNames.Length <= 1)
+        return true;
+
+      if (var.Name == varNames[0]) //If the first name is the base name, then lets go to the next level
+        x++;
+
+      while (x < varNames.Length)
+      {
+        if (x == varNames.Length - 1)
+        {
+          return varTemp.DeleteSubVariableByName(varNames[x]); //Increment before to get the next variable name to delete it.
+        }
+        else
+        {
+          varTemp = varTemp.FindSubVariableByName(varNames[x]);
+        }
+        if (varTemp is null)
+          return false;
+
+        x++;
+      };
+
+      return true;
+    }
+
     /// <summary>
     /// 
     /// </summary>
@@ -324,17 +468,21 @@ namespace Core
       return startCommands;
     }
 
-    public enum READ_TIL
-    {
-      All,
-      TilSteps, //Only read the header info for the flow, this is for when opening flows.
-    }
-    public virtual void XmlRead(string fileName, READ_TIL til = READ_TIL.All)
+    public virtual void XmlReadFile(string fileName, READ_TIL til = READ_TIL.All)
     {
       functionSteps.Clear();
       FileName = fileName;
       Xml xml = new Xml();
       string content = xml.FileRead(FileName);
+      XmlRead(ref content, til);
+    }
+    public enum READ_TIL
+    {
+      All,
+      TilSteps, //Only read the header info for the flow, this is for when opening flows.
+    }
+    public virtual void XmlRead(ref string content, READ_TIL til = READ_TIL.All)
+    {
       content = Xml.GetXMLChunk(ref content, "Base"); //Strip off the base tag
 
       //Parse the meta data from the flow file
@@ -436,7 +584,7 @@ namespace Core
         if (var.Length <= 0)
           break; //We have reached the end, lets exit
 
-        PARM2? p = null;
+        PARM? p = null;
         string name = Xml.GetXMLChunk(ref var, "Name");
         p = parms.FindParmByName(name);
         if (p is null)
@@ -461,7 +609,7 @@ namespace Core
           }
           else if (dataType == "DropDownList" && p.DataType == DATA_TYPE.DropDownList)
           {
-            string value = Xml.GetXMLChunk(ref var, "Value");
+            string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded);
             pv = new PARM_VAR(p, value);
           }
           else if (dataType == "String" && p.DataType == DATA_TYPE.String)

@@ -65,6 +65,7 @@ namespace Core
         case Packet.PACKET_TYPE.FlowOpen:
           rc = AdministrationFlows >= SECURITY_ACCESS_LEVEL.Readonly; break;
         case Packet.PACKET_TYPE.FlowSave:
+        case Packet.PACKET_TYPE.FlowDebug:
           rc = AdministrationFlows >= SECURITY_ACCESS_LEVEL.Full; break;
 
         default:

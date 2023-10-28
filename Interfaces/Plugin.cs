@@ -42,6 +42,11 @@ namespace Core
     public string Name = "";
 
     /// <summary>
+    /// Defines which order plugins should be started, lower number starts earlier, multiple plugins with the same StartPriority the start up order is undefined (random) All plugins by default have the latest start order. int.MaxValue
+    /// I put 1000 between each plugin's priority which will give other plugins some room to set a priority higher or lower than other plugins
+    /// </summary>
+    public int StartPriority = int.MaxValue;
+    /// <summary>
     /// Information so the flow engine knows what flow to start based on the plugin that is requesting a flow to start
     /// </summary>
     public PARMS FlowStartCommands = new PARMS();
@@ -57,7 +62,28 @@ namespace Core
     {
       lock (mFlowsCriticalSection)
       {
+
+        flow.FileName = flow.FileName.Replace('\\', '/'); //Doesn't seem to be any way to get C# to use only forward slashes everywhere, makes it difficult to do file name string compares.
+        FlowRemove(flow.FileName); //If a flow with the same file name is loaded, remove it so we can add the new one.
+
         Flows.Add(flow);
+        Global.Write("Flow Added - " + flow.FileName);
+      }
+    }
+
+    public void FlowRemove(string fileName)
+    {
+      lock (mFlowsCriticalSection)
+      {
+        for (int x = 0; x < Flows.Count; x++)
+        {
+          if (Flows[x].FileName == fileName)
+          {
+            Global.Write("Flow Removed - " + fileName);
+            Flows.RemoveAt(x);
+            break;
+          }
+        }
       }
     }
 
@@ -154,6 +180,17 @@ namespace Core
       return s;
     }
 
+    public virtual Setting SettingAddIfMissing(string key, bool Defaultvalue)
+    {
+      Setting? s = SettingFind(key);
+      if (s == null)
+      {
+        s = SettingAddOrUpdate(new Setting(key, Defaultvalue));
+      }
+
+      return s;
+    }
+
     public virtual Setting SettingAddIfMissing(string key, decimal Defaultvalue)
     {
       Setting? s = SettingFind(key);
@@ -175,6 +212,24 @@ namespace Core
           return Settings[i];
       }
       return null;
+    }
+
+    public virtual bool SettingGetAsBoolean(string key)
+    {
+      Setting? setting = SettingFind(key);
+      if (setting is null)
+        return false;
+
+      return (bool)setting.Value;
+    }
+
+    public virtual string SettingGetAsString(string key)
+    {
+      Setting? setting = SettingFind(key);
+      if (setting is null)
+        return "";
+
+      return setting.Value.ToString()!;
     }
     public virtual Color SettingFindAsColor(string key)
     {
@@ -208,7 +263,8 @@ namespace Core
     {
       Type t = this.GetType();
       Console.Write("Plugin Type - " + t.Name);
-      File.WriteAllLines("./" + t.Name + ".cfg", GetSettingsAsStringArray());
+      string path = Options.GetFullPath(Options.PluginPath, t.Name + ".cfg");
+      File.WriteAllLines(path, GetSettingsAsStringArray());
     }
 
     public virtual void LoadSettings()
@@ -243,7 +299,7 @@ namespace Core
     /// <summary>
     /// Will start up the plugin for runtime use, this is called after Init, will only be called once when the Flow Engine first starts running
     /// </summary>
-    public virtual void StartPlugin()
+    public virtual void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
     }
 

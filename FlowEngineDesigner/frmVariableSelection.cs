@@ -66,6 +66,7 @@ namespace FlowEngineDesigner
       tvVariables.Nodes.Clear();
       if (Flow.StartPlugin != null)
       {
+        //Flow.SampleData
         for (int x = 0; x < Flow.StartPlugin.SampleVariables.Count; x++)
         {
           KeyValuePair<string, Variable> kvp = Flow.StartPlugin.SampleVariables.ElementAt(x);

@@ -22,7 +22,7 @@ namespace FlowEngineDesigner
     {
 
 
-      if (cPluginManager.PluginsLoaded == true)
+      if (cPluginManagerWrapper.PluginsLoaded == true)
       {
         LoadToolbox();
       }

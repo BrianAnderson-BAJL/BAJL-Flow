@@ -1,10 +1,12 @@
 ﻿<Settings>
+	<SettingsFileVersion>0.0.1</SettingsFileVersion>
 	<PluginPath>C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Plugins</PluginPath>
 	<PluginGraphicsPath>./Plugins/Graphics/</PluginGraphicsPath>
 	<FlowPath>C:\Users\brian\Documents\Flows</FlowPath>
 	<FlowPathAllowSubDirectories>True</FlowPathAllowSubDirectories>
 	<FlowUserHistoryMax>10</FlowUserHistoryMax>
 	<UserPath>./users.xml</UserPath>
+	<ServerType>Development</ServerType>
 	<Administration>
 		<AdministrationPrivateKey>BAJL_HASH~V1~20000~E13iVFBdofhxSbrk2jUGoTRGVvs/APQBsJZkDjfBj4sMj1PMwfbUjg/gmAR4faaLyKGtZ6MYBKxe/hcY3jVh+A==</AdministrationPrivateKey>
 		<AdministrationUserMaxLoginIdCheck>100</AdministrationUserMaxLoginIdCheck>

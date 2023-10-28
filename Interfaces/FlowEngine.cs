@@ -30,7 +30,9 @@ namespace Core
 
     public void Init(string[] args)
     {
+      
       Global.Write("Initializing...");
+      Packet.ReversePacketId = true;
       Console.CancelKeyPress += Console_CancelKeyPress;
       mState = STATE.Initializing;
       Options.PreParseArgs(args);
@@ -47,15 +49,13 @@ namespace Core
       tcpServer.NewPacket += Administration_TcpServer_NewPacket;
       tcpServer.Start(7000);
 
-      Global.Write("Initializing...Loding plugins");
+      Global.Write("Initializing...Loading plugins");
       PluginManager.LoadPlugins(Options.GetFullPath(Options.PluginPath)); //Open all the *.dlls and load them
       Global.Write("Initializing...Loading flows");
       FlowManager.LoadFlows(Options.GetFullPath(Options.FlowPath));  //Parse all the flows in the path and attach them to the plugins
       Global.Write("Initializing...Starting plugins");
       PluginManager.StartPlugins();
-      int threads = 0;
-      int compThreads = 0;
-      ThreadPool.GetMaxThreads(out threads, out compThreads);
+      ThreadPool.GetMaxThreads(out int threads, out int compThreads);
       Global.Write("Threads in Pool, worker [{0}], I/O threads [{1}]", threads.ToString(), compThreads.ToString());
     }
 
@@ -133,11 +133,19 @@ namespace Core
     /// <param name="request"></param>
     public static void StartFlow(FlowRequest request)
     {
+      if (request.PluginStartedFrom is not null)
+      {
+        Global.Write($"Plugin [{request.PluginStartedFrom.Name}] Starting new flow [{request.FlowToStart}] in new thread");
+      }
+      else
+      {
+        Global.Write($"Starting new flow [{request.FlowToStart}] in new thread");
+      }
       if (mState == STATE.Initializing)
       {
         WaitingRequests.Add(request); //Queue up the events that want to execute during start up, the engine will execute them when the system is done starting.
       }
-      else if (mState == STATE.Running || request.PluginStartedFrom.Name == "FlowCore")
+      else if (mState == STATE.Running) // || request.PluginStartedFrom.Name == "FlowCore"
       {
         ThreadPool.QueueUserWorkItem(ThreadProc, request);
       }
@@ -145,6 +153,15 @@ namespace Core
 
     public static Flow StartFlowSameThread(FlowRequest request)
     {
+      if (request.PluginStartedFrom is not null)
+      {
+        Global.Write($"Plugin [{request.PluginStartedFrom.Name}] Starting new flow [{request.FlowToStart}]");
+      }
+      else
+      {
+        Global.Write($"Starting new flow [{request.FlowToStart}]");
+      }
+
       Flow clonedFlow = request.FlowToStart.Clone(); //Need to clone the flow before running it
 
       if (request.Var != null)
@@ -167,7 +184,8 @@ namespace Core
       if (flowRequest == null)
         return;
 
-      flowRequest.FlowToStart = flowRequest.FlowToStart.Clone(); //Need to clone the flow before running it
+      if (flowRequest.CloneFlow == FlowRequest.CLONE_FLOW.CloneFlow)
+        flowRequest.FlowToStart = flowRequest.FlowToStart.Clone(); //Need to clone the flow before running it
 
       if (flowRequest.Var != null)
       {

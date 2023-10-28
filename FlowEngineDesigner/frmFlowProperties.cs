@@ -85,7 +85,7 @@ namespace FlowEngineDesigner
 
         if (parmVar.Parm.DataType == DATA_TYPE.Integer)
         {
-          ucParameterInteger uc = new ucParameterInteger(parmVar);
+          ucParameterInteger uc = new ucParameterInteger(parmVar, null, Flow);
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
           uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
           gbStartOptions.Controls.Add(uc);
