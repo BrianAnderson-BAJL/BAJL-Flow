@@ -16,9 +16,16 @@ namespace FlowEngineDesigner
       Error,
     }
 
+    public enum SENDER
+    {
+      FlowDebug,
+      Compiler,
+      FlowEngineServer,
+    }
+
     public static event EventHandler<TracerEventArgs>? Tracer;
 
-    public static void RaiseEventTracer(object sender, string data, BaseResponse.RESPONSE_CODE response, long ticks = 0)
+    public static void RaiseEventTracer(SENDER sender, string data, BaseResponse.RESPONSE_CODE response, long ticks = 0)
     {
       TRACER_TYPE tracer = TRACER_TYPE.Information;
       if (response == BaseResponse.RESPONSE_CODE.AccessDenied)
@@ -28,7 +35,7 @@ namespace FlowEngineDesigner
       RaiseEventTracer(sender, data, tracer, ticks);
     }
 
-    public static void RaiseEventTracer(object sender, string data, TRACER_TYPE tracerType = TRACER_TYPE.Information, long ticks = 0, string xmlData = "")
+    public static void RaiseEventTracer(SENDER sender, string data, TRACER_TYPE tracerType = TRACER_TYPE.Information, long ticks = 0, string xmlData = "")
     {
       if (Tracer != null)
       {
@@ -42,7 +49,7 @@ namespace FlowEngineDesigner
         return;
 
       Core.Administration.Messages.TraceResponse trace = new TraceResponse(packet);
-      RaiseEventTracer("Flow Debug", trace.PreviousStepName, TRACER_TYPE.Information, trace.ExecutionTicks, trace.ResponseXml);
+      RaiseEventTracer(SENDER.FlowDebug, trace.PreviousStepName, TRACER_TYPE.Information, trace.ExecutionTicks, trace.ResponseXml);
     }
   }
 

@@ -37,7 +37,7 @@ namespace Core
     public void Add(PARM parm)
     {
       PARM_VAR? pv;
-      if (parm.DataType == DATA_TYPE.String || parm.DataType == DATA_TYPE.DropDownList )
+      if (parm.DataType == DATA_TYPE.String || parm.DataType == DATA_TYPE.DropDownList || parm.DataType == DATA_TYPE.Block || parm.DataType == DATA_TYPE.Array) //Doesn't really matter what the root data type is for Block or Array, just that it has sub variables.
         pv = new PARM_VAR(parm, "");
       else if (parm.DataType == DATA_TYPE.Boolean)
         pv = new PARM_VAR(parm, false);

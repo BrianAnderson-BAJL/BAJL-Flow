@@ -35,7 +35,7 @@ namespace FlowEngineDesigner
     private void PopulateSettings()
     {
       lstSettings.Items.Clear();
-      this.Text = string.Format("Plugin Settings [{0}]", mPlugin.Name);
+      this.Text = $"Plugin Settings [{mPlugin.Name}]";
       for (int x = 0; x < mPlugin.Settings.Count; x++)
       {
         Core.Setting s = mPlugin.Settings[x];

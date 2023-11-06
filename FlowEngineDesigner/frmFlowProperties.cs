@@ -26,6 +26,13 @@ namespace FlowEngineDesigner
 
     private void frmFlowProperties_Load(object sender, EventArgs e)
     {
+      string[] startTypes = Enum.GetNames(typeof(Core.FlowRequest.START_TYPE));
+      for (int x = 0; x < startTypes.Length; x++)
+      {
+        cmbDebugStartType.Items.Add(startTypes[x]);
+      }
+      Global.ComboBoxSetIndex(cmbDebugStartType, Flow.DebugStartType.ToString());
+      cmbDebugStartType.SelectedIndexChanged += CmbDebugStartType_SelectedIndexChanged;
       for (int x = 0; x < PluginManager.Plugins.Count; x++)
       {
         cmbPlugins.Items.Add(PluginManager.Plugins[x]);
@@ -46,6 +53,11 @@ namespace FlowEngineDesigner
       txtSampleData.Text = Flow.SampleData;
 
       AddFlowStartCommands();
+    }
+
+    private void CmbDebugStartType_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+      Flow.DebugStartType = System.Enum.Parse<Core.FlowRequest.START_TYPE>(cmbDebugStartType.Text);
     }
 
     private void label3_Click(object sender, EventArgs e)
@@ -106,7 +118,7 @@ namespace FlowEngineDesigner
         }
         if (parmVar.Parm.DataType == DATA_TYPE.Boolean)
         {
-          
+
         }
         if (parmVar.Parm.DataType == DATA_TYPE.DropDownList)
         {
@@ -167,5 +179,6 @@ namespace FlowEngineDesigner
         }
       }
     }
+
   }
 }

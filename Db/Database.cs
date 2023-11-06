@@ -1,4 +1,5 @@
 ﻿using Core;
+using Core.Interfaces;
 using System.Drawing;
 using System.Numerics;
 
@@ -81,7 +82,7 @@ namespace Db
       }
       else
       {
-        Global.Write(String.Format("Invalid DatabaseType [{0}]", dbType), DEBUG_TYPE.Error);
+        Global.Write($"Invalid DatabaseType [{dbType}]", DEBUG_TYPE.Error);
       }
     }
 

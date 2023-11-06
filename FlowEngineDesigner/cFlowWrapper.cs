@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
+using static FlowEngineDesigner.cEventManager;
 
 namespace FlowEngineDesigner
 {
@@ -20,8 +21,8 @@ namespace FlowEngineDesigner
   {
     private bool mNeedToSave = false;
     internal Size HighlightSize = new Size(30, 30);
-    internal Vector2 HighlightCenterOffset = new Vector2(15, 15);
 
+    internal static Vector2 HighlightCenterOffset = new Vector2(15, 15);
     private List<FunctionStep> mCurrentlyExecutingStep = new List<FunctionStep>(8);
     private PictureBox? mPictureBox = null;
     public bool NeedToSave
@@ -163,6 +164,12 @@ namespace FlowEngineDesigner
       mNeedToSave = true;
     }
 
+
+    public void LinkDelete(Core.FunctionStep step, Core.Link link)
+    {
+      step.LinkOutputs.Remove(link);
+    }
+
     public void StepDelete(Core.FunctionStep? step)
     {
       if (step == null)
@@ -202,11 +209,36 @@ namespace FlowEngineDesigner
           return hr;
         }
       }
+      hr = HitTestLinks(v, camera);
+      if (hr.Hit == true)
+        return hr;
+
       hr = HitTestComments(v, camera);
       if (hr.Hit == true)
         return hr;
 
       return new HIT_RESULT();
+    }
+
+
+    private bool IsPointNearLink(Vector2 point, Link link, cCamera camera)
+    {
+      Vector2 inputPos = camera.CreateDrawingPosition(link.Input.Position);
+      Vector2 outputPos = camera.CreateDrawingPosition(link.Output.Position);
+
+      double numerator = Math.Abs((outputPos.Y - inputPos.Y) * point.X - (outputPos.X - inputPos.X) * point.Y + outputPos.X * inputPos.Y - outputPos.Y * inputPos.X);
+
+      double denominator = Math.Sqrt(Math.Pow(outputPos.Y - inputPos.Y, 2) + Math.Pow(outputPos.X - inputPos.X, 2));
+
+      if (numerator > 0 && denominator > 0) //Don't want to devide by zero
+      {
+        double distance = numerator / denominator;
+        return distance <= cOptions.LinkLineSelectDistance;
+      }
+      else
+      {
+        return false;
+      }
     }
 
     private HIT_RESULT HitTestComments(Vector2 v, cCamera camera)
@@ -218,6 +250,20 @@ namespace FlowEngineDesigner
         if (r.Contains(v) == true)
         {
           return new HIT_RESULT() { Hit = true, HitItem = comment, ParentItem = null, Type = HIT_RESULT.HIT_TYPE.Comment, Position = comment.Position };
+        }
+      }
+      return new HIT_RESULT();
+    }
+
+    private HIT_RESULT HitTestLinks(Vector2 v, cCamera camera)
+    {
+      for (int i = functionSteps.Count - 1; i >= 0; i--)
+      {
+        for (int x = 0; x < functionSteps[i].LinkOutputs.Count; x++)
+        {
+          bool hit = IsPointNearLink(v, functionSteps[i].LinkOutputs[x], camera);
+          if (hit == true)
+            return new HIT_RESULT() { Hit = true, ParentItem = functionSteps[i], HitItem = functionSteps[i].LinkOutputs[x], Type = HIT_RESULT.HIT_TYPE.Link };
         }
       }
       return new HIT_RESULT();
@@ -287,103 +333,15 @@ namespace FlowEngineDesigner
           }
           catch (Exception ex)
           {
-            cEventManager.RaiseEventTracer(this, String.Format("Flow SampleData Json Parse error: [{0}], [{1}]", FileName, ex.Message), cEventManager.TRACER_TYPE.Error);
+            cEventManager.RaiseEventTracer(SENDER.Compiler, $"Flow SampleData Json Parse error: [{FileName}], [{ex.Message}]", cEventManager.TRACER_TYPE.Error);
           }
 
         }
       }
     }
 
-    public override RESP? Execute()
-    {
-      throw new NotImplementedException();  //Can't call this function from the designer, use the Execute(PictureBox) function instead
-    }
-
-    private bool PrepareFlowForTesting()
-    {
-      if (this.SampleDataFormat == DATA_FORMAT.Json && this.SampleData != "")
-      {
-        string temp = this.SampleData;
-        try
-        {
-          this.VariableAdd(Flow.VAR_NAME_FLOW_START, Variable.JsonParse(ref temp));
-        }
-        catch (Exception ex)
-        {
-          cEventManager.RaiseEventTracer(this, String.Format("Flow SampleData Json Parse error: [{0}], [{1}]", FileName, ex.Message), cEventManager.TRACER_TYPE.Error);
-          return false;
-        }
-      }
-      return true;
-    }
-
-    public void Execute(PictureBox pb)
-    {
-      mPictureBox = pb;
-      cEventManager.RaiseEventTracer(this, "Flow Started: " + FileName);
-      DateTime StartTime = DateTime.UtcNow;
-
-      if (PrepareFlowForTesting() == false)
-      {
-        return;
-      }
-
-      base.Execute();
-
-      mCurrentlyExecutingStep.Clear();
-      mPictureBox.Refresh();
-      TimeSpan ts = DateTime.UtcNow - StartTime;
-      cEventManager.RaiseEventTracer(this, $"Flow Complete: [{FileName}]", cEventManager.TRACER_TYPE.Information, ts.Ticks);
-    }
 
 
-    /// <summary>
-    /// This is a copy of Flow.ExecuteSteps, but this has added profiling code, we don't want this in production
-    /// </summary>
-    /// <param name="steps"></param>
-    /// <returns></returns>
-    protected override List<FunctionStep> ExecuteSteps(List<FunctionStep> steps)
-    {
-      if (mPictureBox != null && cOptions.HighlightStepsOnExecution == true)
-      {
-        mCurrentlyExecutingStep.Clear();
-        mCurrentlyExecutingStep.AddRange(steps);
-        mPictureBox.Refresh();
-      }
-
-      List<FunctionStep> nextSteps = new List<FunctionStep>(16);
-      for (int x = 0; x < steps.Count; x++)
-      {
-        FunctionStep step = steps[x];
-        cEventManager.RaiseEventTracer(this, String.Format("Executing step [{0}]", step.Name));
-        DateTime StartTime = DateTime.UtcNow;
-
-        step.Execute(this);
-
-        TimeSpan ts = DateTime.UtcNow - StartTime;
-        cEventManager.RaiseEventTracer(this, String.Format("Step Complete: [{0}], Execution time [{1}]", step.Name, Global.ConvertToString(ts)));
-
-        nextSteps.AddRange(step.GetNextStepsBasedOnResp());
-      }
-
-      return nextSteps;
-    }
-
-
-    protected override List<FunctionStep> GetNextSteps(FunctionStep step)
-    {
-      List<FunctionStep> nextSteps = new List<FunctionStep>(16);
-      for (int x = 0; x < step.LinkOutputs.Count; x++)
-      {
-        FunctionStep? s = step.LinkOutputs[x].Input.Step;
-        if (s != null)
-        {
-          //s.RuntimeParms = s.parms.Clone();
-          nextSteps.Add(s);
-        }
-      }
-      return nextSteps;
-    }
 
 
     #region Draw all the graphics in the picturebox
@@ -446,21 +404,23 @@ namespace FlowEngineDesigner
       for (int x = 0; x < step.LinkOutputs.Count; x++)
       {
         Core.Link l = step.LinkOutputs[x];
-        int Width = 3;
-        //if (l.Selected == true)
-        //  Width = 5;
-        Pen p = new Pen(Color.Blue, Width);
-        Vector2 v1 = step.Position + l.Output.Offset + HighlightCenterOffset;
-        v1 = camera.CreateDrawingPosition(v1);
-        Vector2 v2 = Vector2.Zero;
-        if (l.Input.Step is not null)
-        {
-          v2 = l.Input.Step.Position + l.Input.Offset + HighlightCenterOffset;
-          v2 = camera.CreateDrawingPosition(v2);
-        }
-        graphics.DrawLine(p, v1.ToPoint(), v2.ToPoint());
+        DrawLink(l, graphics, camera, 3, Color.Blue);
       }
+    }
 
+    private void DrawLink(Link link, Graphics graphics, cCamera camera, int width, Color color)
+    {
+      
+      Pen p = new Pen(color, width);
+      Vector2 v1 = link.Output.Position;
+      v1 = camera.CreateDrawingPosition(v1);
+      Vector2 v2 = Vector2.Zero;
+      if (link.Input.Step is not null)
+      {
+        v2 = link.Input.Position;
+        v2 = camera.CreateDrawingPosition(v2);
+      }
+      graphics.DrawLine(p, v1.ToPoint(), v2.ToPoint());
     }
 
     public void DrawSelection(HIT_RESULT hr, Graphics graphics, cCamera camera)
@@ -479,6 +439,15 @@ namespace FlowEngineDesigner
           Size s = new Size(comment.Size.Width + 18, comment.Size.Height + 18);
           Rectangle r = camera.CreateDrawingRect(hr.HitItem.Position - new Vector2(10, 10), s);
           graphics.DrawImage(Global.SelectorStep, r);
+        }
+      }
+      else if (hr.Type == HIT_RESULT.HIT_TYPE.Link && hr.HitItem is not null)
+      {
+        Link? link = hr.HitItem as Link;
+        if (link is not null)
+        {
+          DrawLink(link, graphics, camera, 6, Color.Orange);
+          DrawLink(link, graphics, camera, 3, Color.Blue);
         }
       }
     }
@@ -559,28 +528,34 @@ namespace FlowEngineDesigner
       float MinY = float.MaxValue;
       float MaxY = float.MinValue;
 
+      FunctionStep? step = FindStepByName("FlowCore", "Start");
+      if (step is not null)
+      {
+        camera.Position = step.Position;
+        return;
+      }
       //Vector2 newPos = new Vector2();
       for (int x = 0; x < functionSteps.Count; x++)
       {
         Vector2 p = functionSteps[x].Position;
-        Bitmap? bm = functionSteps[x].ExtraValues[Global.EXTRA_VALUE_IMAGE] as Bitmap;
-        if (bm == null)
-          throw new Exception("Missing 'image' tag in step.ExtraValues[], can't draw step");
+        //Bitmap? bm = functionSteps[x].ExtraValues[Global.EXTRA_VALUE_IMAGE] as Bitmap;
+        //if (bm == null)
+        //  throw new Exception("Missing 'image' tag in step.ExtraValues[], can't draw step");
 
-        Size s = new Size(bm.Width, bm.Height);
+        //Size s = new Size(bm.Width, bm.Height);
 
         if (MinX > p.X)
           MinX = p.X;
-        if (MaxX < p.X + s.Width) 
-          MaxX = p.X + s.Width;
+        if (MaxX < p.X) 
+          MaxX = p.X;
         if (MinY > p.Y)
           MinY = p.Y;
-        if (MaxY < p.Y + s.Height)
-          MaxY = p.Y + s.Height;
+        if (MaxY < p.Y)
+          MaxY = p.Y;
       }
-      
-      float CenterX = ((MaxX + MinX) / 2) + (pb.Size.Width / 2);
-      float CenterY = ((MaxY + MinY) / 2) + (pb.Size.Height / 2);
+
+      float CenterX = ((MaxX - MinX) / 2) + MinX;// - (pb.Size.Width / 2);
+      float CenterY = ((MaxY - MinY) / 2) + MinY;// - (pb.Size.Height / 2);
       //CenterX *= camera.ZoomLevel;
       //CenterY *= camera.ZoomLevel;
       camera.Position = new Vector2(CenterX, CenterY);

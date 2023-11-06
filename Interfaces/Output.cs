@@ -17,6 +17,7 @@ namespace Core
     public static readonly string SUCCESS_LABEL = "Success";
     public static readonly string ERROR_LABEL = "Error";
 
+    internal static Vector2 HighlightCenterOffset = new Vector2(15, 15);
     public static readonly Vector2 SUCCESS_OUTPUT_POS = new Vector2(160, 90);
     public static readonly Vector2 OUTPUT_OFFSET = new Vector2(0, 40);
     //public static readonly Vector2 OUTPUT2_POS = new Vector2(160, 130);
@@ -47,5 +48,17 @@ namespace Core
     {
       return new Output(this.Label, fs, this.OutputIndex);
     }
+
+    public new Vector2 Position
+    {
+      get
+      {
+        if (Step is null)
+          return Offset;
+        else
+          return Step.Position + Offset + HighlightCenterOffset;
+      }
+    }
+
   }
 }

@@ -9,3 +9,14 @@ Users - Working
 Security - Working
 Upload flows to server - Working
 Comments - Working
+
+
+
+
+Problems encountered attempting to run Flow Engine on Ubuntu 20.
+1. UriBuilder didn't work for modifying the path of files on Linux
+2. My cert stuff was all hard coded paths, had to change it to use the actual settings.xml file like it was supposed to
+3. PERMISSION DENIED when trying to open HTTPS port when not running with 'sudo' permissions
+4. Authentication failed because the remote party sent a TLS alert: 'ProtocolVersion'. on Windows when attempting to connect to the Linux Administration IP/Port (port 7000)
+        : The client and server cannot communicate, because they do not possess a common algorithm
+        This problem was caused by my own coding mistake, had the Server SslProtocols set to Tls, which is an outdated protocol, had to set it to none witch means the system will decide which protocol to use

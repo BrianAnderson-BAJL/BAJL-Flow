@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MySql.Data.MySqlClient;
+using Core.Interfaces;
 
 namespace Db
 {
-  public class DbMySql : IDatabase
+    public class DbMySql : IDatabase
   {
     private string ConnectionString = "";
     private Db.Database mDb;

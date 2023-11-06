@@ -53,6 +53,8 @@ namespace FlowCore
       Functions.Add(function);
 
       function = new Function("Flow Return", this, FlowReturn);
+      function.OutputClear();
+      function.OutputAdd("Continue");
       PARM pddl = new PARM("Return", DATA_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
       pddl.OptionAdd(OPTION_SUCCESS);
       pddl.OptionAdd(OPTION_ERROR);
@@ -72,8 +74,21 @@ namespace FlowCore
       function.Parms.Add("Variable Name to delete", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple, PARM.PARM_RESOLVE_VARIABLES.No); //We want raw variable names in this function so we can delete the actual variable objects
       Functions.Add(function);
 
+      function = new Function("Contains", this, VariableContains);
+      function.Parms.Add("Source string to check", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes);
+      PARM parm =function.Parms.Add("Value to seek", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes);
+      parm.ValidatorAdd(PARM.PARM_VALIDATION.StringMinLength, 1);
+      function.Parms.Add("Case sensitive?", DATA_TYPE.Boolean, PARM.PARM_REQUIRED.Yes);
+      Functions.Add(function);
+
+      function = new Function("Split", this, VariableSplit);
+      function.Parms.Add("Source string to be split", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes);
+      parm = function.Parms.Add("Value to split with", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes);
+      parm.ValidatorAdd(PARM.PARM_VALIDATION.StringMinLength, 1);
+      Functions.Add(function);
+
       function = new Function("Sleep", this, Sleep);
-      PARM parm = function.Parms.Add("Time in ms", DATA_TYPE.Integer);
+      parm = function.Parms.Add("Time in ms", DATA_TYPE.Integer);
       parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMin, 0);
       function.OutputClear();
       function.OutputAdd("Complete");
@@ -227,6 +242,52 @@ namespace FlowCore
       return RESP.SetSuccess();
     }
 
+    private static RESP VariableSplit(Core.Flow flow, Variable[] vars)
+    {
+      Global.Write("Flow.VariableSplit");
+      vars[0].GetValue(out string source);
+      vars[1].GetValue(out string splitOn);
+
+      if (source is null)
+        return RESP.SetError(1, "Source is null");
+      if (splitOn is null)
+        return RESP.SetError(1, "Split on value is null");
+
+
+      string[] splitStr = source.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
+      Variable var = new Variable();
+      for (int x = 0; x < splitStr.Length; x++)
+      {
+        var.Add(new VariableString(x.ToString(), splitStr[x]));
+      }
+      return RESP.SetSuccess(var);
+    }
+
+
+    private static RESP VariableContains(Core.Flow flow, Variable[] vars)
+    {
+      Global.Write("Flow.VariableContains");
+      vars[0].GetValue(out string source);
+      vars[1].GetValue(out string seekVal);
+      vars[2].GetValue(out bool caseSensitive);
+
+      if (source is null)
+        return RESP.SetError(1, "Source is null");
+      if (seekVal is null)
+        return RESP.SetError(1, "Seek value is null");
+
+      if (caseSensitive == false)
+      {
+        source = source.ToLower();
+        seekVal = seekVal.ToLower();
+      }
+
+      if (source.Contains(seekVal) == true)
+        return RESP.SetSuccess();
+      else
+        return RESP.SetError(1, "Seek value is not contained in Source value");
+    }
+
     private static RESP VariablesExists(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Flow.VariableExists");
@@ -281,10 +342,10 @@ namespace FlowCore
       if (flowName == "")
         return RESP.SetError(10, "No flow name specified to start");
 
-      Global.Write("Flow.FlowRun - flowName = " + flowName);
+      Global.Write($"Flow.FlowRun - flowName [{flowName}]");
       Flow? flowToRun = FlowCore.Plugin!.FindFlowByName(flowName);
       if (flowToRun is null)
-        return RESP.SetError(0, String.Format("Could not find flow to run [{0}]", flowName));
+        return RESP.SetError(0, $"Could not find flow to run [{flowName}]");
 
       Flow clonedFlow = FlowEngine.StartFlowSameThread(new FlowRequest(var, FlowCore.Plugin, flowToRun));
       resp = clonedFlow.Resp;
@@ -318,7 +379,7 @@ namespace FlowCore
       Global.Write("Flow.FlowRun - flowName = " + flowName);
       Flow? flowToRun = FlowCore.Plugin!.FindFlowByName(flowName);
       if (flowToRun is null)
-        return RESP.SetError(0, String.Format("Could not find flow to run [{0}]", flowName));
+        return RESP.SetError(0, $"Could not find flow to run [{flowName}]");
 
 
       FlowEngine.StartFlow(new FlowRequest(var, FlowCore.Plugin, flowToRun));

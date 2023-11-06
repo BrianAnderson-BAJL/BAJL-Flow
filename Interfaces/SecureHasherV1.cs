@@ -46,7 +46,7 @@ namespace Core
       var base64Hash = Convert.ToBase64String(hashBytes);
 
       // Format hash with extra information
-      return string.Format(HASH_HEADER + "{0}" + DELIMITTER + "{1}", Options.AdministrationHashInterations, base64Hash);
+      return $"{HASH_HEADER}{Options.AdministrationHashInterations}{DELIMITTER}{base64Hash}";
     }
 
 

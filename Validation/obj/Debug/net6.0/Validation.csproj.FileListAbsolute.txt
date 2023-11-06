@@ -1,0 +1,15 @@
+C:\Users\brian\source\repos\FlowEngine\Validation\bin\Debug\net6.0\Validation.deps.json
+C:\Users\brian\source\repos\FlowEngine\Validation\bin\Debug\net6.0\Validation.dll
+C:\Users\brian\source\repos\FlowEngine\Validation\bin\Debug\net6.0\Validation.pdb
+C:\Users\brian\source\repos\FlowEngine\Validation\bin\Debug\net6.0\Core.dll
+C:\Users\brian\source\repos\FlowEngine\Validation\bin\Debug\net6.0\Core.pdb
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\Validation.csproj.AssemblyReference.cache
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\Validation.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\Validation.AssemblyInfoInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\Validation.AssemblyInfo.cs
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\Validation.csproj.CoreCompileInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\Validation.csproj.CopyComplete
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\Validation.dll
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\refint\Validation.dll
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\Validation.pdb
+C:\Users\brian\source\repos\FlowEngine\Validation\obj\Debug\net6.0\ref\Validation.dll

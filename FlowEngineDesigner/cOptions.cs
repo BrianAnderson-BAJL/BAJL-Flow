@@ -18,6 +18,7 @@ namespace FlowEngineDesigner
     public static string BaseNewVariableName = "var";
     public static Color CommentColorBackgroundDefault = Color.FromArgb(255, 188, 255, 189);
     public static Color CommentColorTextDefault = Color.Black;
+    public static int LinkLineSelectDistance = 15;
     public static bool AdministrationAutoConnect = true;
     public static string AdministrationLastFilePath = "/Http";
 

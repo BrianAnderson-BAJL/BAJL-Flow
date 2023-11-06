@@ -43,11 +43,24 @@ namespace Core
       UserManager.FileLoad();
       MessageProcessor.Init();
       Global.Write("Initializing...Starting TCP server");
-      tcpServer = new Administration.TcpTlsServer(5000, "C:\\GameDev\\certkey.pem");
-      tcpServer.NewConnection += Administration_TcpServer_NewConnection;
-      tcpServer.ConnectionClosed += Administration_TcpServer_ConnectionClosed;
-      tcpServer.NewPacket += Administration_TcpServer_NewPacket;
-      tcpServer.Start(7000);
+      try
+      {
+        tcpServer = new Administration.TcpTlsServer(5000, Options.TlsCertFileNamePath, Options.TlsCertPassword);
+        tcpServer.NewConnection += Administration_TcpServer_NewConnection;
+        tcpServer.ConnectionClosed += Administration_TcpServer_ConnectionClosed;
+        tcpServer.NewPacket += Administration_TcpServer_NewPacket;
+        tcpServer.Start(7000);
+      }
+      catch (FileNotFoundException ex)
+      {
+        Global.Write(ex.Message + $" - [{Options.TlsCertFileNamePath}]", DEBUG_TYPE.Error);
+        Environment.Exit(0);
+      }
+      catch (Exception ex1)
+      {
+        Global.Write(ex1.Message, DEBUG_TYPE.Error);
+        Environment.Exit(0);
+      }
 
       Global.Write("Initializing...Loading plugins");
       PluginManager.LoadPlugins(Options.GetFullPath(Options.PluginPath)); //Open all the *.dlls and load them
@@ -56,7 +69,7 @@ namespace Core
       Global.Write("Initializing...Starting plugins");
       PluginManager.StartPlugins();
       ThreadPool.GetMaxThreads(out int threads, out int compThreads);
-      Global.Write("Threads in Pool, worker [{0}], I/O threads [{1}]", threads.ToString(), compThreads.ToString());
+      Global.Write($"Threads in Pool, worker [{threads}], I/O threads [{compThreads}]");
     }
 
 
@@ -96,7 +109,7 @@ namespace Core
 
     private void Administration_TcpServer_NewPacket(object? sender, Administration.EventArgsPacket e)
     {
-      Global.Write("Received new TCP Administration packet, type [{0}]", e.Packet.PacketType.ToString());
+      Global.Write($"Received new TCP Administration packet, type [{e.Packet.PacketType}]");
       MessageProcessor.ProcessMessage(e.Packet, e.Client);
     }
 

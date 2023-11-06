@@ -85,8 +85,10 @@ namespace Core
     public virtual RESP Execute(Core.Flow flow)
     {
       if (ParmVars.Count < Function.Parms.Count) //ParmVars could have more parameters than Function.Parms if one of them is multiple
-        return RESP.SetError(1, "Not enough parameters to execute step");
-
+      {
+        resps = RESP.SetError(1, "Not enough parameters to execute step");
+        goto GotoResults;
+      }
       Variable[] vars = new Variable[ParmVars.Count];
       for (int x = 0; x < ParmVars.Count; x++)
       {
@@ -95,18 +97,23 @@ namespace Core
         {
           pv.GetValue(out Variable? pvVar, flow);
           if (pvVar is null)
-            return RESP.SetError(2, String.Format("Could not resolve variable [{0}]", pv.VariableName));
+          {
+            resps = RESP.SetError(2, $"Could not resolve variable [{pv.VariableName}]");
+            goto GotoResults;
+          }
           vars[x] = pvVar;
         }
         else
         {
-          vars[x] = new VariableString("varName" + x.ToString(), pv.VariableName);
+          vars[x] = new VariableString($"varName{x}", pv.VariableName);
         }
       }
 
       resps = Function.Execute(flow, vars);
 
-      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
+      GotoResults:
+
+      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP, DATA_TYPE.Block);
       var.SubVariables.Add(new VariableObject("resp", resps));
       var.SubVariables.Add(new VariableObject("step", this));
       flow.VariableAdd(Flow.VAR_NAME_PREVIOUS_STEP, var);  //Previous step variable always contains the last steps values

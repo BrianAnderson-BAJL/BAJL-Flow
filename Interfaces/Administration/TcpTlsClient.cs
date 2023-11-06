@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
@@ -59,7 +60,7 @@ namespace Core.Administration
         System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient();
         if (client.ConnectAsync(hostUrl, port).Wait(connectTimeout) == false)
         {
-          Global.Write("Could not connect to url [{0}], port [{1}]", hostUrl, port.ToString());
+          Global.Write($"Could not connect to url [{hostUrl}], port [{port}]");
           return null; //Couldn't connect within the connectTimeout period, return null (failure)
         }
         SslStream stream = new SslStream(client.GetStream(), false, ValidateServerCertificate!);

@@ -184,7 +184,7 @@ namespace Http
       }
       catch (HttpListenerException e)
       {
-        Global.Write("unable to start listening, HttpListenerException [" + e.Message + "]");
+        Global.Write($"unable to start listening, HttpListenerException [{e.Message}]", DEBUG_TYPE.Error);
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
         {
           Global.Write("May need to run this command to allow the Http plugin to start correctly and to run in non-admin mode: netsh http add urlacl url=[URL HERE] user=Everyone");
@@ -292,7 +292,7 @@ namespace Http
         uri = new Uri("");
       string url = uri.LocalPath.ToString();
       url = Options.FixUrl(url);
-      Global.Write(String.Format("Http Looking for flow Url [{0}], method [{1}], host [{2}]", url, method, host));
+      Global.Write($"Http Looking for flow Url [{url}], method [{method}], host [{host}]");
       lock (mFlowsCriticalSection)
       {
         for (int x = 0; x < Flows.Count; x++)
@@ -387,17 +387,17 @@ namespace Http
       HttpListenerContext? context = obj as HttpListenerContext;
 
       if (context is null)
-        return RESP.SetError(1, String.Format("Unable to resolve [{0}] parameter", PARM_CONNECTION_HANDLE));
+        return RESP.SetError(1, $"Unable to resolve [{PARM_CONNECTION_HANDLE}] parameter");
       if (data is null)
         return RESP.SetError(1, "Unable to resolve [data] parameter");
       if (dataformat != PARM_DATA_FORMAT_XML && dataformat != PARM_DATA_FORMAT_RAW && dataformat != PARM_DATA_FORMAT_JSON)
-        return RESP.SetError(1, String.Format("Unknown data format [{0}] for parameter [{1}]", dataformat, PARM_DATA_FORMAT));
+        return RESP.SetError(1, $"Unknown data format [{dataformat}] for parameter [{PARM_DATA_FORMAT}]");
       if (responseCode < 0)
         return RESP.SetError(1, $"Http response code invalid value [{responseCode}], original value[{tempStr}]");
 
       string rawData = "";
       if (dataformat == PARM_DATA_FORMAT_JSON)
-        rawData = data.JsonCreate(true);
+        rawData = data.ToJson(true);
       else if (dataformat == PARM_DATA_FORMAT_XML)
         throw new NotImplementedException(PARM_DATA_FORMAT_XML + " is not implemented yet");
       else if (dataformat == PARM_DATA_FORMAT_RAW)
@@ -410,7 +410,7 @@ namespace Http
       response.ContentLength64 = outputData.Length;
       response.OutputStream.Write(outputData, 0, outputData.Length);
       response.Close();
-      Global.Write(String.Format("Http.Send - Sent [{0}] bytes of data to client", outputData.Length));
+      Global.Write($"Http.Send - Sent [{outputData.Length}] bytes of data to client");
       return RESP.SetSuccess();
     }
 

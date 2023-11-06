@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static FlowEngineDesigner.cEventManager;
 
 namespace FlowEngineDesigner
 {
@@ -50,7 +51,7 @@ namespace FlowEngineDesigner
         {
           Client.NewPacket += Client_NewPacket;
           Client.ConnectionClosed += Client_ConnectionClosed;
-          cEventManager.RaiseEventTracer("Server", String.Format("Connected to [{0}], [{1}]", domainName, port), cEventManager.TRACER_TYPE.Information, te.End().Ticks);
+          cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, $"Connected to [{domainName}], [{port}]", cEventManager.TRACER_TYPE.Information, te.End().Ticks);
           Global.FormMain!.tsServer.Text = "Connected";
           Global.FormMain!.tsServer.ForeColor = Color.Green;
           return true;
@@ -150,7 +151,7 @@ namespace FlowEngineDesigner
 
           Global.FormMain!.Invoke((MethodInvoker)delegate
           {
-            cEventManager.RaiseEventTracer("Server", $"Received [{e.Packet.PacketType}], Response code [{e.Packet.PeekResponseCode()}]", e.Packet.PeekResponseCode(), callbackInfo.Value.ElapsedTime.End().Ticks);
+            cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, $"Received [{e.Packet.PacketType}], Response code [{e.Packet.PeekResponseCode()}]", e.Packet.PeekResponseCode(), callbackInfo.Value.ElapsedTime.End().Ticks);
             callbackInfo.Value.Callback(e);
             if (callbackInfo.Value.Callback_AlsoNotify is not null)
             {
@@ -198,7 +199,7 @@ namespace FlowEngineDesigner
         if (Client is not null)
           Client.Close();
         cServer.UserLoggedIn = new User();
-        cEventManager.RaiseEventTracer("Server", "Disconnected");
+        cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, "Disconnected");
       }
     }
 

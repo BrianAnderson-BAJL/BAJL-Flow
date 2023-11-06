@@ -65,14 +65,13 @@ namespace Core
         Console.ForegroundColor = ConsoleColor.Yellow;
       else
         Console.ForegroundColor = ConsoleColor.Red;
-      Console.WriteLine(val);
+
+      Console.Write(val);
+      
+      Console.ForegroundColor = ConsoleColor.White;  //Change the color back to white when done, otherwise the console will stay the color if it exits after an error.
+      Console.WriteLine("");
     }
 
-    [Conditional("DEBUG")]
-    public static void Write(string val, params string[] otherVals)
-    {
-      Console.WriteLine(String.Format(val, otherVals));
-    }
 
     public static string StripOff(string rootPath, string path)
     {

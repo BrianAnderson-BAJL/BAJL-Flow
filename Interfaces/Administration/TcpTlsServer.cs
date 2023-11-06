@@ -59,7 +59,7 @@ namespace Core.Administration
       }
     }
 
-    public TcpTlsServer(int ReadPacketTimeout, string pathToCert) //string CertificateSerialNumber, 
+    public TcpTlsServer(int ReadPacketTimeout, string pathToCert, string certPassword) //string CertificateSerialNumber, 
     {
 
       mReadPacketTimeout = ReadPacketTimeout;
@@ -68,7 +68,7 @@ namespace Core.Administration
       //X509Certificate2Collection Certificates = Store.Certificates.Find(X509FindType.FindByIssuerDistinguishedName, "CN=flowengine.bajlllc.com", false);
       //Store.Close();
       
-      mCertificate = new X509Certificate("c:\\gamedev\\cert.pfx", "b1581a");
+      mCertificate = new X509Certificate(pathToCert, certPassword); //"b1581a"
 
       //if (Certificates.Count > 0)
       //{
@@ -103,6 +103,7 @@ namespace Core.Administration
       {
         TcpListener Listener = new TcpListener(IPAddress.Any, mPort);
         Listener.Start();
+        Global.Write($"TcpTlsServer Listening on - [IpAddress.Any], [{mPort}]");
 
         while (mContinue == true)
         {
@@ -110,7 +111,9 @@ namespace Core.Administration
           {
             if (Listener.Pending() == true)
             {
+              Global.Write($"TcpTlsServer Waiting to accept connections");
               System.Net.Sockets.TcpClient Client = Listener.AcceptTcpClient();
+              Global.Write($"TcpTlsServer accepted connection");
               Client.NoDelay = true;
               Client.LingerState = new LingerOption(false, 0);
               TcpTlsClient C = ClientAdd(Client);
@@ -128,9 +131,9 @@ namespace Core.Administration
         }
         Listener.Stop();
       }
-      catch //(Exception ex)
+      catch (Exception ex)
       {
-
+        Global.Write($"TcpTlsServer ERROR - [{ex.Message}]", DEBUG_TYPE.Error);
       }
     }
 
@@ -142,7 +145,7 @@ namespace Core.Administration
     private TcpTlsClient ClientAdd(System.Net.Sockets.TcpClient Client)
     {
       SslStream stream = new SslStream(Client.GetStream(), false);
-      stream.AuthenticateAsServer(mCertificate, false, SslProtocols.Tls, true);
+      stream.AuthenticateAsServer(mCertificate, false, SslProtocols.None, true); //SslProtocols.None means that the OS is allowed to decide which protocol to use, default is currently TLS 1.2, 1.3 is only available in Windows 11
       TcpTlsClient C = new TcpTlsClient(Client, stream);
 
       lock (mCriticalSection)

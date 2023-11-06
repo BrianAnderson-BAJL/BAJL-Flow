@@ -34,6 +34,7 @@ namespace Core
       RESP r = new RESP();
       r.mErrorNumber = errornumber;
       r.mOutputIndex = outputIndex;
+      r.mErrorDescription = errorDescription;
       Global.Write(errorDescription);
       return r;
     }
@@ -50,7 +51,7 @@ namespace Core
 
     public int OutputIndex
     {
-      get {return (int)mErrorNumber; }
+      get {return (int)mOutputIndex; }
     }
 
     public int ErrorNumber

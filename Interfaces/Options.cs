@@ -15,8 +15,8 @@ namespace Core
       Development,
       Production,
     }
-    public const string SettingsFileVersionExpected = "0.0.1"; //Increment this when you make changes to the settings options, the settings.xml file will be recreated with the new values.
-    public static string SettingsFileVersion = "";
+    public const int SettingsFileVersionExpected = 7; //Increment this when you make changes to the settings options, the settings.xml file will be recreated with the new values.
+    public static int SettingsFileVersion = 0;
     public static string SettingsPath = "./settings.xml";
     public static string PluginPath = @"C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Plugins";  //"./Plugins/";
     public static string PluginGraphicsPath = "./Plugins/Graphics/";
@@ -25,6 +25,8 @@ namespace Core
     public static bool FlowPathAllowSubDirectories = true;
     public static string UserPath = "./users.xml";
     public static string SecurityProfilesPath = "./securityProfiles.xml";
+    public static string TlsCertFileNamePath = "C:\\GameDev\\certkey.pem";
+    public static string TlsCertPassword = "";
     public static bool FocusOnMouseEnter = true;
     public static int FlowUserHistoryMax = 10;
     public static bool IgnoreEndingForwardSlash = true;
@@ -39,6 +41,8 @@ namespace Core
     /// How many duplicate user LoginIds will the system check trying to find an unused loginid. (i.e. brian, brian1, brian2, ... to this max number)
     /// </summary>
     public static int AdministrationUserMaxLoginIdCheck = 100;
+    public static int AdministrationUserMaxLoginAttempts = 3;  //0 = Infinate
+    public static int AdministrationUserLockOutMinutes = 15;   //0 = No Lockout
     public static int AdministrationSaltSize = 32;
     public static int AdministrationHashSize = 32;
     public static int AdministrationHashInterations = 20000;
@@ -55,19 +59,19 @@ namespace Core
 
       for (int x = 0; x < args.Length; x++)
       {
-        Global.Write(String.Format("PreParseArgs arg[{0}] = [{1}]", x, args[x]));
+        Global.Write($"PreParseArgs arg[{x}] = [{args[x]}]");
         if (args[x].StartsWith("settings=") == true)
         {
           string val = GetArgValue(args[x]);
           if (val.ToLower() == "create")
           {
             SaveSettings();
-            Global.Write(String.Format("Default settings file create!...Settings path = [{0}]", SettingsPath));
+            Global.Write($"Default settings file create!...Settings path = [{SettingsPath}]");
           }
           else
           {
             SettingsPath = GetArgValue(args[x]);
-            Global.Write(String.Format("PreParseArgs...Settings path = [{0}]", SettingsPath));
+            Global.Write($"PreParseArgs...Settings path = [{SettingsPath}]");
           }
         }
         else if (args[x].StartsWith("?") == true || args[x].StartsWith("-?") == true || args[x].StartsWith("/?") == true || args[x].StartsWith("help") == true)
@@ -108,7 +112,7 @@ namespace Core
 
       for (int x = 0; x < args.Length; x++)
       {
-        Global.Write(String.Format("ParseArgs arg[{0}] = [{1}]", x, args[x]));
+        Global.Write($"ParseArgs arg[{x}] = [{args[x]}]");
         if (args[x].StartsWith("privatekey=") == true)
         {
           string val = GetArgValue(args[x]);
@@ -116,7 +120,7 @@ namespace Core
           {
             AdministrationPrivateKey = SecureHasherV1.Hash(Guid.NewGuid().ToString());
             SaveSettings();
-            Global.Write(String.Format("ParseArgs...private key created [{0}] and saved to [{1}]", AdministrationPrivateKey, SettingsPath));
+            Global.Write($"ParseArgs...private key created [{AdministrationPrivateKey}] and saved to [{SettingsPath}]");
           }
         }
       }
@@ -126,25 +130,32 @@ namespace Core
       Core.Xml xml = new Core.Xml();
       string settings = xml.FileRead(SettingsPath);
       settings = Xml.GetXMLChunk(ref settings, "Settings");
-      SettingsFileVersion = Xml.GetXMLChunk(ref settings, "SettingsFileVersion");
+      SettingsFileVersion = Xml.GetXMLChunkAsInt(ref settings, "SettingsFileVersion");
       PluginPath = Xml.GetXMLChunk(ref settings, "PluginPath");
       PluginGraphicsPath = Xml.GetXMLChunk(ref settings, "PluginGraphicsPath");
       FlowPath = Xml.GetXMLChunk(ref settings, "FlowPath");
       FlowPathAllowSubDirectories = Xml.GetXMLChunkAsBool(ref settings, "FlowPathAllowSubDirectories", FlowPathAllowSubDirectories);
       FlowUserHistoryMax = Xml.GetXMLChunkAsInt(ref settings, "FlowUserHistoryMax");
       ServerType = Xml.GetXmlChunkAsEnum<SERVER_TYPE>(ref settings, "ServerType", SERVER_TYPE.Production);
+      TlsCertFileNamePath = Xml.GetXMLChunk(ref settings, "TlsCertFileNamePath");
+      TlsCertPassword = Xml.GetXMLChunk(ref settings, "TlsCertPassword");
 
       string adminXml = Xml.GetXMLChunk(ref settings, "Administration");
-      AdministrationPrivateKey = Xml.GetXMLChunk(ref adminXml, "AdministrationPrivateKey");
-      AdministrationUserMaxLoginIdCheck = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationUserMaxLoginIdCheck", AdministrationUserMaxLoginIdCheck);
-      AdministrationSaltSize = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationSaltSize", AdministrationSaltSize);
-      AdministrationHashSize = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationHashSize", AdministrationHashSize);
-      AdministrationHashInterations = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationHashInterations", AdministrationHashInterations);
-      AdministrationPortNumber = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationPortNumber", AdministrationPortNumber);
-      AdministrationUserSessionKeyTimeoutInMinutes = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationUserSessionKeyTimeoutInMinutes", AdministrationUserSessionKeyTimeoutInMinutes);
+      AdministrationPrivateKey = Xml.GetXMLChunk(ref adminXml, "PrivateKey");
+      AdministrationUserMaxLoginIdCheck = Xml.GetXMLChunkAsInt(ref adminXml, "UserMaxLoginIdCheck", AdministrationUserMaxLoginIdCheck);
+      AdministrationUserMaxLoginAttempts = Xml.GetXMLChunkAsInt(ref adminXml, "UserMaxLoginAttempts", AdministrationUserMaxLoginAttempts);
+      AdministrationUserLockOutMinutes = Xml.GetXMLChunkAsInt(ref adminXml, "UserLockOutMinutes", AdministrationUserLockOutMinutes);
+      AdministrationSaltSize = Xml.GetXMLChunkAsInt(ref adminXml, "SaltSize", AdministrationSaltSize);
+      AdministrationHashSize = Xml.GetXMLChunkAsInt(ref adminXml, "HashSize", AdministrationHashSize);
+      AdministrationHashInterations = Xml.GetXMLChunkAsInt(ref adminXml, "HashInterations", AdministrationHashInterations);
+      AdministrationPortNumber = Xml.GetXMLChunkAsInt(ref adminXml, "PortNumber", AdministrationPortNumber);
+      AdministrationUserSessionKeyTimeoutInMinutes = Xml.GetXMLChunkAsInt(ref adminXml, "UserSessionKeyTimeoutInMinutes", AdministrationUserSessionKeyTimeoutInMinutes);
 
       if (SettingsFileVersion != SettingsFileVersionExpected)
+      {
+        Global.Write($"SettingsFileVersion [{SettingsFileVersion}] has changed to [{SettingsFileVersionExpected}] Saving new settings.xml");
         SaveSettings();
+      }
     }
 
     public static void SaveSettings()
@@ -157,18 +168,22 @@ namespace Core
       xml.WriteTagAndContents("PluginGraphicsPath", PluginGraphicsPath);
       xml.WriteTagAndContents("FlowPath", FlowPath);
       xml.WriteTagAndContents("FlowPathAllowSubDirectories", FlowPathAllowSubDirectories);
+      xml.WriteTagAndContents("TlsCertFileNamePath", TlsCertFileNamePath);
+      xml.WriteTagAndContents("TlsCertPassword", TlsCertPassword);
       xml.WriteTagAndContents("FlowUserHistoryMax", FlowUserHistoryMax);
       xml.WriteTagAndContents("UserPath", UserPath);
       xml.WriteTagAndContents("ServerType", ServerType);
       
       xml.WriteTagStart("Administration");
-      xml.WriteTagAndContents("AdministrationPrivateKey", AdministrationPrivateKey);
-      xml.WriteTagAndContents("AdministrationUserMaxLoginIdCheck", AdministrationUserMaxLoginIdCheck);
-      xml.WriteTagAndContents("AdministrationSaltSize", AdministrationSaltSize);
-      xml.WriteTagAndContents("AdministrationHashSize", AdministrationHashSize);
-      xml.WriteTagAndContents("AdministrationHashInterations", AdministrationHashInterations);
-      xml.WriteTagAndContents("AdministrationPortNumber", AdministrationPortNumber);
-      xml.WriteTagAndContents("AdministrationUserSessionKeyTimeoutInMinutes", AdministrationUserSessionKeyTimeoutInMinutes);
+      xml.WriteTagAndContents("PrivateKey", AdministrationPrivateKey);
+      xml.WriteTagAndContents("UserMaxLoginIdCheck", AdministrationUserMaxLoginIdCheck);
+      xml.WriteTagAndContents("UserMaxLoginAttempts", AdministrationUserMaxLoginAttempts);
+      xml.WriteTagAndContents("UserLockOutMinutes", AdministrationUserLockOutMinutes);
+      xml.WriteTagAndContents("SaltSize", AdministrationSaltSize);
+      xml.WriteTagAndContents("HashSize", AdministrationHashSize);
+      xml.WriteTagAndContents("HashInterations", AdministrationHashInterations);
+      xml.WriteTagAndContents("PortNumber", AdministrationPortNumber);
+      xml.WriteTagAndContents("UserSessionKeyTimeoutInMinutes", AdministrationUserSessionKeyTimeoutInMinutes);
       xml.WriteTagEnd("Administration");
 
       xml.WriteTagEnd("Settings");
@@ -180,10 +195,11 @@ namespace Core
       string FullPath = path;
       if (FullPath[0] == '.')
       {
-        string codeBase = Assembly.GetExecutingAssembly().Location;
-        UriBuilder uri = new UriBuilder(codeBase);
-        path = Uri.UnescapeDataString(uri.Path);
-        FullPath = FullPath.Replace(".", Path.GetDirectoryName(path));
+        string? codeBase = Assembly.GetExecutingAssembly().Location;
+        codeBase = Path.GetDirectoryName(codeBase);
+        if (codeBase is null)
+          return "";
+        FullPath = codeBase + FullPath.Substring(1);
       }
       if (fileName != "")
       {
@@ -195,6 +211,7 @@ namespace Core
         FullPath += fileName;
       }
 
+      //Global.Write($"Options.GetFullPath() - Original path [{path}], fixed new path [{FullPath}]");
 
       return FullPath;
     }

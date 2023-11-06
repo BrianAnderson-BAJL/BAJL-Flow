@@ -21,6 +21,8 @@ namespace Core
     public string SecurityProfile = "";
     public string ServerKey = "";
     public string SessionKey = "";
+    public int LoginAttempts = 0;
+    public DateTime LockOutUntil = DateTime.UtcNow;
     public bool NeedToChangePassword = false;
 
     public DateTime SessionKeyExpiration = DateTime.MinValue;

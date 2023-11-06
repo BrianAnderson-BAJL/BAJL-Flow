@@ -71,7 +71,7 @@ namespace Core
     public void OptionAdd(string option)
     {
       if (DataType != DATA_TYPE.DropDownList)
-        throw new Exception(String.Format("DataType [{0}] is not 'DropDownList'", DataType.ToString()));
+        throw new Exception($"DataType [{DataType}] is not 'DropDownList'");
       if (Options is null)
         Options = new List<string>();
       Options.Add(option);

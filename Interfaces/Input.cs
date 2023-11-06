@@ -9,6 +9,7 @@ namespace Core
 {
   public class Input : FlowBase
   {
+    internal static Vector2 HighlightCenterOffset = new Vector2(15, 15);
     public string Label = "";
     public Vector2 Offset;
     public FunctionStep? Step = null;
@@ -28,6 +29,17 @@ namespace Core
     public Input Clone(FunctionStep fs)
     {
       return new Input(this.Label, this.Offset, fs);
+    }
+
+    public new Vector2 Position
+    {
+      get 
+      {
+        if (Step is null)
+          return Offset;
+        else
+          return Step.Position + Offset + HighlightCenterOffset; 
+      }
     }
   }
 }

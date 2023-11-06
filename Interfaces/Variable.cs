@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,14 +8,22 @@ using System.Threading.Tasks;
 namespace Core
 {
 
-  //public class Var<T>
+  //public abstract class aVar
+  //{
+  //  public string Name;
+  //  public List<aVar> SubVariables;
+    
+  //}
+
+  //public class Var<T> : aVar
   //{
   //  public const string BASE_VAR_NAME = "base";
 
-  //  public DATA_TYPE DataType = DATA_TYPE._None;
-  //  public string Key = "";
-  //  public List<Var<T>> SubVariables;
-  //  private T Value;
+  //  //public DATA_TYPE DataType = DATA_TYPE._None;
+  //  //public string Name = "";
+  //  //public List<aVar> SubVariables;
+  //  public T Value {get; set; }
+
 
   //  //Object,
   //  //String,
@@ -29,17 +38,17 @@ namespace Core
 
   //  public Var(T val)
   //  {
-  //    if (typeof(T) == typeof(long) || typeof(T) == typeof(int))
-  //      DataType = DATA_TYPE.Integer;
-  //    else if (typeof(T) == typeof(decimal) || typeof(T) == typeof(float))
-  //      DataType = DATA_TYPE.Decimal;
-  //    else if (typeof(T) == typeof(bool))
-  //      DataType = DATA_TYPE.Boolean;
-  //    else if (typeof(T) == typeof(System.Drawing.Color))
-  //      DataType = DATA_TYPE.Color;
-  //    else if (typeof(T) == typeof(string))
-  //      DataType = DATA_TYPE.String;
-  //      SubVariables = new List<Var<T>>();
+  //    //if (typeof(T) == typeof(long) || typeof(T) == typeof(int))
+  //    //  DataType = DATA_TYPE.Integer;
+  //    //else if (typeof(T) == typeof(decimal) || typeof(T) == typeof(float))
+  //    //  DataType = DATA_TYPE.Decimal;
+  //    //else if (typeof(T) == typeof(bool))
+  //    //  DataType = DATA_TYPE.Boolean;
+  //    //else if (typeof(T) == typeof(System.Drawing.Color))
+  //    //  DataType = DATA_TYPE.Color;
+  //    //else if (typeof(T) == typeof(string))
+  //    //  DataType = DATA_TYPE.String;
+  //    SubVariables = new List<aVar>();
   //    Value = val;
   //  }
 
@@ -50,7 +59,20 @@ namespace Core
   //    string literalTemp = Xml.GetXMLChunk(ref xml, "Literal");
   //    string dataTypeTemp = Xml.GetXMLChunk(ref xml, "DataType");
   //    string valueTemp = Xml.GetXMLChunk(ref xml, "Value");
-  //    return new Var<long>(val);
+  //    return new Var<long>(0);
+  //  }
+
+  //  public override bool Equals(object? obj)
+  //  {
+  //    if (obj is null)
+  //      return false;
+      
+  //    return base.Equals(obj);
+  //  }
+
+  //  public override int GetHashCode()
+  //  {
+  //    return base.GetHashCode();
   //  }
   //}
 
@@ -86,7 +108,7 @@ namespace Core
   //  }
   //}
 
-  public class Variable
+  public class Variable : IToJson
   {
 
     public DATA_TYPE DataType = DATA_TYPE._None;
@@ -127,7 +149,7 @@ namespace Core
       return v;
     }
 
-    public virtual string JsonCreate(bool stripNameAndAddBlock = false) //
+    public virtual string ToJson(bool stripNameAndAddBlock = false) //
     {
       string jsonStr = "";
       if (this.Name != "" && stripNameAndAddBlock == false) //
@@ -139,7 +161,7 @@ namespace Core
 
       for (int x = 0; x < this.SubVariables.Count; x++)
       {
-        jsonStr += this.SubVariables[x].JsonCreate();
+        jsonStr += this.SubVariables[x].ToJson();
         if (x < this.SubVariables.Count - 1)
           jsonStr += "," + Environment.NewLine;
       }
@@ -306,7 +328,7 @@ namespace Core
       DataType = DATA_TYPE.String;
     }
 
-    public override string JsonCreate(bool stripNameAndAddBlock = false)
+    public override string ToJson(bool stripNameAndAddBlock = false)
     {
       string jsonStr = "";
       if (this.Name != "")
@@ -338,7 +360,7 @@ namespace Core
       this.DataType = DATA_TYPE.Integer;
     }
 
-    public override string JsonCreate(bool stripNameAndAddBlock = false)
+    public override string ToJson(bool stripNameAndAddBlock = false)
     {
       string jsonStr = "";
       if (this.Name != "")
@@ -371,7 +393,7 @@ namespace Core
       this.DataType = DATA_TYPE.Decimal;
     }
 
-    public override string JsonCreate(bool stripNameAndAddBlock = false)
+    public override string ToJson(bool stripNameAndAddBlock = false)
     {
       string jsonStr = "";
       if (this.Name != "")
@@ -403,7 +425,7 @@ namespace Core
       this.DataType = DATA_TYPE.Boolean;
     }
 
-    public override string JsonCreate(bool stripNameAndAddBlock = false)
+    public override string ToJson(bool stripNameAndAddBlock = false)
     {
       string jsonStr = "";
       if (this.Name != "")

@@ -12,6 +12,7 @@ using System.Diagnostics;
 using Microsoft.VisualBasic.Devices;
 using Core;
 using Core.Administration.Messages;
+using static FlowEngineDesigner.cEventManager;
 
 namespace FlowEngineDesigner
 {
@@ -254,12 +255,12 @@ namespace FlowEngineDesigner
         {
           Point p = pictureBox1.PointToClient(new Point(e.X, e.Y));
           Vector2 v = Camera.CreateRealPosition(p.X, p.Y);
-          if (fw.Plugin.Name == "Flow" && fw.Name == "Start")
+          if (fw.Plugin.Name == "FlowCore" && fw.Name == "Start")
           {
             FunctionStep? start = Flow.FindStepByName(fw.Plugin.Name, fw.Name);
             if (start != null)
             {
-              cEventManager.RaiseEventTracer(Flow, "Flow Already has a Flow.Start, can only have one start step per flow.", cEventManager.TRACER_TYPE.Error);
+              cEventManager.RaiseEventTracer(SENDER.Compiler, "Flow Already has a FlowCore.Start, can only have one start step per flow.", cEventManager.TRACER_TYPE.Error);
               return;
             }
           }
@@ -324,7 +325,7 @@ namespace FlowEngineDesigner
 
     private void TitleText()
     {
-      this.Text = String.Format("Flow - [{0}]", Flow.FileName);
+      this.Text = $"Flow - [{Flow.FileName}]";
     }
 
     private void saveToolStripMenuItem_Click(object sender, EventArgs e)
@@ -342,9 +343,6 @@ namespace FlowEngineDesigner
 
     private void tsbPlay_Click(object sender, EventArgs e)
     {
-      //cFlowWrapper flowRun = Flow.Clone();  //Need to clone it before running
-      //flowRun.Execute(pictureBox1);
-
       FlowDebug flowDebug = new FlowDebug(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, Flow.FileName, FlowRequest.START_TYPE.Now, Flow.XmlWriteMemory(), "", "");
       cServer.SendAndResponse(flowDebug.GetPacket(), Callback_FlowDebug);
     }
@@ -353,7 +351,7 @@ namespace FlowEngineDesigner
     {
     }
 
-      private void TsbComment_Click(object sender, EventArgs e)
+    private void TsbComment_Click(object sender, EventArgs e)
     {
       if (cMouse.OverallState == cMouse.OVERALL_STATE.None)
       {
@@ -457,6 +455,17 @@ namespace FlowEngineDesigner
           SelectedItem = new HIT_RESULT();
           pictureBox1.Refresh();
         }
+        else if (SelectedItem.Type == HIT_RESULT.HIT_TYPE.Link)
+        {
+          FunctionStep? fs = SelectedItem.ParentItem as Core.FunctionStep;
+          Core.Link? link = SelectedItem.HitItem as Core.Link;
+          if (fs is null || link is null)
+            return;
+
+          Flow.LinkDelete(fs, link);
+          SelectedItem = new HIT_RESULT();
+          pictureBox1.Refresh();
+        }
       }
     }
 
@@ -504,6 +513,12 @@ namespace FlowEngineDesigner
       Flow.PopulateSampleVariablesFromPlugin();
       pictureBox1.Refresh();
 
+    }
+
+    private void tssCenterView_Click(object sender, EventArgs e)
+    {
+      Flow.Center(Camera, pictureBox1);
+      pictureBox1.Refresh();
     }
   }
 }

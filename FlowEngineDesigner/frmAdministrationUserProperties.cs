@@ -154,7 +154,7 @@ namespace FlowEngineDesigner
       }
       else if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Duplicate)
       {
-        LabelText = String.Format("Duplicate use [{0}]", response.LoginIdSuggestion);
+        LabelText = $"Duplicate use [{response.LoginIdSuggestion}]";
         LabelColor = Color.Red;
       }
 

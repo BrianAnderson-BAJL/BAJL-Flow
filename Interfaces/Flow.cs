@@ -1,5 +1,6 @@
 ﻿using Core.Administration;
 using Core.Administration.Messages;
+using Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-  public class Flow
+  public class Flow : IToJson
   {
     public const string VAR_NAME_FLOW_START = "flow_start";
     public const string VAR_REQUEST = "request";
@@ -31,6 +32,7 @@ namespace Core
     public DATA_FORMAT SampleDataFormat = DATA_FORMAT._None;
     public List<Comment> Comments = new List<Comment>(4);
 
+    public FlowRequest.START_TYPE DebugStartType;
     public TcpClientBase? DebugTcpClient;
     public Packet? DebugPacket;
     public TimeElapsed DebugStartTime = new TimeElapsed();
@@ -171,8 +173,8 @@ namespace Core
         nextNextSteps.Clear();
       } while (nextSteps.Count > 0);
 
-      //if (Options.ServerType == Options.SERVER_TYPE.Development)
-        //SendFlowDebugResponse();
+      if (Options.ServerType == Options.SERVER_TYPE.Development)
+        SendFlowDebugResponse();
 
       return this.resp;
     }
@@ -215,8 +217,15 @@ namespace Core
       xml.WriteTagAndContents("Success", resp.Success);
       xml.WriteTagAndContents("ErrorNumber", resp.ErrorNumber);
       xml.WriteTagAndContents("ErrorDescription", resp.ErrorDescription);
+      xml.WriteTagAndContents("OutputIndex", resp.OutputIndex);
+      xml.WriteTagStart("FlowVariables");
+      for (int x = 0; x < this.Variables.Values.Count; x++)
+      {
+        xml.WriteTagAndContents("Variable", this.Variables.Values.ElementAt(x).ToJson(), Xml.BASE_64_ENCODE.Encoded);
+      }
+      xml.WriteTagEnd("FlowVariables");
       if (resp.Variable is not null)
-        xml.WriteTagAndContents("Variables", resp.Variable.JsonCreate(), Xml.BASE_64_ENCODE.Encoded); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
+        xml.WriteTagAndContents("Variables", resp.Variable.ToJson(), Xml.BASE_64_ENCODE.Encoded); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
       xml.WriteTagEnd("Trace");
       string xmlStr = xml.ReadMemory();
       previousStep.DebugTraceXml = xmlStr;
@@ -461,7 +470,7 @@ namespace Core
       for (int x = 0; x < StartCommands.Count; x++)
       {
         startCommands += StartCommands[x].Parm.Name;
-        startCommands += String.Format(" [{0}]", StartCommands[x].ToString());
+        startCommands += $" [{StartCommands[x].ToString()}]";
         if (x < StartCommands.Count - 1)
           startCommands += " : ";
       }
@@ -588,7 +597,7 @@ namespace Core
         string name = Xml.GetXMLChunk(ref var, "Name");
         p = parms.FindParmByName(name);
         if (p is null)
-          throw new ExceptionFlowLoad(String.Format("Bad Parameter name [{0}], could not find parameter with that name for flow [{}1]", name, this.FileName));
+          throw new ExceptionFlowLoad($"Bad Parameter name [{name}], could not find parameter with that name for flow [{this.FileName}]");
 
         PARM_VAR? pv;
         lastParmName = name;
@@ -612,7 +621,7 @@ namespace Core
             string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded);
             pv = new PARM_VAR(p, value);
           }
-          else if (dataType == "String" && p.DataType == DATA_TYPE.String)
+          else if ((dataType == "String" && p.DataType == DATA_TYPE.String) || (dataType == "Block" && p.DataType == DATA_TYPE.Block))
           {
             string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
             pv = new PARM_VAR(p, value);
@@ -629,7 +638,7 @@ namespace Core
           }
           else
           {
-            throw new ExceptionFlowLoad(String.Format("Unknown Datatype [{0}] for parameter [{1}] in flow [{2}]", dataType, name, this.FileName));
+            throw new ExceptionFlowLoad($"Unknown Datatype [{dataType}] for parameter [{name}] in flow [{this.FileName}]");
           }
         }
         else //Variable
@@ -660,14 +669,15 @@ namespace Core
           Output? output = function.Function.FindOutput(outputLabel);
 
           string input = Xml.GetXMLChunk(ref link, "Input");
-          if (input.Length > 0 && output != null)
+          if (input.Length > 0 && output is not null)
           {
+            output.Step = function;
             int stepId = Xml.GetXMLChunkAsInt(ref input, "StepId");
             string inputLabel = Xml.GetXMLChunk(ref input, "Label");
             FunctionStep? inputStep = this.FindStepById(stepId);
-            if (inputStep != null)
+            if (inputStep is not null)
             {
-              if (inputStep.Function.Input != null)
+              if (inputStep.Function.Input is not null)
               {
                 Core.Input? iw = inputStep.Function.Input.Clone(inputStep);
                 function.LinkAdd(this, output, iw);
@@ -682,6 +692,15 @@ namespace Core
     public override string ToString()
     {
       return FileName;
+    }
+
+    public string ToJson(bool stripNameAndAddBlock = false)
+    {
+      string json = "\"flow\"";
+      json += ": {";
+      json += "\"filename\":\"" + this.FileName + "\",";
+      json += "}";
+      return json;
     }
   }
 }

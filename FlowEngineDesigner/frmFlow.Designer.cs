@@ -55,6 +55,7 @@
       toolStripDropDownButton1 = new ToolStripDropDownButton();
       tsbZoomOut = new ToolStripDropDownButton();
       toolTip1 = new ToolTip(components);
+      tssCenterView = new ToolStripStatusLabel();
       ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
       menuStrip1.SuspendLayout();
       toolStrip1.SuspendLayout();
@@ -157,14 +158,14 @@
       // openToolStripMenuItem1
       // 
       openToolStripMenuItem1.Name = "openToolStripMenuItem1";
-      openToolStripMenuItem1.Size = new Size(180, 22);
+      openToolStripMenuItem1.Size = new Size(103, 22);
       openToolStripMenuItem1.Text = "&Open";
       openToolStripMenuItem1.Click += openToolStripMenuItem1_Click;
       // 
       // saveToolStripMenuItem1
       // 
       saveToolStripMenuItem1.Name = "saveToolStripMenuItem1";
-      saveToolStripMenuItem1.Size = new Size(180, 22);
+      saveToolStripMenuItem1.Size = new Size(103, 22);
       saveToolStripMenuItem1.Text = "&Save";
       saveToolStripMenuItem1.Click += saveToolStripMenuItem1_Click;
       // 
@@ -209,7 +210,7 @@
       // 
       // statusStrip1
       // 
-      statusStrip1.Items.AddRange(new ToolStripItem[] { tslZoom, toolStripDropDownButton1, tsbZoomOut });
+      statusStrip1.Items.AddRange(new ToolStripItem[] { tslZoom, toolStripDropDownButton1, tsbZoomOut, tssCenterView });
       statusStrip1.Location = new Point(0, 440);
       statusStrip1.Name = "statusStrip1";
       statusStrip1.Size = new Size(800, 22);
@@ -246,6 +247,13 @@
       tsbZoomOut.Text = "-";
       tsbZoomOut.ToolTipText = "Zoom out";
       tsbZoomOut.Click += tsbZoomOut_Click;
+      // 
+      // tssCenterView
+      // 
+      tssCenterView.Name = "tssCenterView";
+      tssCenterView.Size = new Size(70, 17);
+      tssCenterView.Text = "Center View";
+      tssCenterView.Click += tssCenterView_Click;
       // 
       // frmFlow
       // 
@@ -308,5 +316,6 @@
     private ToolStripMenuItem openToolStripMenuItem1;
     private ToolStripMenuItem saveToolStripMenuItem1;
     private ToolTip toolTip1;
+    private ToolStripStatusLabel tssCenterView;
   }
 }

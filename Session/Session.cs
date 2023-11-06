@@ -1,9 +1,10 @@
 ﻿using Core;
+using Core.Interfaces;
 using System.Drawing;
 
 namespace Session
 {
-  public class Session : Core.Plugin
+    public class Session : Core.Plugin
   {
     private IDatabase? Database;
     private uint USER_REGISTER_DUPLICATE = 1;

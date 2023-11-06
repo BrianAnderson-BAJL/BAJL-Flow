@@ -14,7 +14,7 @@ namespace Core
   /// </summary>
 
 
-  public class Plugin
+  public abstract class Plugin
   {
     /// <summary>
     /// A List of functions, the functions all have a dictionary of parameters, and a dictionary of results
