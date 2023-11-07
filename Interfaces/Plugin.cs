@@ -147,6 +147,17 @@ namespace Core
       return s;
     }
 
+    public virtual Setting SettingAddIfMissing(string key, STRING_SUB_TYPE stringSubType)
+    {
+      Setting? s = SettingFind(key);
+      if (s == null)
+      {
+        s = SettingAddOrUpdate(new Setting(key, stringSubType));
+      }
+
+      return s;
+    }
+
     public virtual Setting SettingAddIfMissing(string key, Color Defaultvalue)
     {
       Setting? s = SettingFind(key);

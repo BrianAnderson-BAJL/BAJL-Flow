@@ -69,7 +69,7 @@ namespace Http
 
         function = new Function("Send", this, Send);
         function.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
-        PARM pddl = function.Parms.Add("Http response code", DATA_TYPE.DropDownList);
+        PARM pddl = function.Parms.Add("Http response code", STRING_SUB_TYPE.DropDownList);
         pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, "200 - OK");
 
         foreach (int val in Enum.GetValues(typeof(HttpStatusCode)))
@@ -79,7 +79,7 @@ namespace Http
         }
 
         function.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String);
-        pddl = new PARM(PARM_DATA_FORMAT, DATA_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
+        pddl = new PARM(PARM_DATA_FORMAT, STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
         pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, PARM_DATA_FORMAT_JSON);
         pddl.OptionAdd(PARM_DATA_FORMAT_RAW);
         pddl.OptionAdd(PARM_DATA_FORMAT_JSON);
@@ -135,7 +135,7 @@ namespace Http
         PARM parm = FlowStartCommands.Add(PARM_URL, DATA_TYPE.String);
         parm.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, "/");
 
-        PARM pddl = new PARM(PARM_METHOD, DATA_TYPE.DropDownList);
+        PARM pddl = new PARM(PARM_METHOD, STRING_SUB_TYPE.DropDownList);
         pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, "GET");
         pddl.OptionAdd("GET");
         pddl.OptionAdd("POST");
@@ -151,7 +151,7 @@ namespace Http
         Variable v = new Variable(Flow.VAR_NAME_FLOW_START);
         Variable request = new Variable(Flow.VAR_REQUEST);
         request.Add(new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object));
-        request.Add(new Variable(VAR_HEADERS, DATA_TYPE.Array));
+        request.Add(new Variable(VAR_HEADERS, DATA_FORMAT_SUB_VARIABLES.Array));
         request.Add(new Variable(Flow.VAR_DATA));
         v.Add(request);
         SampleVariables.Add(Flow.VAR_NAME_FLOW_START, v);

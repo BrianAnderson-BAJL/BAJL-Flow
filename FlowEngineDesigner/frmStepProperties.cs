@@ -78,7 +78,7 @@ namespace FlowEngineDesigner
       {
 
       }
-      else if (pv.Parm.DataType == DATA_TYPE.DropDownList)
+      else if (pv.Parm.DataType == DATA_TYPE.String && pv.Parm.StringSubType == STRING_SUB_TYPE.DropDownList)
       {
         uc = new ucParameterDropDownList(pv);
       }

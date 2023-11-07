@@ -387,7 +387,8 @@ namespace Core
         {
           string subBlock = GetBlock(ref jsonStr);
           newKey = new Variable(); //There is no key for base blocks
-          newKey.DataType = DATA_TYPE.Block;
+          newKey.DataType = DATA_TYPE._None;
+          newKey.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
           Variable? temp = ParseJsonBlock(ref subBlock, newKey);
           if (temp != null)
           {
@@ -400,7 +401,8 @@ namespace Core
             }
             else
             {
-              jsonVar.DataType = DATA_TYPE.Block;
+              jsonVar.DataType = DATA_TYPE._None;
+              jsonVar.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
               jsonVar.SubVariables.Add(temp);
             }
           }
@@ -409,11 +411,13 @@ namespace Core
         {
           string subArray = GetArray(ref jsonStr);
           newKey = new Variable(); //There is no key for base arrays
-          newKey.DataType = DATA_TYPE.Array;
+          newKey.DataType = DATA_TYPE._None;
+          newKey.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
           Variable? temp = ParseJsonBlock(ref subArray, newKey);
           if (temp != null)
           {
-            jsonVar.DataType = DATA_TYPE.Array;
+            jsonVar.DataType = DATA_TYPE._None;
+            jsonVar.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
             jsonVar.SubVariables.Add(temp);
           }
         }
@@ -454,7 +458,8 @@ namespace Core
             Variable? temp = ParseJsonBlock(ref subArray, newKey);
             if (temp != null)
             {
-              temp.DataType = DATA_TYPE.Array;
+              temp.DataType = DATA_TYPE._None;
+              temp.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
               jsonVar.SubVariables.Add(temp);
             }
           }
@@ -464,7 +469,8 @@ namespace Core
             Variable? temp = ParseJsonBlock(ref subBlock, newKey);
             if (temp != null)
             {
-              temp.DataType = DATA_TYPE.Block;
+              temp.DataType = DATA_TYPE._None;
+              temp.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
               jsonVar.SubVariables.Add(temp);
             }
           }

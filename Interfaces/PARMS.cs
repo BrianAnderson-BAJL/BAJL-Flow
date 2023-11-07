@@ -41,6 +41,12 @@ namespace Core
       return val;
     }
 
+    public PARM Add(string name, STRING_SUB_TYPE stringSubType, PARM.PARM_REQUIRED required = PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE allowMultiple = PARM.PARM_ALLOW_MULTIPLE.Single, PARM_RESOLVE_VARIABLES resolveVariables = PARM_RESOLVE_VARIABLES.Yes)
+    {
+      PARM val = new PARM(name, stringSubType, required, allowMultiple, resolveVariables);
+      this.Add(val);
+      return val;
+    }
 
   }
 }

@@ -120,7 +120,7 @@ namespace FlowEngineDesigner
         {
 
         }
-        if (parmVar.Parm.DataType == DATA_TYPE.DropDownList)
+        if (parmVar.Parm.DataType == DATA_TYPE.String && parmVar.Parm.StringSubType == STRING_SUB_TYPE.DropDownList)
         {
           ucParameterDropDownList uc = new ucParameterDropDownList(parmVar);
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;

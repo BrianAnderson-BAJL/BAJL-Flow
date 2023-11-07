@@ -20,10 +20,9 @@ namespace Logger
 
       SettingAddIfMissing("LogPath", "");
       SettingAddIfMissing("MaxLogSizeBytes", 1024000);
-      Setting s = SettingAddIfMissing("RetentionStyle", DATA_TYPE.DropDownList);  //Number of Logs, Time Period, Size
+      Setting s = SettingAddIfMissing("RetentionStyle", STRING_SUB_TYPE.DropDownList);  //Number of Logs, Time Period, Size
       if (s != null)
       {
-        s.DataType = DATA_TYPE.DropDownList;
         s.SubSettings.Add(new Setting("NumberOfLogs", "NumberOfLogs", 7));
         s.SubSettings.Add(new Setting("TimePeriod", "RollLogEveryHours", 24));
         s.SubSettings.Add(new Setting("FileSize", "MaxFileSizeInBytes", 1024000));

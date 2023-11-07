@@ -616,12 +616,12 @@ namespace Core
             decimal value = Xml.GetXMLChunkAsDecimal(ref var, "Value");
             pv = new PARM_VAR(p, value);
           }
-          else if (dataType == "DropDownList" && p.DataType == DATA_TYPE.DropDownList)
-          {
-            string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded);
-            pv = new PARM_VAR(p, value);
-          }
-          else if ((dataType == "String" && p.DataType == DATA_TYPE.String) || (dataType == "Block" && p.DataType == DATA_TYPE.Block))
+          //else if (dataType == "DropDownList" && p.DataType == DATA_TYPE.DropDownList)
+          //{
+          //  string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded);
+          //  pv = new PARM_VAR(p, value);
+          //}
+          else if (dataType == "String" && p.DataType == DATA_TYPE.String)
           {
             string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
             pv = new PARM_VAR(p, value);

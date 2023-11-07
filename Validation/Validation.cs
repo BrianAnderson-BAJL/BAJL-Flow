@@ -11,7 +11,7 @@ namespace Validation
 
       Function function = new Function("Email", this, Email, "", "");
       function.Parms.Add("Email", DATA_TYPE.String);
-      PARM parm = new PARM("Format", DATA_TYPE.DropDownList);
+      PARM parm = new PARM("Format", STRING_SUB_TYPE.DropDownList);
       parm.OptionAdd("a@a");
       parm.OptionAdd("a@a.a");
       function.Parms.Add(parm);
@@ -20,7 +20,7 @@ namespace Validation
       function = new Function("Phone", this, Phone);
       //function.Description
       function.Parms.Add("Phone Number", DATA_TYPE.String);
-      parm = new PARM("Format", DATA_TYPE.DropDownList);
+      parm = new PARM("Format", STRING_SUB_TYPE.DropDownList);
       parm.OptionAdd("###-###-####");
       parm.OptionAdd("+1 ###-###-####");
       function.Parms.Add(parm);

@@ -655,7 +655,7 @@ namespace FlowEngineDesigner
         }
         else if (pv.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal)
         {
-          if (pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.DropDownList || pv.Parm.DataType == DATA_TYPE.Object)
+          if (pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.Object)
           {
             pv.GetValue(out string val);
             xml.WriteTagAndContents("Value", val, Xml.BASE_64_ENCODE.Encoded);

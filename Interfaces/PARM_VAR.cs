@@ -55,7 +55,7 @@ namespace Core
 
     public void SetVariableLiteral(string val)
     {
-      if (Parm.DataType != DATA_TYPE.String && Parm.DataType != DATA_TYPE.DropDownList)
+      if (Parm.DataType != DATA_TYPE.String && Parm.StringSubType != STRING_SUB_TYPE.DropDownList)
         throw new ArgumentException("PARM_VAR.SetVariableLiteral(string) -  DataType is not a String");
       Var = new VariableString(Parm.Name, val);
     }

@@ -112,6 +112,7 @@ namespace Core
   {
 
     public DATA_TYPE DataType = DATA_TYPE._None;
+    public DATA_FORMAT_SUB_VARIABLES SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
     public string Name = "";
     public List<Variable> SubVariables = new List<Variable>();
 
@@ -124,6 +125,11 @@ namespace Core
     {
       Name = name;
       DataType = dataType;
+    }
+    public Variable(string name, DATA_FORMAT_SUB_VARIABLES subdataFormat)
+    {
+      Name = name;
+      SubVariablesFormat = subdataFormat;
     }
 
     public void Add(Variable? v)
@@ -154,9 +160,9 @@ namespace Core
       string jsonStr = "";
       if (this.Name != "" && stripNameAndAddBlock == false) //
         jsonStr += "\"" + this.Name + "\":";
-      if (this.DataType == DATA_TYPE.Block || stripNameAndAddBlock == true)
+      if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block || stripNameAndAddBlock == true)
         jsonStr += "{" + Environment.NewLine;
-      else if (this.DataType == DATA_TYPE.Array)
+      else if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
         jsonStr += "[" + Environment.NewLine;
 
       for (int x = 0; x < this.SubVariables.Count; x++)
@@ -166,9 +172,9 @@ namespace Core
           jsonStr += "," + Environment.NewLine;
       }
 
-      if (this.DataType == DATA_TYPE.Array)
+      if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
         jsonStr += "]" + Environment.NewLine;
-      else if (this.DataType == DATA_TYPE.Block || stripNameAndAddBlock == true)
+      else if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block || stripNameAndAddBlock == true)
         jsonStr += "}" + Environment.NewLine;
 
       return jsonStr;

@@ -17,11 +17,23 @@ namespace Core
     Decimal,
     Boolean,
     Color,
-    DropDownList,
+  }
+
+  public enum STRING_SUB_TYPE
+  {
+    _None, //Just a normal string, nothing special
+    DropDownList, //Maps to String
+    Sql, //Maps to String
+  }
+
+  /// <summary>
+  /// This needs to be defined for recreating JSON data from the variables. Are the sub variables stored in a Block { } or an Array [ ], only needed for JSON
+  /// </summary>
+  public enum DATA_FORMAT_SUB_VARIABLES
+  {
     Block, //Json or XML block of elements
     Array, //Json array
   }
-
   public enum DATA_FORMAT
   {
     _None,

@@ -17,6 +17,7 @@ namespace Core
     public object Value = "";
     public string Description = "";
     public DATA_TYPE DataType = DATA_TYPE.String;
+    public STRING_SUB_TYPE StringSubType = STRING_SUB_TYPE._None;
     public List<Setting> SubSettings = new(0);
 
     public Setting(DATA_TYPE dataType)
@@ -32,6 +33,15 @@ namespace Core
       Key = key;
       Value = "";
       DataType = value;
+      SubSettings = new List<Setting>(0);
+    }
+    public Setting(string key, STRING_SUB_TYPE stringSubType)
+    {
+
+      Key = key;
+      Value = "";
+      DataType = DATA_TYPE.String;
+      StringSubType = stringSubType;
       SubSettings = new List<Setting>(0);
     }
 
@@ -97,7 +107,8 @@ namespace Core
       DropDownGroupName = dropDownGroupName;
       Key = key;
       Value = value;
-      DataType = DATA_TYPE.DropDownList;
+      DataType = DATA_TYPE.String;
+      StringSubType = STRING_SUB_TYPE.DropDownList;
       SubSettings = subsettings;
     }
 

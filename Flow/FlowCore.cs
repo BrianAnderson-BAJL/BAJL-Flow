@@ -34,7 +34,7 @@ namespace FlowCore
       Functions.Add(function);
 
       function = new Function("Trace", this, Trace);
-      function.Parms.Add("Previous step results", DATA_TYPE.Block);
+      function.Parms.Add("Previous step results", DATA_TYPE.Object);
       function.Input = new Input("Input", new System.Numerics.Vector2(10, 50));
       function.OutputClear();
       function.OutputAddSuccess();
@@ -44,24 +44,24 @@ namespace FlowCore
       Functions.Add(function);
       function = new Function("Flow Run", this, FlowRun);
       function.Parms.Add(PARM_FLOW_NAME, DATA_TYPE.String);
-      function.Parms.Add("Variable", DATA_TYPE.Block);
+      function.Parms.Add("Variable", DATA_TYPE._None);
       Functions.Add(function);
 
       function = new Function("Flow Run Async", this, FlowRunAsync);
       function.Parms.Add(PARM_FLOW_NAME, DATA_TYPE.String);
-      function.Parms.Add("Variable", DATA_TYPE.Block);
+      function.Parms.Add("Variable", DATA_TYPE._None);
       Functions.Add(function);
 
       function = new Function("Flow Return", this, FlowReturn);
       function.OutputClear();
       function.OutputAdd("Continue");
-      PARM pddl = new PARM("Return", DATA_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
+      PARM pddl = new PARM("Return", STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
       pddl.OptionAdd(OPTION_SUCCESS);
       pddl.OptionAdd(OPTION_ERROR);
       function.Parms.Add(pddl);
-      function.Parms.Add("Variable", DATA_TYPE.Block);
+      function.Parms.Add("Variable", DATA_TYPE._None);
 
-      function.Parms.Add("Variable", DATA_TYPE.Block);
+      function.Parms.Add("Variable", DATA_TYPE._None);
       Functions.Add(function);
       Functions.Add(new Function("If", this, If));
 
@@ -110,7 +110,7 @@ namespace FlowCore
       SettingAddIfMissing(new Setting("", "Designer", "BorderColor", Color.Green));
       SettingAddIfMissing(new Setting("", "Designer", "FontColor", Color.White));
 
-      pddl = new PARM(EVENT, DATA_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
+      pddl = new PARM(EVENT, STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
       pddl.OptionAdd(EVENT_START);
       pddl.OptionAdd(EVENT_STOP);
       pddl.OptionAdd(EVENT_MANUAL);

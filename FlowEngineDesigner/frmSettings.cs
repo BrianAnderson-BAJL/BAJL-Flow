@@ -88,7 +88,7 @@ namespace FlowEngineDesigner
         Setting? s = lstSettings.SelectedItems[0].Tag as Setting;
         if (s != null)
         {
-          if (s.DataType == DATA_TYPE.DropDownList)
+          if (s.DataType == DATA_TYPE.String && s.StringSubType == STRING_SUB_TYPE.DropDownList)
           {
             frmSettingDropDown f = new frmSettingDropDown(s);
             f.ShowDialog();

@@ -113,7 +113,7 @@ namespace Core
 
       GotoResults:
 
-      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP, DATA_TYPE.Block);
+      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
       var.SubVariables.Add(new VariableObject("resp", resps));
       var.SubVariables.Add(new VariableObject("step", this));
       flow.VariableAdd(Flow.VAR_NAME_PREVIOUS_STEP, var);  //Previous step variable always contains the last steps values

@@ -48,6 +48,7 @@ namespace Core
     public PARM_REQUIRED Required = PARM_REQUIRED.Yes;
     public PARM_ALLOW_MULTIPLE AllowMultiple = PARM_ALLOW_MULTIPLE.Single; //If Multiple, this parameter can be duplicated to allow multiple values to be passed in.
     public PARM_RESOLVE_VARIABLES ResolveVariables = PARM_RESOLVE_VARIABLES.Yes;
+    public STRING_SUB_TYPE StringSubType = STRING_SUB_TYPE._None;
     public List<string>? Options = null; //For drop down list
     public List<ParmValidator> Validators = new List<ParmValidator>();
 
@@ -66,12 +67,21 @@ namespace Core
       AllowMultiple = multiple;
       ResolveVariables = resolveVariables;
     }
+    public PARM(string parmName, STRING_SUB_TYPE stringSubType, PARM_REQUIRED required = PARM_REQUIRED.Yes, PARM_ALLOW_MULTIPLE multiple = PARM_ALLOW_MULTIPLE.Single, PARM_RESOLVE_VARIABLES resolveVariables = PARM_RESOLVE_VARIABLES.Yes)
+    {
+      Name = parmName;
+      DataType = DATA_TYPE.String;
+      StringSubType = stringSubType;
+      Required = required;
+      AllowMultiple = multiple;
+      ResolveVariables = resolveVariables;
+    }
 
 
     public void OptionAdd(string option)
     {
-      if (DataType != DATA_TYPE.DropDownList)
-        throw new Exception($"DataType [{DataType}] is not 'DropDownList'");
+      if (DataType != DATA_TYPE.String && StringSubType != STRING_SUB_TYPE.DropDownList)
+        throw new Exception($"DataType [{DataType}] is not a sub type of 'DropDownList'");
       if (Options is null)
         Options = new List<string>();
       Options.Add(option);
