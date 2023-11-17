@@ -37,7 +37,8 @@ namespace Db
 
     private void PopulateParameters(MySqlCommand cmd, params Variable[] vars)
     {
-      for (int x = 0; x < vars.Length; x++)
+      //Skip the 0 (zero) entry, that is the actual SQL, get all the paramenters after that
+      for (int x = 1; x < vars.Length; x++)
       {
         if (vars[x].DataType == DATA_TYPE.String)
         {
@@ -167,6 +168,51 @@ namespace Db
         return root;
       }
 
+    }
+
+    public List<string> GetTables()
+    {
+      List<string> tableNames = new List<string>(32);
+      using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+      {
+        connection.Open();
+        using (MySqlCommand command = new MySqlCommand("SHOW TABLES", connection))
+        {
+          using (MySqlDataReader reader = command.ExecuteReader())
+          {
+            while (reader.Read())
+            {
+              tableNames.Add(reader.GetString(0));
+            }
+          }
+        }
+      }
+
+      return tableNames;
+    }
+
+    public List<string> GetFields(string tableName)
+    {
+      List<string> fieldNames = new List<string>(32);
+      using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+      {
+        connection.Open();
+        using (MySqlCommand command = new MySqlCommand($"SELECT * FROM {tableName} LIMIT 1" , connection))
+        {
+          using (MySqlDataReader reader = command.ExecuteReader())
+          {
+            while (reader.Read())
+            {
+              for (int x = 0; x < reader.FieldCount; x++)
+              {
+                fieldNames.Add(reader.GetName(x));
+              }
+            }
+          }
+        }
+      }
+
+      return fieldNames;
     }
   }
 }

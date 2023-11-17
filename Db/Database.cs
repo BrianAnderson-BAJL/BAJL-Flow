@@ -22,11 +22,24 @@ namespace Db
     {
       base.Init();
 
-      
+      Function func;
       Functions.Add(new Function("Open", this, Open));
       Functions.Add(new Function("Close", this, Close));
-      Functions.Add(new Function("Select", this, Select));
-      Functions.Add(new Function("Insert", this, Insert));
+      func = new Function("Select", this, Select);
+      func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
+      PARM parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
+      func.Parms.Add(parm);
+      
+      func.RespNames = new Variable("recs");
+      func.DefaultSaveResponseVariable = true;
+      Functions.Add(func);
+      func = new Function("Insert", this, Insert);
+      func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
+      parm = new PARM("SQL Parameter", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple);
+      parm.NameChangeable = true;
+      func.Parms.Add(parm);
+      func.RespNames.Add(new Variable("recordsInserted"));
+      Functions.Add(func);
       Functions.Add(new Function("InsertMany", this, InsertMany));
       Functions.Add(new Function("Delete", this, Delete));
       Functions.Add(new Function("Update", this, Update));
@@ -54,6 +67,12 @@ namespace Db
       this.StartPriority = 10000; //Database should start before other plugins, put at least a 1000 between other plugins to give room to manipulate the start up priority
     }
 
+    public override void StartPluginDesigner(Dictionary<string, object> GlobalPluginValues)
+    {
+      //We just want to open the database like normal
+      StartPlugin(GlobalPluginValues);
+    }
+
     public override void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
       //Open database connection
@@ -76,8 +95,9 @@ namespace Db
           GlobalPluginValues.Add("db", mDatabase);
         }
       }
-      else if (dbType == DB_TYPE_SQL_SERVER)
+      else if (dbType == DB_TYPE_SQL_SERVER) 
       {
+        //TODO: Implement Microsoft SQL server support
         mDatabase = new DbSqlServer(this);
       }
       else
@@ -113,7 +133,10 @@ namespace Db
       Global.Write("Db.Select");
       if (mDatabase is null)
         return RESP.SetError(1, "No active database connection");
-      Variable var = mDatabase.Select("SELECT * FROM Users");
+
+      vars[0].GetValue(out string sql);
+
+      Variable var = mDatabase.Select(sql, vars);
       return RESP.SetSuccess(var);
     }
 

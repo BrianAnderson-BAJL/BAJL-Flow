@@ -51,7 +51,7 @@ namespace FlowEngineDesigner
           }
         }
 
-        if (f != null)
+        if (f is not null)
         {
           f.Left = (int)layoutForm.position.X;
           f.Top = (int)layoutForm.position.Y;

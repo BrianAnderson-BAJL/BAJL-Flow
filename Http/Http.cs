@@ -18,7 +18,7 @@ namespace Http
     private const string PARM_URL = "Url Path";
     private const string PARM_METHOD = "Method";
     private const string PARM_HOST = "Host";
-    private const string PARM_CONNECTION_HANDLE = "connection_handle";
+    private const string PARM_CONNECTION_HANDLE = "network_conn_handle";
     private const string PARM_DATA_FORMAT = "data_format";
 
     private const string PARM_DATA_FORMAT_RAW = "RAW";

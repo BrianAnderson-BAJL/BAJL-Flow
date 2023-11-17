@@ -13,6 +13,9 @@ namespace FlowEngineDesigner
 {
   public partial class ucParameterInteger : ucParameter
   {
+    const int DT_INTEGER = 0;
+    const int DT_VARIABLE = 1;
+
     private PARM_VAR mParmVar;
     private cFlowWrapper mFlow;
     private FunctionStep? mStep;
@@ -25,7 +28,7 @@ namespace FlowEngineDesigner
       mStep = step;
 
       txtKey.Text = mParmVar.Parm.Name;
-      txtDataType.Text = mParmVar.Parm.DataType.ToString();
+      
 
       parmVar.Parm.ValidatorGetValue(PARM.PARM_VALIDATION.NumberMax, out decimal validatorVal);
       nudValue.Maximum = validatorVal;
@@ -39,6 +42,20 @@ namespace FlowEngineDesigner
       nudValue.Increment = validatorVal;
 
       mParmVar.GetValue(out long val);
+      if (val < nudValue.Minimum)
+        val = (long)nudValue.Minimum;
+      if (val > nudValue.Maximum)
+        val = (long)nudValue.Maximum;
+
+      if (mParmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal)
+      {
+        cmbDataType.SelectedIndex = DT_INTEGER;
+      }
+      else
+      {
+        cmbDataType.SelectedIndex = DT_VARIABLE;
+      }
+
       nudValue.Value = val;
     }
 
@@ -48,13 +65,13 @@ namespace FlowEngineDesigner
     }
     public override void UpdateValues()
     {
-      if (chkVariable.Checked == false)
+      if (cmbDataType.SelectedIndex == DT_VARIABLE)
       {
-        mParmVar.SetVariableLiteral((long)nudValue.Value);
+        mParmVar.SetVarRef(txtVariableName.Text);
       }
       else
       {
-        mParmVar.SetVarRef(txtVariableName.Text);
+        mParmVar.SetVariableLiteral((long)nudValue.Value);
       }
     }
 
@@ -63,10 +80,6 @@ namespace FlowEngineDesigner
 
     }
 
-    private void chkVariable_CheckedChanged(object sender, EventArgs e)
-    {
-      txtVariableName.Visible = chkVariable.Checked;
-    }
 
     private void btnSelectVariable_Click(object sender, EventArgs e)
     {
@@ -75,7 +88,7 @@ namespace FlowEngineDesigner
       {
         mParmVar.GetValue(out string val);
         txtVariableName.Text = val;
-        chkVariable.Checked = true;
+        mParmVar.ParmLiteralOrVariable = PARM_VAR.PARM_L_OR_V.Variable;
       }
 
     }

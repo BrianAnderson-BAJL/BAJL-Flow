@@ -37,7 +37,7 @@ namespace FlowEngineDesigner
 
     public static void RaiseEventTracer(SENDER sender, string data, TRACER_TYPE tracerType = TRACER_TYPE.Information, long ticks = 0, string xmlData = "")
     {
-      if (Tracer != null)
+      if (Tracer is not null)
       {
         Tracer(sender, new TracerEventArgs(data, tracerType, xmlData, ticks));
       }

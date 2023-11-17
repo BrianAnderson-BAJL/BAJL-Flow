@@ -67,10 +67,15 @@ namespace FlowEngineDesigner
 
       setFocusOnMouseEnterToolStripMenuItem.Checked = cOptions.FocusOnMouseEnter;
       highlightStepsOnExecutionToolStripMenuItem.Checked = cOptions.HighlightStepsOnExecution;
-      //string json = "{\"gameBoardId\":77,\"score\":0,\"powerUpTimeAddUsed\":0,\"powerUpHintUsed\":0,\"words\":[]}";
-      //string json = "{\r\n  \"gameBoardId\": 352,\r\n  \"score\": 250,\r\n  \"powerUpTimeAddUsed\": 0,\r\n  \"powerUpHintUsed\": 1,\r\n  \"words\": [\r\n    {\r\n      \"word\": \"DATE\",\r\n      \"time\": 9.2\r\n    },\r\n    {\r\n      \"word\": \"MATE\",\r\n      \"time\": 15.44\r\n    },\r\n    {\r\n      \"word\": \"RITE\",\r\n      \"time\": 19.62\r\n    },\r\n    {\r\n      \"word\": \"DAM\",\r\n      \"time\": 30.29\r\n    },\r\n    {\r\n      \"word\": \"ELATE\",\r\n      \"time\": 33.14\r\n    },\r\n    {\r\n      \"word\": \"HAD\",\r\n      \"time\": 40.71\r\n    },\r\n    {\r\n      \"word\": \"HEAL\",\r\n      \"time\": 45.4\r\n    },\r\n    {\r\n      \"word\": \"TEAL\",\r\n      \"time\": 48.22\r\n    },\r\n    {\r\n      \"word\": \"REAL\",\r\n      \"time\": 50.93\r\n    },\r\n    {\r\n      \"word\": \"DEAL\",\r\n      \"time\": 57.53\r\n    },\r\n    {\r\n      \"word\": \"HID\",\r\n      \"time\": 63.54\r\n    },\r\n    {\r\n      \"word\": \"MAD\",\r\n      \"time\": 65.29\r\n    },\r\n    {\r\n      \"word\": \"DAD\",\r\n      \"time\": 66.51\r\n    },\r\n    {\r\n      \"word\": \"GLIM\",\r\n      \"time\": 76.5\r\n    },\r\n    {\r\n      \"word\": \"MIL\",\r\n      \"time\": 79.96\r\n    },\r\n    {\r\n      \"word\": \"RIM\",\r\n      \"time\": 85.4\r\n    },\r\n    {\r\n      \"word\": \"LAM\",\r\n      \"time\": 101.85\r\n    },\r\n    {\r\n      \"word\": \"HAM\",\r\n      \"time\": 116.34\r\n    },\r\n    {\r\n      \"word\": \"HELL\",\r\n      \"time\": 119.0\r\n    }\r\n  ]\r\n}";
-      //string json = "{\r\n\"employee\":{\"name\":\"John\", \"age\":30, \"alive\":true, \"dead\":false, \"salary\":55.26, \"city\":\"New York\"},\"employees\":[\"John\", \"Anna\", \"Peter\"],\"employees\":[500, 1000, 100.99]\r\n}";
-      //Variable? v = Variable.JsonParse(ref json);
+
+      //TEST AREA
+
+      //cSqlParser parser = new cSqlParser();
+      //parser.ParseSql("((1 = 1) (OR) (2 = 2))");
+      //frmSqlEditor f1 = new frmSqlEditor();
+      //f1.Show();
+
+      //TEST AREA
 
       if (cOptions.AdministrationAutoConnect == true)
       {

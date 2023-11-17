@@ -27,6 +27,7 @@ namespace Core
       RESP r = new RESP();
       r.mOutputIndex = SUCCESS;
       r.mErrorNumber = 0;
+      r.Output = output;
       return r;
     }
     public static RESP SetError(int errornumber, string errorDescription, uint outputIndex = 1)

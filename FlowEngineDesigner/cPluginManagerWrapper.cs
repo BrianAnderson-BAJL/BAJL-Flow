@@ -21,6 +21,7 @@ namespace FlowEngineDesigner
     public static void LoadPlugins(string FullPath)
     {
       Core.PluginManager.LoadPlugins(FullPath);
+      Core.PluginManager.StartPluginsDesigner();
 
       PluginsLoaded = true;
     }
@@ -67,14 +68,14 @@ namespace FlowEngineDesigner
       Color borderColor = Color.Black;
       Color fontColor = Color.White;
       Setting? s = plugin.SettingFind("BackgroundColor");
-      if (s != null)
+      if (s is not null)
         backgroundColor = (Color)s.Value;
 
       s = plugin.SettingFind("BorderColor");
-      if (s != null)
+      if (s is not null)
         borderColor = (Color)s.Value;
       s = plugin.SettingFind("FontColor");
-      if (s != null)
+      if (s is not null)
         fontColor = (Color)s.Value;
 
       int height = 100 + (function.Outputs.Count * (int)Output.OUTPUT_OFFSET.Y);
@@ -104,7 +105,7 @@ namespace FlowEngineDesigner
             g.DrawString(plugin.Name + "." + function.Name, font1, brush, new RectangleF(4, 5, 190, 45), f);
 
             //Draw Input label
-            if (function.Input != null)
+            if (function.Input is not null)
             {
               f.Alignment = StringAlignment.Near;
               Vector2 pos = function.Input.Offset;

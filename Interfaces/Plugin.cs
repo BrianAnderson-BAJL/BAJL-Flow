@@ -314,6 +314,15 @@ namespace Core
     {
     }
 
+    /// <summary>
+    /// The Designer will use this function to start some designing functionality, it was added specificly for the Database plugin so the SQL editor could get the table and field names.
+    /// Didn't want to use the normal 'StartPlugin()' function since I don't want to have the HTTP plugin start listening on ports blocking the server from doing the same.
+    /// </summary>
+    /// <param name="GlobalPluginValues"></param>
+    public virtual void StartPluginDesigner(Dictionary<string, object> GlobalPluginValues)
+    {
+    }
+
     public virtual void StopPlugin()
     {
     }

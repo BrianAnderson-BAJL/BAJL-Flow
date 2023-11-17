@@ -103,7 +103,7 @@ namespace FlowEngineDesigner
           gbStartOptions.Controls.Add(uc);
           userControls.Add(uc);
         }
-        if (parmVar.Parm.DataType == DATA_TYPE.String || parmVar.Parm.DataType == DATA_TYPE.Object)
+        if ((parmVar.Parm.DataType == DATA_TYPE.String && parmVar.Parm.StringSubType != STRING_SUB_TYPE.DropDownList) || parmVar.Parm.DataType == DATA_TYPE.Object)
         {
           ucParameterString uc = new ucParameterString(parmVar, null, Flow);
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;

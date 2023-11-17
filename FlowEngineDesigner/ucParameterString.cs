@@ -13,6 +13,9 @@ namespace FlowEngineDesigner
 {
   public partial class ucParameterString : ucParameter
   {
+    const int DT_STRING = 0;
+    const int DT_VARIABLE = 1;
+
     private PARM_VAR mParmVar;
     private cFlowWrapper mFlow;
     private FunctionStep? mStep;
@@ -23,24 +26,23 @@ namespace FlowEngineDesigner
       mFlow = flow;
       mStep = step;
       txtKey.Text = mParmVar.Parm.Name;
-      txtDataType.Text = mParmVar.Parm.DataType.ToString();
       mParmVar.GetValue(out string val);
       txtValue.Text = val;
 
       if (mParmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal)
       {
-        chkVariable.Checked = false;
+        cmbDataType.SelectedIndex = DT_STRING;
       }
-      else 
+      else
       {
-        chkVariable.Checked = true;
+        cmbDataType.SelectedIndex = DT_VARIABLE;
       }
     }
 
 
     public override void UpdateValues()
     {
-      if (chkVariable.Checked)
+      if (cmbDataType.SelectedIndex == DT_VARIABLE)
       {
         mParmVar.SetVarRef(txtValue.Text);
       }
@@ -62,13 +64,14 @@ namespace FlowEngineDesigner
       {
         mParmVar.GetValue(out string val);
         txtValue.Text = val;
-        chkVariable.Checked = true;
+        cmbDataType.SelectedIndex = DT_VARIABLE;
       }
     }
 
-    private void chkVariable_CheckedChanged(object sender, EventArgs e)
+
+    private void cmbDataType_SelectedIndexChanged(object sender, EventArgs e)
     {
-      if (chkVariable.Checked)
+      if (cmbDataType.SelectedIndex == DT_VARIABLE)
       {
         mParmVar.ParmLiteralOrVariable = PARM_VAR.PARM_L_OR_V.Variable;
       }
@@ -76,6 +79,7 @@ namespace FlowEngineDesigner
       {
         mParmVar.ParmLiteralOrVariable = PARM_VAR.PARM_L_OR_V.Literal;
       }
+
     }
   }
 }

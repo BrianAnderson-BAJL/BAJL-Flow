@@ -9,3 +9,4 @@ C:\Users\brian\source\repos\FlowEngine\Interfaces\obj\Debug\net6.0\Core.dll
 C:\Users\brian\source\repos\FlowEngine\Interfaces\obj\Debug\net6.0\refint\Core.dll
 C:\Users\brian\source\repos\FlowEngine\Interfaces\obj\Debug\net6.0\Core.pdb
 C:\Users\brian\source\repos\FlowEngine\Interfaces\obj\Debug\net6.0\ref\Core.dll
+C:\Users\brian\source\repos\FlowEngine\Interfaces\obj\Debug\net6.0\Core.csproj.AssemblyReference.cache

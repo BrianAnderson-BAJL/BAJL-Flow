@@ -183,7 +183,7 @@ namespace FlowEngineDesigner
         for (int y = 0; y < functionSteps[x].LinkOutputs.Count; y++)
         {
           Core.Link link = functionSteps[x].LinkOutputs[y];
-          if (link.Input.Step != null && link.Input.Step.Id == step.Id)
+          if (link.Input.Step is not null && link.Input.Step.Id == step.Id)
           {
             linksToDelete.Add(link);
           }
@@ -281,7 +281,7 @@ namespace FlowEngineDesigner
       if (r.Contains(v) == true)
       {
         //Check Input
-        if (step.Function.Input != null)
+        if (step.Function.Input is not null)
         {
           Vector2 pos = (step.Position + step.Function.Input.Offset);
           r = camera.CreateDrawingRect(pos, HighlightSize);
@@ -294,7 +294,7 @@ namespace FlowEngineDesigner
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
         for (int i = 0; i < step.Function.Outputs.Count; i++)
           {
-            if (step.Function.Outputs != null)
+            if (step.Function.Outputs is not null)
             {
               Core.Output o = step.Function.Outputs[i];
               Vector2 pos = (step.Position + o.Offset);
@@ -316,9 +316,9 @@ namespace FlowEngineDesigner
 
     public void PopulateSampleVariablesFromPlugin()
     {
-      if (StartPlugin != null)
+      if (StartPlugin is not null)
       {
-        if (this.SampleDataFormat == DATA_FORMAT.Json && this.SampleData != null && this.SampleData.Length > 0)
+        if (this.SampleDataFormat == DATA_FORMAT.Json && this.SampleData is not null && this.SampleData.Length > 0)
         {
           Variable var1 = StartPlugin.SampleVariables[Flow.VAR_NAME_FLOW_START];
           Variable? data = FindVariable(var1, Flow.VAR_NAME_FLOW_START, Flow.VAR_REQUEST, Flow.VAR_DATA);
@@ -328,7 +328,10 @@ namespace FlowEngineDesigner
             Variable? varJsonData = Variable.JsonParse(ref tempJson);
             if (varJsonData is not null && data is not null && varJsonData.SubVariables.Count > 0)
             {
-              data.SubVariables.Add(varJsonData.SubVariables[0]);
+              for (int x = 0; x < varJsonData.SubVariables.Count; x++)
+              {
+                data.SubVariables.Add(varJsonData.SubVariables[x]);
+              }
             }
           }
           catch (Exception ex)
@@ -425,13 +428,13 @@ namespace FlowEngineDesigner
 
     public void DrawSelection(HIT_RESULT hr, Graphics graphics, cCamera camera)
     {
-      if (hr.Type == HIT_RESULT.HIT_TYPE.Function && hr.HitItem != null)
+      if (hr.Type == HIT_RESULT.HIT_TYPE.Function && hr.HitItem is not null)
       {
         Size s = new Size(Global.SelectorStep.Width, Global.SelectorStep.Height);
         Rectangle r = camera.CreateDrawingRect(hr.HitItem.Position - new Vector2(10, 10), s);
         graphics.DrawImage(Global.SelectorStep, r);
       }
-      else if (hr.Type == HIT_RESULT.HIT_TYPE.Comment && hr.HitItem != null)
+      else if (hr.Type == HIT_RESULT.HIT_TYPE.Comment && hr.HitItem is not null)
       {
         Comment? comment = hr.HitItem as Comment;
         if (comment is not null)
@@ -472,14 +475,14 @@ namespace FlowEngineDesigner
       Rectangle r = camera.CreateDrawingRect(step.Position, s);
       graphics.DrawImage(bm, r);
 
-      if (step.Function.Input != null) //Only Flow.Start will have a null Input
+      if (step.Function.Input is not null) //Only Flow.Start will have a null Input
       {
         Vector2 pos = (step.Position + step.Function.Input.Offset);
         r = camera.CreateDrawingRect(pos, HighlightSize);
         if ((cMouse.FlowItem is Core.Input) == false && r.Contains(cMouse.pos.ToPoint()) == true)
         {
           Core.Output? co = cMouse.FlowItem as Core.Output;
-          if ((co == null) || (co != null && co.Step != null && co.Step.Id != step.Id))
+          if ((co == null) || (co is not null && co.Step is not null && co.Step.Id != step.Id))
           {
             graphics.DrawImage(Global.HighlightYellow, r);
           }
@@ -494,7 +497,7 @@ namespace FlowEngineDesigner
         }
 
       }
-      if (step.Function.Outputs != null) {
+      if (step.Function.Outputs is not null) {
         for (int x = 0; x < step.Function.Outputs.Count; x++)
         {
           Vector2 pos = (step.Position + step.Function.Outputs[x].Offset);
@@ -504,7 +507,7 @@ namespace FlowEngineDesigner
           if ((cMouse.FlowItem is Core.Output) == false && r.Contains(cMouse.pos.ToPoint()) == true)
           {
             Core.Input? ci = cMouse.FlowItem as Core.Input;
-            if ((ci == null) || (ci != null && ci.Step != null && ci.Step.Id != step.Id))
+            if ((ci == null) || (ci is not null && ci.Step is not null && ci.Step.Id != step.Id))
             {
               graphics.DrawImage(Global.HighlightYellow, r);
             }
@@ -619,7 +622,7 @@ namespace FlowEngineDesigner
       xml.WriteTagStart("Flow");
 
       xml.WriteTagStart("StartCommands");
-      if (StartPlugin != null)
+      if (StartPlugin is not null)
       {
         xml.WriteTagAndContents("StartPlugin", StartPlugin.Name);
       }
@@ -645,35 +648,65 @@ namespace FlowEngineDesigner
       {
         xml.WriteTagStart("Variable");
         PARM_VAR pv = parms[x];
-        xml.WriteTagAndContents("Name", pv.Parm.Name);
+        if (pv.Parm.Name != pv.ParmName)
+          xml.WriteTagAndContents("ParamName", pv.Parm.Name); //If the user changed the name of the parameter, we need to store the actual parameter name in the XML flow file so we can find it when loading.
+        xml.WriteTagAndContents("Name", pv.ParmName);
         xml.WriteTagAndContents("Literal", pv.ParmLiteralOrVariable);
-        xml.WriteTagAndContents("DataType", pv.Parm.DataType);
 
         if (pv.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Variable)
         {
+          xml.WriteTagAndContents("DataType", pv.Parm.DataType);
           xml.WriteTagAndContents("Value", pv.VariableName, Xml.BASE_64_ENCODE.Encoded); //Value will store the variable name if it a Variable
         }
         else if (pv.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal)
         {
           if (pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.Object)
           {
+            xml.WriteTagAndContents("DataType", pv.Parm.DataType);
             pv.GetValue(out string val);
             xml.WriteTagAndContents("Value", val, Xml.BASE_64_ENCODE.Encoded);
           }
           else if (pv.Parm.DataType == DATA_TYPE.Integer)
           {
+            xml.WriteTagAndContents("DataType", pv.Parm.DataType);
             pv.GetValue(out long val);
             xml.WriteTagAndContents("Value", val);
           }
           else if (pv.Parm.DataType == DATA_TYPE.Decimal)
           {
+            xml.WriteTagAndContents("DataType", pv.Parm.DataType);
             pv.GetValue(out decimal val);
             xml.WriteTagAndContents("Value", val);
           }
           else if (pv.Parm.DataType == DATA_TYPE.Boolean)
           {
+            xml.WriteTagAndContents("DataType", pv.Parm.DataType);
             pv.GetValue(out bool val);
             xml.WriteTagAndContents("Value", val);
+          }
+          else if (pv.Parm.DataType == DATA_TYPE.Various)
+          {
+            xml.WriteTagAndContents("DataType", pv.Var.DataType);
+            if (pv.Var.DataType == DATA_TYPE.String)
+            {
+              pv.GetValue(out string val);
+              xml.WriteTagAndContents("Value", val, Xml.BASE_64_ENCODE.Encoded);
+            }
+            else if (pv.Var.DataType == DATA_TYPE.Integer)
+            {
+              pv.GetValue(out long val);
+              xml.WriteTagAndContents("Value", val);
+            }
+            else if (pv.Var.DataType == DATA_TYPE.Decimal)
+            {
+              pv.GetValue(out decimal val);
+              xml.WriteTagAndContents("Value", val);
+            }
+            else if (pv.Var.DataType == DATA_TYPE.Boolean)
+            {
+              pv.GetValue(out bool val);
+              xml.WriteTagAndContents("Value", val);
+            }
           }
         }
         xml.WriteTagEnd("Variable");
@@ -720,7 +753,7 @@ namespace FlowEngineDesigner
         xml.WriteTagAndContents("Id", lw.Id);
         xml.WriteTagAndContents("OutputLabel", lw.Output.Label);
         xml.WriteTagStart("Input");
-        if (lw.Input.Step != null)
+        if (lw.Input.Step is not null)
           xml.WriteTagAndContents("StepId", lw.Input.Step.Id);
         else
           xml.WriteTagAndContents("StepId", "");

@@ -47,6 +47,8 @@ namespace Core
         pv = new PARM_VAR(parm, 0m);
       else if (parm.DataType == DATA_TYPE.Object)
         pv = new PARM_VAR(parm, new object());
+      else if (parm.DataType == DATA_TYPE.Various)
+        pv = new PARM_VAR(parm);
       else
         throw new Exception("Unknown data type being added to PARM_VARS.Add(PARM)");
       

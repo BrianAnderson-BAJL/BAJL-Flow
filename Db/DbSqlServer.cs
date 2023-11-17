@@ -27,6 +27,16 @@ namespace Db
       throw new NotImplementedException();
     }
 
+    public List<string> GetFields(string tableName)
+    {
+      throw new NotImplementedException();
+    }
+
+    public List<string> GetTables()
+    {
+      throw new NotImplementedException();
+    }
+
     public Variable Select(string SQL, params Variable[] vars)
     {
       throw new NotImplementedException();

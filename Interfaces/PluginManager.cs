@@ -16,6 +16,10 @@ namespace Core
     public delegate void PluginsChangedHandler(List<Plugin> Plugins);
     public static event PluginsChangedHandler? OnPluginsChanged;
     public static bool PluginsLoaded = false;
+
+    /// <summary>
+    /// If Plugins are sharing data or connections with other plugins they will be stored in here. The Database connection is shared here.
+    /// </summary>
     public static Dictionary<string, object> GlobalPluginValues = new Dictionary<string, object>();
 
     public static ReadOnlyCollection<Plugin> Plugins => mPlugins.AsReadOnly();
@@ -30,7 +34,7 @@ namespace Core
         Type[] Types = a.GetTypes();
         for (int y = 0; y < Types.Length; y++)
         {
-          if (Types[y].BaseType?.FullName == "Core.Plugin")
+          if (Types[y] is not null && Types[y].BaseType is not null && Types[y].BaseType!.FullName == "Core.Plugin")
           {
             Core.Plugin? p = Activator.CreateInstance(Types[y]) as Core.Plugin;
             if (p != null)
@@ -55,6 +59,16 @@ namespace Core
       {
         Plugin plugin = sortedByStartPriority[x];
         plugin.StartPlugin(GlobalPluginValues);
+      }
+    }
+
+    public static void StartPluginsDesigner()
+    {
+      List<Plugin> sortedByStartPriority = mPlugins.OrderBy(p => p.StartPriority).ToList();
+      for (int x = 0; x < sortedByStartPriority.Count; x++)
+      {
+        Plugin plugin = sortedByStartPriority[x];
+        plugin.StartPluginDesigner(GlobalPluginValues);
       }
     }
 

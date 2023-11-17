@@ -16,7 +16,7 @@ namespace FlowEngineDesigner
     private Core.FunctionStep mStep;
     private cFlowWrapper mFlow;
     private List<UserControl> userControls;
-    private const int StartX = 10;
+    private const int StartX = 20;
     private const int StartY = 20;
     public frmStepProperties(Core.FunctionStep step, cFlowWrapper flow)
     {
@@ -70,17 +70,25 @@ namespace FlowEngineDesigner
       {
         uc = new ucParameterInteger(pv, mStep, mFlow);
       }
-      else if (pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.Object)
+      else if ((pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.Object) && pv.Parm.StringSubType == STRING_SUB_TYPE._None )
       {
         uc = new ucParameterString(pv, mStep, mFlow);
       }
-      else if (pv.Parm.DataType == DATA_TYPE.Decimal)
+      else if (pv.Parm.DataType == DATA_TYPE.String && pv.Parm.StringSubType == STRING_SUB_TYPE.Sql)
       {
-
+        uc = new ucParameterStringSql(pv, mStep, mFlow);
       }
       else if (pv.Parm.DataType == DATA_TYPE.String && pv.Parm.StringSubType == STRING_SUB_TYPE.DropDownList)
       {
         uc = new ucParameterDropDownList(pv);
+      }
+      else if (pv.Parm.DataType == DATA_TYPE.Various)
+      {
+        uc = new ucParameterVarious(pv, mStep, mFlow);
+      }
+      else if (pv.Parm.DataType == DATA_TYPE.Decimal)
+      {
+
       }
       return uc;
     }
@@ -114,12 +122,29 @@ namespace FlowEngineDesigner
       mStep.RespNames.Name = txtSaveResponseName.Text;
     }
 
+    private int FindMultipleParmVarCount()
+    {
+      int count = 0;
+      for (int x = 0; x < mStep.ParmVars.Count; x++)
+      {
+        if (mStep.ParmVars[x].Parm.AllowMultiple == PARM.PARM_ALLOW_MULTIPLE.Multiple)
+        {
+          count++;
+        }
+      }
+      return count;
+    }
+
     private void btnAddParameter_Click(object sender, EventArgs e)
     {
-      PARM_VAR p = mStep.ParmVars[mStep.ParmVars.Count - 1]; //Get the last parameter
-      p = p.Clone();
-      mStep.ParmVars.Add(p);
-      ucParameter? uc = CreateParameterInput(p);
+      PARM_VAR parmVar = mStep.ParmVars[mStep.ParmVars.Count - 1]; //Get the last parameter
+      parmVar = parmVar.Clone();
+      if (parmVar.Parm.NameChangeIncrement == true && parmVar.Parm.NameChangeable == true)
+      {
+        parmVar.ParmName = parmVar.Parm.Name + FindMultipleParmVarCount();
+      }
+      mStep.ParmVars.Add(parmVar);
+      ucParameter? uc = CreateParameterInput(parmVar);
       if (uc != null)
       {
         uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;

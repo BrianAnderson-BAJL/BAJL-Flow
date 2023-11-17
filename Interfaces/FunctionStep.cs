@@ -101,6 +101,8 @@ namespace Core
             resps = RESP.SetError(2, $"Could not resolve variable [{pv.VariableName}]");
             goto GotoResults;
           }
+          if (pv.Parm.NameChangeable == true) //Database.Select you can set the parameter names for the SQL parameters, these values will be used in the SQL statement
+            pvVar.Name = pv.ParmName;
           vars[x] = pvVar;
         }
         else
@@ -109,8 +111,14 @@ namespace Core
         }
       }
 
-      resps = Function.Execute(flow, vars);
-
+      try
+      {
+        resps = Function.Execute(flow, vars);
+      }
+      catch (Exception e)
+      {
+        resps = RESP.SetError(0, e.Message);
+      }
       GotoResults:
 
       Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);

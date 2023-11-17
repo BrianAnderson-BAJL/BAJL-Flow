@@ -341,6 +341,9 @@
         }
       },
       "Core/1.0.0": {
+        "dependencies": {
+          "MySql.Data": "8.1.0"
+        },
         "runtime": {
           "Core.dll": {}
         }

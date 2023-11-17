@@ -14,4 +14,8 @@
     <Exec Command="xcopy &quot;$(BaseOutputPath)\$(Configuration)\net6.0\$(TargetName)$(TargetExt)&quot; &quot;$(SolutionDir)\FlowEngineDesigner\bin\$(Configuration)\net6.0-windows\Plugins&quot; /s /i /y&#xD;&#xA;xcopy &quot;$(BaseOutputPath)\$(Configuration)\net6.0\$(TargetName)$(TargetExt)&quot; &quot;D:\Pi&quot; /s /i /y" />
   </Target>
 
+  <ItemGroup>
+    <PackageReference Include="MySql.Data" Version="8.1.0" />
+  </ItemGroup>
+
 </Project>

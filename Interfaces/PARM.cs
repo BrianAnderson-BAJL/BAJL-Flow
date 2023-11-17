@@ -43,7 +43,22 @@ namespace Core
     }
 
 
+    /// <summary>
+    /// The parameter name
+    /// </summary>
     public string Name = "";
+
+    /// <summary>
+    /// Is the parameter name changeable? Normally the parameter name is fixed, but in certain conditions you can change the name to something else. This is usefull
+    /// for the Database plugin where the parameter name will be used in the SQL when passing values in. (SELECT * FROM Table WHERE Name = @UserName) @UserName will be the parameter name
+    /// </summary>
+    public bool NameChangeable = false;
+
+    /// <summary>
+    /// Should the parameter name be incremented when adding multiple parameters, NameChangeable needs to be true, and AllowMultiple needs to be PARM_ALLOW_MULTIPLE.Multiple for this to be used
+    /// @Parm0, @Parm1, @Parm2, the 0, 1, 2, ... will be added to each parameter name to make them unique
+    /// </summary>
+    public bool NameChangeIncrement = false;
     public DATA_TYPE DataType = DATA_TYPE.String;
     public PARM_REQUIRED Required = PARM_REQUIRED.Yes;
     public PARM_ALLOW_MULTIPLE AllowMultiple = PARM_ALLOW_MULTIPLE.Single; //If Multiple, this parameter can be duplicated to allow multiple values to be passed in.

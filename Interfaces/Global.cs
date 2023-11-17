@@ -11,6 +11,7 @@ namespace Core
   public enum DATA_TYPE
   {
     _None,
+    Various, //A PARM could have various/unknown data types to be passed into a 'multiple' parameter value (Database SELECT statement will have unknown variable types for the data parameters except during runtime)
     Object,  //Could be a connection handle, or other custom object
     String,
     Integer,

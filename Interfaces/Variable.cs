@@ -1,4 +1,5 @@
 ﻿using Core.Interfaces;
+using Core.Parsers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,107 +9,107 @@ using System.Threading.Tasks;
 namespace Core
 {
 
-  //public abstract class aVar
-  //{
-  //  public string Name;
-  //  public List<aVar> SubVariables;
-    
-  //}
+    //public abstract class aVar
+    //{
+    //  public string Name;
+    //  public List<aVar> SubVariables;
 
-  //public class Var<T> : aVar
-  //{
-  //  public const string BASE_VAR_NAME = "base";
+    //}
 
-  //  //public DATA_TYPE DataType = DATA_TYPE._None;
-  //  //public string Name = "";
-  //  //public List<aVar> SubVariables;
-  //  public T Value {get; set; }
+    //public class Var<T> : aVar
+    //{
+    //  public const string BASE_VAR_NAME = "base";
 
-
-  //  //Object,
-  //  //String,
-  //  //Integer,
-  //  //Decimal,
-  //  //Boolean,
-  //  //Color,
-  //  //DropDownList,
-  //  //DropDownAllowCustom,
-  //  //Block, //Json or XML block of elements
-  //  //Array, //Json array
-
-  //  public Var(T val)
-  //  {
-  //    //if (typeof(T) == typeof(long) || typeof(T) == typeof(int))
-  //    //  DataType = DATA_TYPE.Integer;
-  //    //else if (typeof(T) == typeof(decimal) || typeof(T) == typeof(float))
-  //    //  DataType = DATA_TYPE.Decimal;
-  //    //else if (typeof(T) == typeof(bool))
-  //    //  DataType = DATA_TYPE.Boolean;
-  //    //else if (typeof(T) == typeof(System.Drawing.Color))
-  //    //  DataType = DATA_TYPE.Color;
-  //    //else if (typeof(T) == typeof(string))
-  //    //  DataType = DATA_TYPE.String;
-  //    SubVariables = new List<aVar>();
-  //    Value = val;
-  //  }
+    //  //public DATA_TYPE DataType = DATA_TYPE._None;
+    //  //public string Name = "";
+    //  //public List<aVar> SubVariables;
+    //  public T Value {get; set; }
 
 
-  //  public static object CreateVar(string xml)
-  //  {
-  //    string nameTemp = Xml.GetXMLChunk(ref xml, "Name");
-  //    string literalTemp = Xml.GetXMLChunk(ref xml, "Literal");
-  //    string dataTypeTemp = Xml.GetXMLChunk(ref xml, "DataType");
-  //    string valueTemp = Xml.GetXMLChunk(ref xml, "Value");
-  //    return new Var<long>(0);
-  //  }
+    //  //Object,
+    //  //String,
+    //  //Integer,
+    //  //Decimal,
+    //  //Boolean,
+    //  //Color,
+    //  //DropDownList,
+    //  //DropDownAllowCustom,
+    //  //Block, //Json or XML block of elements
+    //  //Array, //Json array
 
-  //  public override bool Equals(object? obj)
-  //  {
-  //    if (obj is null)
-  //      return false;
-      
-  //    return base.Equals(obj);
-  //  }
+    //  public Var(T val)
+    //  {
+    //    //if (typeof(T) == typeof(long) || typeof(T) == typeof(int))
+    //    //  DataType = DATA_TYPE.Integer;
+    //    //else if (typeof(T) == typeof(decimal) || typeof(T) == typeof(float))
+    //    //  DataType = DATA_TYPE.Decimal;
+    //    //else if (typeof(T) == typeof(bool))
+    //    //  DataType = DATA_TYPE.Boolean;
+    //    //else if (typeof(T) == typeof(System.Drawing.Color))
+    //    //  DataType = DATA_TYPE.Color;
+    //    //else if (typeof(T) == typeof(string))
+    //    //  DataType = DATA_TYPE.String;
+    //    SubVariables = new List<aVar>();
+    //    Value = val;
+    //  }
 
-  //  public override int GetHashCode()
-  //  {
-  //    return base.GetHashCode();
-  //  }
-  //}
 
-  //public class Type_DropDownList
-  //{
-  //  string Value;
-  //  public static bool operator ==(Type_DropDownList dd1, Type_DropDownList dd2)
-  //  {
-  //    if (dd1.ToString() == dd2.ToString())
-  //      return true;
-  //    return false;
-  //  }
+    //  public static object CreateVar(string xml)
+    //  {
+    //    string nameTemp = Xml.GetXMLChunk(ref xml, "Name");
+    //    string literalTemp = Xml.GetXMLChunk(ref xml, "Literal");
+    //    string dataTypeTemp = Xml.GetXMLChunk(ref xml, "DataType");
+    //    string valueTemp = Xml.GetXMLChunk(ref xml, "Value");
+    //    return new Var<long>(0);
+    //  }
 
-  //  public static bool operator !=(Type_DropDownList dd1, Type_DropDownList dd2)
-  //  {
-  //    if (dd1.ToString() == dd2.ToString())
-  //      return false;
-  //    return true;
-  //  }
+    //  public override bool Equals(object? obj)
+    //  {
+    //    if (obj is null)
+    //      return false;
 
-  //  public bool Equals(Type_DropDownList? dd)
-  //  {
-  //    if (dd == null)
-  //      return false;
-  //    return (this == dd);
-  //  }
+    //    return base.Equals(obj);
+    //  }
 
-  //  public override bool Equals(object obj) => Equals(obj as Type_DropDownList);
+    //  public override int GetHashCode()
+    //  {
+    //    return base.GetHashCode();
+    //  }
+    //}
 
-  //  public override string ToString()
-  //  {
-  //    return Value;
-  //  }
-  //}
+    //public class Type_DropDownList
+    //{
+    //  string Value;
+    //  public static bool operator ==(Type_DropDownList dd1, Type_DropDownList dd2)
+    //  {
+    //    if (dd1.ToString() == dd2.ToString())
+    //      return true;
+    //    return false;
+    //  }
 
-  public class Variable : IToJson
+    //  public static bool operator !=(Type_DropDownList dd1, Type_DropDownList dd2)
+    //  {
+    //    if (dd1.ToString() == dd2.ToString())
+    //      return false;
+    //    return true;
+    //  }
+
+    //  public bool Equals(Type_DropDownList? dd)
+    //  {
+    //    if (dd == null)
+    //      return false;
+    //    return (this == dd);
+    //  }
+
+    //  public override bool Equals(object obj) => Equals(obj as Type_DropDownList);
+
+    //  public override string ToString()
+    //  {
+    //    return Value;
+    //  }
+    //}
+
+    public class Variable : IToJson
   {
 
     public DATA_TYPE DataType = DATA_TYPE._None;
@@ -257,6 +258,29 @@ namespace Core
       return xml;
     }
 
+    public void GetValueAsString(out string value)
+    {
+      value = "";
+      if (this.DataType == DATA_TYPE.String)
+      {
+        this.GetValue(out value);
+      }
+      else if (this.DataType == DATA_TYPE.Integer)
+      {
+        this.GetValue(out long temp);
+        value = temp.ToString();
+      }
+      else if (this.DataType == DATA_TYPE.Decimal)
+      {
+        this.GetValue(out decimal temp);
+        value = temp.ToString();
+      }
+      else if (this.DataType == DATA_TYPE.Boolean)
+      {
+        this.GetValue(out bool temp);
+        value = temp.ToString();
+      }
+    }
 
     public void GetValue(out string value)
     {

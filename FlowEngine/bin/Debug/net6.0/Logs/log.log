@@ -1,0 +1,28 @@
+[INF] 11/17/2023 11:43:12 AM - Log Values [string] Brian log entry
+[INF] 11/17/2023 11:52:21 AM - Brian test number 2
+[INF] 11/17/2023 11:53:36 AM - Brian test number 2
+[INF] 11/17/2023 11:54:00 AM - Brian test number 3
+[INF] 11/17/2023 11:54:32 AM - Brian test number 4
+[INF] 11/17/2023 12:00:06 PM - Brian test number 5
+[INF] 11/17/2023 12:13:36 PM - brian is great, the greatest
+[ERR] 11/17/2023 12:13:52 PM - brian is great, the greatest
+[WAR] 11/17/2023 12:14:05 PM - brian is great, the greatest
+[INF] 11/17/2023 12:16:02 PM - 55
+[INF] 11/17/2023 12:16:18 PM - False
+[INF] 11/17/2023 12:16:43 PM - False
+[INF] 11/17/2023 12:18:04 PM - 55.23
+[INF] 11/17/2023 12:21:44 PM - 5
+[INF] 11/17/2023 12:22:00 PM - 46
+[INF] 11/17/2023 12:48:33 PM - "recordset":{
+{
+"LoginId":"dayofbrian@gmail.com",
+"StatusId":1,
+"Active":True}
+,
+{
+"LoginId":"customer@example.com",
+"StatusId":2,
+"Active":True}
+}
+
+[ERR] 11/17/2023 12:51:52 PM - Database.Select returned failure.

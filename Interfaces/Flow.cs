@@ -73,7 +73,7 @@ namespace Core
     /// <param name="var">The actual Variable object</param>
     public void VariableAdd(string name, Variable? var)
     {
-      if (var != null)
+      if (var is not null)
       {
         name = name.ToLower(); //The flow engine is case insensitive
         if (Variables.ContainsKey(name))
@@ -351,6 +351,8 @@ namespace Core
         if (Variables.ContainsKey(varSplit[0]) == true)
         {
           baseVar = Variables[varSplit[0]];
+          if (varSplit.Length == 1)
+            return baseVar;
         }
       }
       if (baseVar is not null)
@@ -585,7 +587,6 @@ namespace Core
 
     private void ParseVariables(PARMS parms, PARM_VARS parmVars, ref string variables)
     {
-      string lastParmName = "";
       string var = "";
       do
       {
@@ -594,46 +595,43 @@ namespace Core
           break; //We have reached the end, lets exit
 
         PARM? p = null;
+        string paramName = Xml.GetXMLChunk(ref var, "ParamName");
         string name = Xml.GetXMLChunk(ref var, "Name");
-        p = parms.FindParmByName(name);
+        if (paramName.Length <= 0) //If ParamName isn't in the XML, the parameter name wasn't changed, so just use the Name element
+          paramName = name;
+        p = parms.FindParmByName(paramName);
         if (p is null)
           throw new ExceptionFlowLoad($"Bad Parameter name [{name}], could not find parameter with that name for flow [{this.FileName}]");
 
         PARM_VAR? pv;
-        lastParmName = name;
         string temp = Xml.GetXMLChunk(ref var, "Literal");
         PARM_VAR.PARM_L_OR_V lOrV = Enum.Parse<PARM_VAR.PARM_L_OR_V>(temp, true);
         if (lOrV == PARM_VAR.PARM_L_OR_V.Literal)
         {
           string dataType = Xml.GetXMLChunk(ref var, "DataType");
-          if (dataType == "Integer" && p.DataType == DATA_TYPE.Integer)
+          if (dataType == "Integer" && (p.DataType == DATA_TYPE.Integer || p.DataType == DATA_TYPE.Various))
           {
             long value = Xml.GetXMLChunkAsLong(ref var, "Value");
             pv = new PARM_VAR(p, value);
           }
-          else if (dataType == "Decimal" && p.DataType == DATA_TYPE.Decimal)
+          else if (dataType == "Decimal" && (p.DataType == DATA_TYPE.Decimal || p.DataType == DATA_TYPE.Various))
           {
             decimal value = Xml.GetXMLChunkAsDecimal(ref var, "Value");
             pv = new PARM_VAR(p, value);
           }
-          //else if (dataType == "DropDownList" && p.DataType == DATA_TYPE.DropDownList)
-          //{
-          //  string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded);
-          //  pv = new PARM_VAR(p, value);
-          //}
-          else if (dataType == "String" && p.DataType == DATA_TYPE.String)
+          else if (dataType == "String" && (p.DataType == DATA_TYPE.String || p.DataType == DATA_TYPE.Various))
           {
             string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
+            pv = new PARM_VAR(p, value);
+          }
+          else if (dataType == "Boolean" && (p.DataType == DATA_TYPE.Boolean || p.DataType == DATA_TYPE.Various))
+          {
+            bool value = Xml.GetXMLChunkAsBool(ref var, "Value");
             pv = new PARM_VAR(p, value);
           }
           else if (dataType == "Object" && p.DataType == DATA_TYPE.Object)
           {
             string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
-            pv = new PARM_VAR(p, value);
-          }
-          else if (dataType == "Boolean" && p.DataType == DATA_TYPE.Boolean)
-          {
-            bool value = Xml.GetXMLChunkAsBool(ref var, "Value");
             pv = new PARM_VAR(p, value);
           }
           else
@@ -646,6 +644,7 @@ namespace Core
           string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
           pv = new PARM_VAR(p, new VarRef(value));
         }
+        pv.ParmName = name;
         parmVars.Add(pv);
       } while (var.Length > 0) ;
 
