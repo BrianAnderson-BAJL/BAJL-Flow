@@ -666,7 +666,7 @@ namespace Core
           string outputLabel = Xml.GetXMLChunk(ref link, "OutputLabel");
 
           Output? output = function.Function.FindOutput(outputLabel);
-
+          output = output.Clone(function);
           string input = Xml.GetXMLChunk(ref link, "Input");
           if (input.Length > 0 && output is not null)
           {
