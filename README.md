@@ -32,7 +32,7 @@ Log flow events into a log file, includes archiving, rolling logs when they hit 
 Control users sessions with logins passwords and encryption, will handle all the normal stuff (login, logout, forgot password / password reset, logout all sessions, ...)
 
 ### Validation plugin
-Will perform any required validation of flow variables and json/xml elements exist in request.
+Will perform any required validation, currently email, phone numbers, and flow variables and json/xml elements exist in request.
 
 ### Timer plugin (planned)
 Start a flow every X seconds or at a specific time
