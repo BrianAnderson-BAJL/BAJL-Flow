@@ -1,0 +1,22 @@
+﻿<Settings>
+	<Setting>
+		<DataType>String</DataType>
+		<Key>Uri</Key>
+		<Value>http://*:80</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>BackgroundColor</Key>
+		<Value>Color [Transparent]</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>BorderColor</Key>
+		<Value>Color [Orange]</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>FontColor</Key>
+		<Value>Color [Black]</Value>
+	</Setting>
+</Settings>

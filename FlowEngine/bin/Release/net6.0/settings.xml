@@ -1,6 +1,0 @@
-﻿<Settings>
-	<PluginPath>C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Plugins</PluginPath>
-	<PluginGraphicsPath>./Plugins/Graphics/</PluginGraphicsPath>
-	<FlowPath>C:\Users\brian\Documents</FlowPath>
-	<FlowUserHistoryMax>10</FlowUserHistoryMax>
-</Settings>

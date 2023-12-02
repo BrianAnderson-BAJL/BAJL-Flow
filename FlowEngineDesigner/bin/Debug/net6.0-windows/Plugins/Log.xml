@@ -1,0 +1,44 @@
+﻿<Settings>
+	<Setting>
+		<DataType>String</DataType>
+		<Key>LogPath</Key>
+		<Value>C:\Users\brian\source\repos\FlowEngine\FlowEngine\bin\Debug\net6.0\Logs\log1.log</Value>
+	</Setting>
+	<Setting>
+		<DataType>String</DataType>
+		<Key>TimeStyle</Key>
+		<Value>Local</Value>
+	</Setting>
+	<Setting>
+		<DataType>String</DataType>
+		<Key>RetentionStyle</Key>
+		<Value>Time & Size based</Value>
+		<SubSettings>
+			<SubSetting>
+				<DataType>Integer</DataType>
+				<Key>RollLogEveryHours</Key>
+				<Value>23</Value>
+			</SubSetting>
+			<SubSetting>
+				<DataType>Integer</DataType>
+				<Key>MaxFileSizeInBytes</Key>
+				<Value>1023999</Value>
+			</SubSetting>
+		</SubSettings>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>BackgroundColor</Key>
+		<Value>Color [Transparent]</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>BorderColor</Key>
+		<Value>Color [Yellow]</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>FontColor</Key>
+		<Value>Color [Black]</Value>
+	</Setting>
+</Settings>

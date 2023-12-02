@@ -1,0 +1,67 @@
+﻿<Settings>
+	<Setting>
+		<DataType>String</DataType>
+		<Key>DatabaseType</Key>
+		<Value>MySql</Value>
+	</Setting>
+	<Setting>
+		<DataType>String</DataType>
+		<Key>Database</Key>
+		<Value>FlowEngine</Value>
+	</Setting>
+	<Setting>
+		<DataType>String</DataType>
+		<Key>Url</Key>
+		<Value>192.168.0.75</Value>
+	</Setting>
+	<Setting>
+		<DataType>Integer</DataType>
+		<Key>Port</Key>
+		<Value>3306</Value>
+	</Setting>
+	<Setting>
+		<DataType>String</DataType>
+		<Key>User</Key>
+		<Value>root</Value>
+	</Setting>
+	<Setting>
+		<DataType>String</DataType>
+		<Key>Password</Key>
+		<Value>5D09e97bda!</Value>
+	</Setting>
+	<Setting>
+		<DataType>Integer</DataType>
+		<Key>ConnPoolSizeMax</Key>
+		<Value>10</Value>
+	</Setting>
+	<Setting>
+		<DataType>Integer</DataType>
+		<Key>ConnPoolSizeMin</Key>
+		<Value>3</Value>
+	</Setting>
+	<Setting>
+		<DataType>Boolean</DataType>
+		<Key>ShareDatabaseConnWithOtherPlugins</Key>
+		<Value>True</Value>
+	</Setting>
+	<Setting>
+		<DataType>Boolean</DataType>
+		<Key>TreatTinyintAsBoolean</Key>
+		<Value>True</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>BackgroundColor</Key>
+		<Value>Color [Transparent]</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>BorderColor</Key>
+		<Value>Color [Blue]</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>FontColor</Key>
+		<Value>Color [White]</Value>
+	</Setting>
+</Settings>

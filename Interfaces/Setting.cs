@@ -59,14 +59,7 @@ namespace Core
       Value = "";
       DataType = value;
     }
-    public Setting(string key, STRING_SUB_TYPE stringSubType)
-    {
-
-      Key = key;
-      Value = "";
-      DataType = DATA_TYPE.String;
-      StringSubType = stringSubType;
-    }
+   
     public Setting(string key, string value, STRING_SUB_TYPE stringSubType)
     {
 
@@ -125,32 +118,7 @@ namespace Core
       Value = value;
       DataType = DATA_TYPE.Color;
     }
-    public Setting(string dropDownGroupName, string groupName, string key, string value, List<Setting> subsettings)
-    {
-      GroupName = groupName;
-      DropDownGroupName = dropDownGroupName;
-      Key = key;
-      Value = value;
-      DataType = DATA_TYPE.String;
-      StringSubType = STRING_SUB_TYPE.DropDownList;
-      mSubSettings = subsettings;
-    }
-
-    public Setting(string groupName, string key, string value)
-    {
-      GroupName = groupName;
-      Key = key;
-      Value = value;
-      DataType = DATA_TYPE.String;
-    }
-    public Setting(string groupName, string key, int value)
-    {
-      GroupName = groupName;
-      Key = key;
-      Value = value;
-      DataType = DATA_TYPE.Integer;
-    }
-
+   
     public Setting(string dataToBeParsed)
     {
       FromXml(dataToBeParsed);
