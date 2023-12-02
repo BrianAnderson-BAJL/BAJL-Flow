@@ -25,7 +25,7 @@ namespace Core
     protected DateTime mCreatedDateTime = DateTime.MinValue;
     protected DateTime mModifiedLastDateTime = DateTime.MinValue;
     protected List<User> previousUsers = new List<User>(10);
-    protected Dictionary<string, Variable> Variables = new Dictionary<string, Variable>();
+    public Dictionary<string, Variable> Variables = new Dictionary<string, Variable>();
     public Plugin? StartPlugin;
     public PARM_VARS StartCommands = new PARM_VARS(); //Used so the flow engine knows when to start this flow.
     public string SampleData = "";
@@ -35,7 +35,7 @@ namespace Core
     public FlowRequest.START_TYPE DebugStartType;
     public TcpClientBase? DebugTcpClient;
     public Packet? DebugPacket;
-    public TimeElapsed DebugStartTime = new TimeElapsed();
+    public TimeElapsed DebugFlowStartTime = new TimeElapsed();
     public TimeElapsed DebugStepTime = new TimeElapsed();
 
     private int currentId = 1;
@@ -148,10 +148,10 @@ namespace Core
 
     public virtual RESP? Execute()
     {
-      if (start == null)
+      if (start is null)
       {
         start = FindStepByName("flowcore", "start");
-        if (start == null)
+        if (start is null)
         {
           return RESP.SetError(1, "Flow is missing Start step"); ;
         }
@@ -200,7 +200,7 @@ namespace Core
       }
       xml.WriteTagEnd("DebugResults");
 
-      FlowDebugResponse flowDebugResponse = new FlowDebugResponse(this.DebugPacket.PacketId, BaseResponse.RESPONSE_CODE.Success, this.FileName, this.DebugStartTime.End().Ticks, xml.ReadMemory());
+      FlowDebugResponse flowDebugResponse = new FlowDebugResponse(this.DebugPacket.PacketId, BaseResponse.RESPONSE_CODE.Success, this.FileName, this.DebugFlowStartTime.End().Ticks, xml.ReadMemory());
       this.DebugTcpClient.Send(flowDebugResponse.GetPacket());
     }
 
@@ -262,7 +262,7 @@ namespace Core
       for (int x = 0; x < step.LinkOutputs.Count; x++)
       {
         FunctionStep? s = step.LinkOutputs[x].Input.Step;
-        if (s != null)
+        if (s is not null)
         {
           //s.RuntimeParms = s.parms.Clone();
           nextSteps.Add(s);
@@ -666,20 +666,23 @@ namespace Core
           string outputLabel = Xml.GetXMLChunk(ref link, "OutputLabel");
 
           Output? output = function.Function.FindOutput(outputLabel);
-          output = output.Clone(function);
-          string input = Xml.GetXMLChunk(ref link, "Input");
-          if (input.Length > 0 && output is not null)
+          if (output is not null)
           {
-            output.Step = function;
-            int stepId = Xml.GetXMLChunkAsInt(ref input, "StepId");
-            string inputLabel = Xml.GetXMLChunk(ref input, "Label");
-            FunctionStep? inputStep = this.FindStepById(stepId);
-            if (inputStep is not null)
+            output = output.Clone(function);
+            string input = Xml.GetXMLChunk(ref link, "Input");
+            if (input.Length > 0 && output is not null)
             {
-              if (inputStep.Function.Input is not null)
+              output.Step = function;
+              int stepId = Xml.GetXMLChunkAsInt(ref input, "StepId");
+              string inputLabel = Xml.GetXMLChunk(ref input, "Label");
+              FunctionStep? inputStep = this.FindStepById(stepId);
+              if (inputStep is not null)
               {
-                Core.Input? iw = inputStep.Function.Input.Clone(inputStep);
-                function.LinkAdd(this, output, iw);
+                if (inputStep.Function.Input is not null)
+                {
+                  Core.Input? iw = inputStep.Function.Input.Clone(inputStep);
+                  function.LinkAdd(this, output, iw);
+                }
               }
             }
           }
@@ -693,9 +696,11 @@ namespace Core
       return FileName;
     }
 
-    public string ToJson(bool stripNameAndAddBlock = false)
+    public string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
     {
-      string json = "\"flow\"";
+      string json = new string('\t', TabIndents);
+
+      json += "\"flow\"";
       json += ": {";
       json += "\"filename\":\"" + this.FileName + "\",";
       json += "}";

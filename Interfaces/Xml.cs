@@ -38,10 +38,9 @@ namespace Core
       bool Rc = false;
       try
       {
-        if (culture == null)
+        if (culture is null)
         {
           culture = CultureInfo.InvariantCulture;
-          //culture = CultureInfo.CreateSpecificCulture("en-US");
         }
 
         mWriter = new StreamWriter(FileName, false, System.Text.Encoding.UTF8);
@@ -100,7 +99,7 @@ namespace Core
     public void WriteTagAndContents(string TagName, System.Enum Value)
     {
       string? Val = System.Enum.GetName(Value.GetType(), Value);
-      if (Val != null)
+      if (Val is not null)
       {
         WriteTagAndContents(TagName, Val);
       }
@@ -217,6 +216,17 @@ namespace Core
       mWriter.WriteLine(Tabs + Value);
       //mIndentLevel--;
     }
+    public void WriteTagContentsBare(string Value, BASE_64_ENCODE encoding = BASE_64_ENCODE.None)
+    {
+      //mIndentLevel++;
+      if (encoding == BASE_64_ENCODE.Encoded)
+      {
+        byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes(Value);
+        Value = System.Convert.ToBase64String(plainTextBytes);
+      }
+      mWriter.Write(Value);
+      //mIndentLevel--;
+    }
 
     public void WriteTagEnd(string TagName)
     {
@@ -242,7 +252,7 @@ namespace Core
       int Index = 0;
       mFileName = FileName;
       mFileContents = "";
-      if (culture == null)
+      if (culture is null)
       {
         culture = CultureInfo.InvariantCulture;
         //culture = CultureInfo.CreateSpecificCulture("en-US");

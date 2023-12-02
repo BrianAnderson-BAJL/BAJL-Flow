@@ -24,7 +24,7 @@ namespace FlowEngineDesigner
 
     private void CEventManager_Tracer(object? sender, TracerEventArgs e)
     {
-      if (sender == null)
+      if (sender is null)
       {
       }
       else

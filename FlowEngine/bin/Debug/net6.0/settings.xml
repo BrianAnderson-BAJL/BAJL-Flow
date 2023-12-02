@@ -5,7 +5,7 @@
 	<FlowPath>C:\Users\brian\Documents\Flows</FlowPath>
 	<FlowPathAllowSubDirectories>True</FlowPathAllowSubDirectories>
 	<TlsCertFileNamePath>C:\GameDev\cert.pfx</TlsCertFileNamePath>
-	<TlsCertPassword></TlsCertPassword>
+	<TlsCertPassword>b1581a</TlsCertPassword>
 	<FlowUserHistoryMax>10</FlowUserHistoryMax>
 	<UserPath>./users.xml</UserPath>
 	<ServerType>Development</ServerType>

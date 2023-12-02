@@ -32,7 +32,7 @@ namespace Core.Administration
 
     protected void OnConnectionClosed(TcpTlsClient client)
     {
-      if (ConnectionClosed != null)
+      if (ConnectionClosed is not null)
       {
         EventArgsTcpClient EA = new EventArgsTcpClient(client);
         ConnectionClosed(this, EA);
@@ -42,7 +42,7 @@ namespace Core.Administration
 
     protected void OnNewPacket(Packet packet, TcpTlsClient client)
     {
-      if (NewPacket != null)
+      if (NewPacket is not null)
       {
         EventArgsPacket EA = new EventArgsPacket(packet, client);
         NewPacket(this, EA);
@@ -52,7 +52,7 @@ namespace Core.Administration
 
     protected void OnNewConnection(TcpTlsClient client)
     {
-      if (NewConnection != null)
+      if (NewConnection is not null)
       {
         EventArgsTcpClient EA = new EventArgsTcpClient(client);
         NewConnection(this, EA);

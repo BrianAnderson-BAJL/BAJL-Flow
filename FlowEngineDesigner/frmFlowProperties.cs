@@ -36,7 +36,7 @@ namespace FlowEngineDesigner
       for (int x = 0; x < PluginManager.Plugins.Count; x++)
       {
         cmbPlugins.Items.Add(PluginManager.Plugins[x]);
-        if (Flow.StartPlugin != null && PluginManager.Plugins[x].Name == Flow.StartPlugin.Name)
+        if (Flow.StartPlugin is not null && PluginManager.Plugins[x].Name == Flow.StartPlugin.Name)
         {
           cmbPlugins.SelectedIndex = x;
         }
@@ -68,16 +68,23 @@ namespace FlowEngineDesigner
     private void cmbPlugins_SelectedIndexChanged(object? sender, EventArgs e)
     {
       Flow.StartPlugin = cmbPlugins.SelectedItem as Core.Plugin;
-      if (Flow.StartPlugin != null)
+      if (Flow.StartPlugin is not null && Flow.StartPlugin.SampleStartData is not null)
       {
         Flow.StartCommands = Flow.StartPlugin.FlowStartCommands.ToParmVars();
+        Flow.SampleData = Flow.StartPlugin.SampleStartData.ToJson();
       }
       AddFlowStartCommands();
+
+      if (Flow.SampleData is null)
+        return;
+
+      rbSampleDataFormatJson.Checked = true;
+      txtSampleData.Text += Flow.SampleData;
     }
 
     private void AddFlowStartCommands()
     {
-      if (Flow.StartPlugin == null)
+      if (Flow.StartPlugin is null)
         return;
 
       for (int x = 0; x < userControls.Count; x++)
@@ -133,10 +140,13 @@ namespace FlowEngineDesigner
 
     private void btnOk_Click(object sender, EventArgs e)
     {
+      Flow.SampleData = txtSampleData.Text;
+      Flow.PopulateSampleVariablesFromPlugin();
+      
       for (int x = 0; x < userControls.Count; x++)
       {
         ucParameter parm = userControls[x] as ucParameter;
-        if (parm != null)
+        if (parm is not null)
         {
           parm.UpdateValues();
         }
@@ -179,6 +189,5 @@ namespace FlowEngineDesigner
         }
       }
     }
-
   }
 }

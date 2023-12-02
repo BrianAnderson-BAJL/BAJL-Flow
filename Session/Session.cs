@@ -24,9 +24,9 @@ namespace Session
 
       //SETTINGS
       {
-        SettingAddIfMissing(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-        SettingAddIfMissing(new Setting("", "Designer", "BorderColor", Color.Teal));
-        SettingAddIfMissing(new Setting("", "Designer", "FontColor", Color.Black));
+        SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+        SettingAdd(new Setting("", "Designer", "BorderColor", Color.Teal));
+        SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
       }
       //SETTINGS
 

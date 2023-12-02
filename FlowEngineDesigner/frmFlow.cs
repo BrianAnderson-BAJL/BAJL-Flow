@@ -57,7 +57,7 @@ namespace FlowEngineDesigner
         e.Graphics.DrawLine(p, v1.ToPoint(), v2.ToPoint());
       }
 
-      if (SelectedItem.Hit == true && SelectedItem.HitItem != null)
+      if (SelectedItem.Hit == true && SelectedItem.HitItem is not null)
       {
         Flow.DrawSelection(SelectedItem, e.Graphics, Camera);
       }
@@ -136,7 +136,7 @@ namespace FlowEngineDesigner
         cMouse.DraggingStart = cMouse.pos;
         Camera.Move(v);
       }
-      else if (cMouse.FlowItem != null && cMouse.DraggingStart.HasValue == true)
+      else if (cMouse.FlowItem is not null && cMouse.DraggingStart.HasValue == true)
       {
         if (cMouse.FlowItem is Core.FunctionStep || cMouse.FlowItem is Core.Comment)
         {
@@ -182,15 +182,15 @@ namespace FlowEngineDesigner
             if (hit.Type == HIT_RESULT.HIT_TYPE.Input)
             {
               Core.Input? ci = hit.HitItem as Core.Input;
-              if (ci != null && ci.Step != null)
+              if (ci is not null && ci.Step is not null)
               {
                 Core.Output? co = cMouse.FlowItem as Core.Output;
-                if (co != null)
+                if (co is not null)
                 {
                   if (cMouse.PreviousHitItem.Type == HIT_RESULT.HIT_TYPE.Output && cMouse.PreviousHitItem.ParentItem is Core.FunctionStep)
                   {
                     Core.FunctionStep? step = cMouse.PreviousHitItem.ParentItem as Core.FunctionStep;
-                    if (step != null)
+                    if (step is not null)
                     {
                       co = co.Clone(step);
                       step.LinkAdd(Flow, co, ci);
@@ -202,15 +202,15 @@ namespace FlowEngineDesigner
             if (hit.Type == HIT_RESULT.HIT_TYPE.Output)
             {
               Core.Output? co = hit.HitItem as Core.Output;
-              if (co != null && co.Step != null)
+              if (co is not null && co.Step is not null)
               {
                 Core.Input? ci = cMouse.FlowItem as Core.Input;
-                if (ci != null)
+                if (ci is not null)
                 {
                   if (cMouse.PreviousHitItem.Type == HIT_RESULT.HIT_TYPE.Input && cMouse.PreviousHitItem.ParentItem is Core.FunctionStep)
                   {
                     Core.FunctionStep? step = cMouse.PreviousHitItem.ParentItem as Core.FunctionStep;
-                    if (step != null)
+                    if (step is not null)
                     {
                       ci = ci.Clone(step);
                       step.LinkAdd(Flow, co, ci);
@@ -248,17 +248,17 @@ namespace FlowEngineDesigner
     /// <param name="e"></param>
     private void frmFlow_DragDrop(object sender, DragEventArgs e)
     {
-      if (e.Data != null)
+      if (e.Data is not null)
       {
         Core.Function? fw = e.Data.GetData(typeof(Core.Function)) as Core.Function;
-        if (fw != null)
+        if (fw is not null)
         {
           Point p = pictureBox1.PointToClient(new Point(e.X, e.Y));
           Vector2 v = Camera.CreateRealPosition(p.X, p.Y);
           if (fw.Plugin.Name == "FlowCore" && fw.Name == "Start")
           {
             FunctionStep? start = Flow.FindStepByName(fw.Plugin.Name, fw.Name);
-            if (start != null)
+            if (start is not null)
             {
               cEventManager.RaiseEventTracer(SENDER.Compiler, "Flow Already has a FlowCore.Start, can only have one start step per flow.", cEventManager.TRACER_TYPE.Error);
               return;

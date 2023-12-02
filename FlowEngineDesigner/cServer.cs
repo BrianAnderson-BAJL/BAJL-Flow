@@ -124,12 +124,16 @@ namespace FlowEngineDesigner
 
     private static void Client_ConnectionClosed(object? sender, Core.Administration.EventArgsTcpClient e)
     {
-      Global.FormMain!.Invoke((MethodInvoker)delegate
+      try
       {
-        Global.FormMain!.tsServer.Text = "Disconnected";
-        Global.FormMain!.tsServer.ForeColor = Color.Red;
-        Global.FormMain!.tsLoggedInAs.Text = "";
-      });
+        Global.FormMain!.Invoke((MethodInvoker)delegate
+        {
+          Global.FormMain!.tsServer.Text = "Disconnected";
+          Global.FormMain!.tsServer.ForeColor = Color.Red;
+          Global.FormMain!.tsLoggedInAs.Text = "";
+        });
+      }
+      catch { }
     }
 
     private static void Client_NewPacket(object? sender, Core.Administration.EventArgsPacket e)

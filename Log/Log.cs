@@ -35,7 +35,7 @@ namespace Logger
     private object CriticalSection = new object();
     private Func<DateTime> GetDateTime = LocalTime;
     private string LogFileName = "";
-    private const string SETTING_TIME_STYLE = "Time Style";
+    private const string SETTING_TIME_STYLE = "TimeStyle";
     private const string SETTING_TIME_STYLE_LOCAL = "Local";
     private const string SETTING_TIME_STYLE_UTC = "UTC";
     public override void Init()
@@ -57,24 +57,67 @@ namespace Logger
       Functions.Add(function);
       function.Parms.Add(new PARM("Log Values", DATA_TYPE.Various));
 
-      SettingAddIfMissing("LogPath", "");
-      SettingAddIfMissing("MaxLogSizeBytes", 1024000);
 
-      List<Setting> settings = new List<Setting>(2);
-      settings.Add(new Setting(SETTING_TIME_STYLE, SETTING_TIME_STYLE_LOCAL));
-      settings.Add(new Setting(SETTING_TIME_STYLE, SETTING_TIME_STYLE_UTC));
-      SettingAddIfMissing(new Setting(SETTING_TIME_STYLE, "", SETTING_TIME_STYLE, SETTING_TIME_STYLE_LOCAL, settings));
 
-      Setting s = SettingAddIfMissing("RetentionStyle", STRING_SUB_TYPE.DropDownList);  //Number of Logs, Time Period, Size
-      if (s != null)
+      SettingAdd(new Setting("LogPath", ""));
+
+      Setting setting = SettingAdd(new Setting(SETTING_TIME_STYLE, SETTING_TIME_STYLE_LOCAL, STRING_SUB_TYPE.DropDownList));
+      setting.OptionAdd(SETTING_TIME_STYLE_LOCAL);
+      setting.OptionAdd(SETTING_TIME_STYLE_UTC);
+
+      Setting retentionStyle = new Setting(DATA_TYPE.String)
       {
-        s.SubSettings.Add(new Setting("NumberOfLogs", "NumberOfLogs", 7));
-        s.SubSettings.Add(new Setting("TimePeriod", "RollLogEveryHours", 24));
-        s.SubSettings.Add(new Setting("FileSize", "MaxFileSizeInBytes", 1024000));
+        Key = "RetentionStyle",
+        Value = "Time based",
+        DropDownGroupName = "RetentionStyle",
+        StringSubType = STRING_SUB_TYPE.DropDownList
+      };
+
+      Setting s = SettingAdd(retentionStyle);  //Number of Logs, Time Period, Size
+      if (s is not null)
+      {
+        s.OptionAdd("Time based");
+        s.OptionAdd("Size based");
+        s.OptionAdd("Time & Size based");
+
+        Setting timeBased = new Setting(DATA_TYPE.Integer)
+        {
+          DropDownGroupName = "RetentionStyleTime based",
+          GroupName = "Retention Style - Time based",
+          Key = "RollLogEveryHours",
+          Value = 24,
+        };
+        Setting sizeBased = new Setting(DATA_TYPE.Integer)
+        {
+          DropDownGroupName = "RetentionStyleSize based",
+          GroupName = "Retention Style - Size based",
+          Key = "MaxFileSizeInBytes",
+          Value = 1024000,
+        };
+        Setting timeBased2 = new Setting(DATA_TYPE.Integer) //Adding a duplicate of the Time based settings, easier to just duplicate it rather than try to get both to show up somehow
+        {
+          DropDownGroupName = "RetentionStyleTime & Size based",
+          GroupName = "Retention Style - Time & Size based",
+          Key = "RollLogEveryHours", //Key name is the same to only have one value show up in the log.xml file
+          Value = 24,
+        };
+        Setting sizeBased2 = new Setting(DATA_TYPE.Integer) //Adding a duplicate of the Time based settings, easier to just duplicate it rather than try to get both to show up somehow
+        {
+          DropDownGroupName = "RetentionStyleTime & Size based",
+          GroupName = "Retention Style - Time & Size based",
+          Key = "MaxFileSizeInBytes",
+          Value = 1024000,
+        };
+        s.SubSettingsAdd(timeBased);
+        s.SubSettingsAdd(sizeBased);
+        s.SubSettingsAdd(timeBased2);
+        s.SubSettingsAdd(sizeBased2);
+
       }
-      SettingAddIfMissing(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-      SettingAddIfMissing(new Setting("", "Designer", "BorderColor", Color.Yellow));
-      SettingAddIfMissing(new Setting("", "Designer", "FontColor", Color.Black));
+
+      SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+      SettingAdd(new Setting("", "Designer", "BorderColor", Color.Yellow));
+      SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
 
     }
 

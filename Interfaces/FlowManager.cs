@@ -26,7 +26,7 @@ namespace Core
         {
           Global.Write($"Failed to Load Flow [{files[x]}] - {ex.Message}", DEBUG_TYPE.Warning);
         }
-        if (flow.StartPlugin != null) //If there is no StartPlugin assigned to the flow, then the flow isn't kept in memory, it gets dropped, Flow engine doesn't want flows with no plugin, if you can't start it, no point to keep it
+        if (flow.StartPlugin is not null) //If there is no StartPlugin assigned to the flow, then the flow isn't kept in memory, it gets dropped, Flow engine doesn't want flows with no plugin, if you can't start it, no point to keep it
         {
           flow.StartPlugin.FlowAdd(flow);
           Global.Write("Loaded Flow - " + flow.ToString());
@@ -51,7 +51,7 @@ namespace Core
     {
       Flow flow = new Flow();
       flow.XmlReadFile(fullPath);
-      if (flow.StartPlugin != null) //If there is no StartPlugin assigned to the flow, then the flow isn't kept in memory, it gets dropped, Flow engine doesn't want flows with no plugin, if you can't start it, no point to keep it
+      if (flow.StartPlugin is not null) //If there is no StartPlugin assigned to the flow, then the flow isn't kept in memory, it gets dropped, Flow engine doesn't want flows with no plugin, if you can't start it, no point to keep it
       {
         flow.StartPlugin.FlowAdd(flow);
         Global.Write("Loaded Flow - " + flow.ToString());
@@ -66,7 +66,7 @@ namespace Core
     {
       Flow flow = new Flow();
       flow.XmlRead(ref xml); //just parse the passed XML, no need to load from file
-      if (flow.StartPlugin != null) //If there is no StartPlugin assigned to the flow, then the flow isn't kept in memory, it gets dropped, Flow engine doesn't want flows with no plugin, if you can't start it, no point to keep it
+      if (flow.StartPlugin is not null) //If there is no StartPlugin assigned to the flow, then the flow isn't kept in memory, it gets dropped, Flow engine doesn't want flows with no plugin, if you can't start it, no point to keep it
       {
         flow.StartPlugin.FlowAdd(flow);
         Global.Write("Loaded Flow - " + flow.ToString());

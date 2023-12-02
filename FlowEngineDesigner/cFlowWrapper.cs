@@ -172,7 +172,7 @@ namespace FlowEngineDesigner
 
     public void StepDelete(Core.FunctionStep? step)
     {
-      if (step == null)
+      if (step is null)
         return;
 
       List<Core.Link> linksToDelete = new List<Core.Link>(2);
@@ -272,7 +272,7 @@ namespace FlowEngineDesigner
     private HIT_RESULT HitTestStep(FunctionStep step, Vector2 v, cCamera camera)
     {
       Bitmap? bm = step.ExtraValues[Global.EXTRA_VALUE_IMAGE] as Bitmap;
-      if (bm == null)
+      if (bm is null)
         throw new Exception("Missing 'image' tag in step.ExtraValues[], can't draw step");
 
       Size size = new Size(bm.Width, bm.Height);
@@ -320,19 +320,25 @@ namespace FlowEngineDesigner
       {
         if (this.SampleDataFormat == DATA_FORMAT.Json && this.SampleData is not null && this.SampleData.Length > 0)
         {
-          Variable var1 = StartPlugin.SampleVariables[Flow.VAR_NAME_FLOW_START];
-          Variable? data = FindVariable(var1, Flow.VAR_NAME_FLOW_START, Flow.VAR_REQUEST, Flow.VAR_DATA);
+          //string temp = this.SampleData;
+          
+          //Variable var1 = Variable.JsonParse(ref temp);
+          //Variable? data = FindVariable(var1, Flow.VAR_NAME_FLOW_START, Flow.VAR_REQUEST, Flow.VAR_DATA);
           string tempJson = this.SampleData;
           try
           {
             Variable? varJsonData = Variable.JsonParse(ref tempJson);
-            if (varJsonData is not null && data is not null && varJsonData.SubVariables.Count > 0)
+            if (varJsonData is not null)
             {
-              for (int x = 0; x < varJsonData.SubVariables.Count; x++)
-              {
-                data.SubVariables.Add(varJsonData.SubVariables[x]);
-              }
+              Variables.Add(varJsonData.Name, varJsonData);
             }
+            //if (varJsonData is not null && data is not null && varJsonData.SubVariables.Count > 0)
+            //{
+            //  for (int x = 0; x < varJsonData.SubVariables.Count; x++)
+            //  {
+            //    data.SubVariables.Add(varJsonData.SubVariables[x]);
+            //  }
+            //}
           }
           catch (Exception ex)
           {
@@ -468,7 +474,7 @@ namespace FlowEngineDesigner
     private void DrawStep(Graphics graphics, cCamera camera, FunctionStep step)
     {
       Bitmap? bm = step.ExtraValues[Global.EXTRA_VALUE_IMAGE] as Bitmap;
-      if (bm == null)
+      if (bm is null)
         throw new Exception("Missing 'image' tag in step.ExtraValues[], can't draw step");
 
       Size s = new Size(bm.Width, bm.Height);
@@ -482,7 +488,7 @@ namespace FlowEngineDesigner
         if ((cMouse.FlowItem is Core.Input) == false && r.Contains(cMouse.pos.ToPoint()) == true)
         {
           Core.Output? co = cMouse.FlowItem as Core.Output;
-          if ((co == null) || (co is not null && co.Step is not null && co.Step.Id != step.Id))
+          if ((co is null) || (co is not null && co.Step is not null && co.Step.Id != step.Id))
           {
             graphics.DrawImage(Global.HighlightYellow, r);
           }
@@ -507,7 +513,7 @@ namespace FlowEngineDesigner
           if ((cMouse.FlowItem is Core.Output) == false && r.Contains(cMouse.pos.ToPoint()) == true)
           {
             Core.Input? ci = cMouse.FlowItem as Core.Input;
-            if ((ci == null) || (ci is not null && ci.Step is not null && ci.Step.Id != step.Id))
+            if ((ci is null) || (ci is not null && ci.Step is not null && ci.Step.Id != step.Id))
             {
               graphics.DrawImage(Global.HighlightYellow, r);
             }
@@ -537,15 +543,9 @@ namespace FlowEngineDesigner
         camera.Position = step.Position;
         return;
       }
-      //Vector2 newPos = new Vector2();
       for (int x = 0; x < functionSteps.Count; x++)
       {
         Vector2 p = functionSteps[x].Position;
-        //Bitmap? bm = functionSteps[x].ExtraValues[Global.EXTRA_VALUE_IMAGE] as Bitmap;
-        //if (bm == null)
-        //  throw new Exception("Missing 'image' tag in step.ExtraValues[], can't draw step");
-
-        //Size s = new Size(bm.Width, bm.Height);
 
         if (MinX > p.X)
           MinX = p.X;
@@ -557,10 +557,8 @@ namespace FlowEngineDesigner
           MaxY = p.Y;
       }
 
-      float CenterX = ((MaxX - MinX) / 2) + MinX;// - (pb.Size.Width / 2);
-      float CenterY = ((MaxY - MinY) / 2) + MinY;// - (pb.Size.Height / 2);
-      //CenterX *= camera.ZoomLevel;
-      //CenterY *= camera.ZoomLevel;
+      float CenterX = ((MaxX - MinX) / 2) + MinX;
+      float CenterY = ((MaxY - MinY) / 2) + MinY;
       camera.Position = new Vector2(CenterX, CenterY);
     }
 

@@ -63,3 +63,4 @@ C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windo
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\runtimes\win-x64\native\krb5_64.dll
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\runtimes\win-x64\native\krbcc64.dll
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\runtimes\browser\lib\net6.0\System.Text.Encodings.Web.dll
+C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmSettingNumber.resources

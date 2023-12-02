@@ -56,7 +56,16 @@ namespace Core
     /// The flows that this plugin could start, this is used only by the Flow Engine
     /// </summary>
     protected List<Core.Flow> Flows = new();
+
+    /// <summary>
+    /// Used in the Flow Engine Designer, allows users to see what variables will be in the flow when it starts.
+    /// Not all variables will be showable, like in the Http plugin if it is a POST with JSON the designer won't know what data will appear.
+    /// The designer will have the ability to include sample data when designing a flow, a JSON sample packet can be included
+    /// </summary>
+    public Variable? SampleStartData;
+
     protected object mFlowsCriticalSection = new object();
+
 
     public void FlowAdd(Core.Flow flow)
     {
@@ -87,12 +96,6 @@ namespace Core
       }
     }
 
-    /// <summary>
-    /// Used in the Flow Engine Designer, allows users to see what variables will be in the flow when it starts.
-    /// Not all variables will be showable, like in the Http plugin if it is a POST with JSON the designer won't know what data will appear.
-    /// The designer will have the ability to include sample data when designing a flow, a JSON sample packet can be included
-    /// </summary>
-    public Dictionary<string, Variable> SampleVariables = new(4); 
 
     #region Settings (no need to look at most of the time)
 
@@ -101,118 +104,23 @@ namespace Core
       return Settings;
     }
 
-    public virtual Setting SettingAddOrUpdate(Setting s)
+    public virtual void SettingUpdate(Setting s)
     {
-      bool Found = false;
       for (int i = 0; i < Settings.Count; i++)
       {
         if (Settings[i].Key.ToUpper() == s.Key.ToUpper())
         {
           Settings[i].Value = s.Value;
-          Settings[i].SubSettings = s.SubSettings;
-          Found = true;
+          Settings[i].SubSettingsUpdate(s.SubSettings);
         }
       }
-
-      if (Found == false)
-      {
-        Settings.Add(s);
-      }
-      return s;
     }
 
-    public virtual Setting SettingAddIfMissing(Setting setting)
+    public Setting SettingAdd(Setting setting)
     {
-      Setting? s = SettingFind(setting.Key);
-      if (s == null)
-      {
-        s = SettingAddOrUpdate(setting);
-      }
-      //If the settings were loaded from the configuration file, then we need to update the other properties
-      s.GroupName = setting.GroupName;
-      s.SubSettings = setting.SubSettings;
-      s.Description = setting.Description;
-      s.DropDownGroupName = setting.DropDownGroupName;
-      return s;
+      Settings.Add(setting);
+      return setting;
     }
-
-    public virtual Setting SettingAddIfMissing(string key, DATA_TYPE dataType)
-    {
-      Setting? s = SettingFind(key);
-      if (s == null)
-      {
-        s = SettingAddOrUpdate(new Setting(key, dataType));
-      }
-
-      return s;
-    }
-
-    public virtual Setting SettingAddIfMissing(string key, STRING_SUB_TYPE stringSubType)
-    {
-      Setting? s = SettingFind(key);
-      if (s == null)
-      {
-        s = SettingAddOrUpdate(new Setting(key, stringSubType));
-      }
-
-      return s;
-    }
-
-    public virtual Setting SettingAddIfMissing(string key, Color Defaultvalue)
-    {
-      Setting? s = SettingFind(key);
-      if (s == null)
-      {
-        s = SettingAddOrUpdate(new Setting(key, Defaultvalue));
-      }
-
-      return s;
-    }
-
-    public virtual Setting SettingAddIfMissing(string key, int Defaultvalue)
-    {
-      Setting? s = SettingFind(key);
-      if (s == null)
-      {
-        s = SettingAddOrUpdate(new Setting(key, Defaultvalue));
-      }
-
-      return s;
-    }
-
-    public virtual Setting SettingAddIfMissing(string key, string Defaultvalue)
-    {
-      Setting? s = SettingFind(key);
-      if (s == null)
-      {
-        s = SettingAddOrUpdate(new Setting(key, Defaultvalue));
-      }
-
-      return s;
-    }
-
-    public virtual Setting SettingAddIfMissing(string key, bool Defaultvalue)
-    {
-      Setting? s = SettingFind(key);
-      if (s == null)
-      {
-        s = SettingAddOrUpdate(new Setting(key, Defaultvalue));
-      }
-
-      return s;
-    }
-
-    public virtual Setting SettingAddIfMissing(string key, decimal Defaultvalue)
-    {
-      Setting? s = SettingFind(key);
-      if (s == null)
-      {
-        s = SettingAddOrUpdate(new Setting(key, Defaultvalue));
-      }
-
-      return s;
-    }
-
 
     public virtual Setting? SettingFind(string key)
     {
@@ -242,40 +150,22 @@ namespace Core
 
       return setting.Value.ToString()!;
     }
-    public virtual Color SettingFindAsColor(string key)
-    {
-      key = key.ToUpper();
-      for (int i = 0; i < Settings.Count; i++)
-      {
-        if (Settings[i].Key.ToUpper() == key)
-        {
-          Color c = (Color)Settings[i].Value;
-          return c;
-        }
-      }
-      return Color.Black;
-    }
-
-    protected string[] GetSettingsAsStringArray()
-    {
-      
-      List<Setting> Settings = GetSettings();
-      string[] strArray = new string[Settings.Count];
-
-      for (int x = 0; x < Settings.Count; x++)
-      {
-        
-        strArray[x] = Settings[x].ToString();
-      }
-      return strArray;
-    }
-
+    
     public virtual void SaveSettings()
     {
       Type t = this.GetType();
       Console.Write("Plugin Type - " + t.Name);
-      string path = Options.GetFullPath(Options.PluginPath, t.Name + ".cfg");
-      File.WriteAllLines(path, GetSettingsAsStringArray());
+      string path = Options.GetFullPath(Options.PluginPath, t.Name + ".xml");
+
+      Xml xml = new Xml();
+      xml.WriteFileNew(path);
+      xml.WriteTagStart("Settings");
+      for (int x = 0; x < Settings.Count; x++)
+      {
+        xml.WriteTagContentsBare(Settings[x].ToXml());
+      }
+      xml.WriteTagEnd("Settings");
+      xml.WriteFileClose();
     }
 
     public virtual void LoadSettings()
@@ -284,13 +174,19 @@ namespace Core
       Type t = this.GetType();
       try
       {
-        string cfgPath = Options.GetFullPath(Options.PluginPath + "/" + t.Name + ".cfg");
-        string[] Data = File.ReadAllLines(cfgPath);
-        for (int x = 0; x < Data.Length; x++)
+        string cfgPath = Options.GetFullPath(Options.PluginPath + "/" + t.Name + ".xml");
+        Xml xml = new Xml();
+        string data = xml.FileRead(cfgPath);
+        do
         {
-          Setting s = new(Data[x]);
-          Settings.Add(s);
-        }
+          string settingStr = Xml.GetXMLChunk(ref data, "Setting");
+          if (settingStr.Length <= 0)
+            break;
+
+          Setting s = new(settingStr);
+          this.SettingUpdate(s);
+        } while (data.Length > 0);
+
       }
       catch
       { }
@@ -304,7 +200,6 @@ namespace Core
     public virtual void Init()
     {
       Name = GetType().Name;
-      LoadSettings();
     }
 
     /// <summary>
@@ -312,6 +207,7 @@ namespace Core
     /// </summary>
     public virtual void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
+      LoadSettings();
     }
 
     /// <summary>
@@ -321,6 +217,7 @@ namespace Core
     /// <param name="GlobalPluginValues"></param>
     public virtual void StartPluginDesigner(Dictionary<string, object> GlobalPluginValues)
     {
+      LoadSettings();
     }
 
     public virtual void StopPlugin()

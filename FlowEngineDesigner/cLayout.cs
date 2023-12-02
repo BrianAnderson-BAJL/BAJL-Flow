@@ -26,7 +26,7 @@ namespace FlowEngineDesigner
         else if (layoutForm.layoutForm == cLayoutForm.LAYOUT_FORM.Toolbox) 
         {
           f = FindForm("frmToolbox");
-          if (f == null && layoutForm.open == true)
+          if (f is null && layoutForm.open == true)
           {
             f = new frmToolbox();
             f.Show();
@@ -35,7 +35,7 @@ namespace FlowEngineDesigner
         else if (layoutForm.layoutForm == cLayoutForm.LAYOUT_FORM.Flow)
         {
           f = FindForm("frmFlow");
-          if (f == null && layoutForm.open == true)
+          if (f is null && layoutForm.open == true)
           {
             f = new frmFlow();
             f.Show();
@@ -44,7 +44,7 @@ namespace FlowEngineDesigner
         else if (layoutForm.layoutForm == cLayoutForm.LAYOUT_FORM.Tracer)
         {
           f = FindForm("frmTracer");
-          if (f == null && layoutForm.open == true)
+          if (f is null && layoutForm.open == true)
           {
             f = new frmTracer();
             f.Show();

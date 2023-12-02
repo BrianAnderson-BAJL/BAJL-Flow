@@ -42,7 +42,7 @@ namespace FlowEngineDesigner
         PARM_VAR pv = mStep.ParmVars[x];
 
         ucParameter? uc = CreateParameterInput(pv);
-        if (uc != null)
+        if (uc is not null)
         {
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
           uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
@@ -98,7 +98,7 @@ namespace FlowEngineDesigner
       for (int x = 0; x < userControls.Count; x++)
       {
         ucParameter? uc = userControls[x] as ucParameter;
-        if (uc != null)
+        if (uc is not null)
         {
           uc.UpdateValues();
         }
@@ -145,7 +145,7 @@ namespace FlowEngineDesigner
       }
       mStep.ParmVars.Add(parmVar);
       ucParameter? uc = CreateParameterInput(parmVar);
-      if (uc != null)
+      if (uc is not null)
       {
         uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         uc.Location = new Point(StartX, StartY + (uc.Size.Height * userControls.Count) + 5);

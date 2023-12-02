@@ -27,9 +27,9 @@ namespace Validation
       Functions.Add(function);
       //SETTINGS
       {
-        SettingAddIfMissing(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-        SettingAddIfMissing(new Setting("", "Designer", "BorderColor", Color.Crimson));
-        SettingAddIfMissing(new Setting("", "Designer", "FontColor", Color.Black));
+        SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+        SettingAdd(new Setting("", "Designer", "BorderColor", Color.Crimson));
+        SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
       }
       //SETTINGS
 

@@ -34,7 +34,7 @@ namespace Core
       {
         Global.Write($"Failed to FindFunctionByName({pluginName}, {functionName})", DEBUG_TYPE.Error);
       }
-      if (f == null)
+      if (f is null)
       {
         throw new ArgumentException("[" + pluginName + "] plugin and [" + functionName + "] function not found");
       }
@@ -50,7 +50,7 @@ namespace Core
     public FunctionStep(Flow flow, int id, string name, Vector2 pos)
     {
       Function? f = PluginManager.FindFunctionByName(name);
-      if (f == null)
+      if (f is null)
       {
         throw new ArgumentException("[" + name + "] plugin.function combination not found");
       }
@@ -67,7 +67,7 @@ namespace Core
       for (int x = 0; x < LinkOutputs.Count; x++)
       {
         FunctionStep? s = LinkOutputs[x].Input.Step;
-        if (s != null && resps.OutputIndex == LinkOutputs[x].Output.OutputIndex)
+        if (s is not null && resps.OutputIndex == LinkOutputs[x].Output.OutputIndex)
         {
           nextSteps.Add(s);
         }
@@ -82,6 +82,15 @@ namespace Core
       
     }
 
+
+    /// <summary>
+    /// Execute the actual step.
+    /// 
+    /// I don't like how 'busy' this function is. It does too much slowing down the execution of the entire flow.  Needs to be refactored at some point. But for now it works (Nov 18, 2023 - How long will it take me to improve it!)
+    /// 
+    /// </summary>
+    /// <param name="flow"></param>
+    /// <returns></returns>
     public virtual RESP Execute(Core.Flow flow)
     {
       if (ParmVars.Count < Function.Parms.Count) //ParmVars could have more parameters than Function.Parms if one of them is multiple

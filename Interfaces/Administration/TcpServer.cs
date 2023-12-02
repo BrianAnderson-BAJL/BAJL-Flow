@@ -32,7 +32,7 @@ namespace Core.Administration
 
     protected void OnConnectionClosed(TcpClientBase Client)
     {
-      if (ConnectionClosed != null)
+      if (ConnectionClosed is not null)
       {
         EventArgsTcpClient EA = new EventArgsTcpClient(Client);
         ConnectionClosed(this, EA);
@@ -41,7 +41,7 @@ namespace Core.Administration
 
     protected void OnNewPacket(Packet Packet, TcpClientBase Client)
     {
-      if (NewPacket != null)
+      if (NewPacket is not null)
       {
         EventArgsPacket EA = new EventArgsPacket(Packet, Client);
         NewPacket(this, EA);
@@ -51,7 +51,7 @@ namespace Core.Administration
 
     protected void OnNewConnection(TcpClientBase Client)
     {
-      if (NewConnection != null)
+      if (NewConnection is not null)
       {
         EventArgsTcpClient EA = new EventArgsTcpClient(Client);
         NewConnection(this, EA);

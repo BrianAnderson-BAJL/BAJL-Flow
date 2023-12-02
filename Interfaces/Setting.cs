@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Google.Protobuf.WellKnownTypes;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -12,20 +14,43 @@ namespace Core
   public class Setting
   {
     public string GroupName = "";
+    
+    /// <summary>
+    /// This is used to have specific settings when another drop down setting is selected
+    /// </summary>
     public string DropDownGroupName = "";
     public string Key = "";
     public object Value = "";
     public string Description = "";
     public DATA_TYPE DataType = DATA_TYPE.String;
     public STRING_SUB_TYPE StringSubType = STRING_SUB_TYPE._None;
-    public List<Setting> SubSettings = new(0);
+    private List<Setting> mSubSettings = new(0);
+    private List<string>? mOptions = null; //For drop down list
+
+    public ReadOnlyCollection<Setting> SubSettings
+    {
+      get
+      {
+        return mSubSettings.AsReadOnly();
+      }
+    }
+
+    public ReadOnlyCollection<string>? Options
+    {
+      get
+      {
+        if (mOptions == null)
+          return null;
+
+        return mOptions.AsReadOnly();
+      }
+    }
 
     public Setting(DATA_TYPE dataType)
     {
       Key = "";
       Value = "";
       DataType = dataType;
-      SubSettings = new List<Setting>(0);
     }
     public Setting(string key, DATA_TYPE value)
     {
@@ -33,7 +58,6 @@ namespace Core
       Key = key;
       Value = "";
       DataType = value;
-      SubSettings = new List<Setting>(0);
     }
     public Setting(string key, STRING_SUB_TYPE stringSubType)
     {
@@ -42,7 +66,14 @@ namespace Core
       Value = "";
       DataType = DATA_TYPE.String;
       StringSubType = stringSubType;
-      SubSettings = new List<Setting>(0);
+    }
+    public Setting(string key, string value, STRING_SUB_TYPE stringSubType)
+    {
+
+      Key = key;
+      Value = value;
+      DataType = DATA_TYPE.String;
+      StringSubType = stringSubType;
     }
 
     public Setting(string key, Color value)
@@ -51,7 +82,6 @@ namespace Core
       Key = key;
       Value = value;
       DataType = DATA_TYPE.Color;
-      SubSettings = new List<Setting>(0);
     }
 
     public Setting(string key, int value)
@@ -59,28 +89,24 @@ namespace Core
       Key = key;
       Value = value;
       DataType = DATA_TYPE.Integer;
-      SubSettings = new List<Setting>(0);
     }
     public Setting(string key, decimal value)
     {
       Key = key;
       Value = value;
       DataType = DATA_TYPE.Decimal;
-      SubSettings = new List<Setting>(0);
     }
     public Setting(string key, string value)
     {
       Key = key;
       Value = value;
       DataType = DATA_TYPE.String;
-      SubSettings = new List<Setting>(0);
     }
     public Setting(string key, bool value)
     {
       Key = key;
       Value = value;
       DataType = DATA_TYPE.Boolean;
-      SubSettings = new List<Setting>(0);
     }
 
     public Setting(string dropDownGroupName, string groupName, string key, string value)
@@ -90,7 +116,6 @@ namespace Core
       Key = key;
       Value = value;
       DataType = DATA_TYPE.String;
-      SubSettings = new List<Setting>(0);
     }
     public Setting(string dropDownGroupName, string groupName, string key, Color value)
     {
@@ -99,7 +124,6 @@ namespace Core
       Key = key;
       Value = value;
       DataType = DATA_TYPE.Color;
-      SubSettings = new List<Setting>(0);
     }
     public Setting(string dropDownGroupName, string groupName, string key, string value, List<Setting> subsettings)
     {
@@ -109,7 +133,7 @@ namespace Core
       Value = value;
       DataType = DATA_TYPE.String;
       StringSubType = STRING_SUB_TYPE.DropDownList;
-      SubSettings = subsettings;
+      mSubSettings = subsettings;
     }
 
     public Setting(string groupName, string key, string value)
@@ -118,7 +142,6 @@ namespace Core
       Key = key;
       Value = value;
       DataType = DATA_TYPE.String;
-      SubSettings = new List<Setting>(0);
     }
     public Setting(string groupName, string key, int value)
     {
@@ -126,12 +149,19 @@ namespace Core
       Key = key;
       Value = value;
       DataType = DATA_TYPE.Integer;
-      SubSettings = new List<Setting>(0);
     }
 
     public Setting(string dataToBeParsed)
     {
-      Parse(dataToBeParsed);
+      FromXml(dataToBeParsed);
+    }
+
+
+    public void OptionAdd(string option)
+    {
+      if (mOptions is null)
+        mOptions = new List<string>();
+      mOptions.Add(option);
     }
 
     public override string ToString()
@@ -144,51 +174,114 @@ namespace Core
       }
       else
       {
-        if (this.Value != null)
+        if (this.Value is not null)
         {
-#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-          val = this.Value.ToString();
-#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+          val = this.Value.ToString()!;
         }
       }
       return HttpUtility.UrlEncode(Key) + "=" + DataType + ":" + HttpUtility.UrlEncode(val);
     }
 
-    private void Parse(string data)
+    public void SubSettingsUpdate(ReadOnlyCollection<Setting> settings)
     {
-      try
+      for (int x = 0; x < settings.Count; x++)
       {
-        string[] strings = data.Split('=');
-        if (strings.Length == 2)
+        SubSettingsUpdate(settings[x]);
+      }
+    }
+
+
+    public void SubSettingsUpdate(Setting setting)
+    {
+      for (int y = 0; y < this.mSubSettings.Count; y++)
+      {
+        if (this.mSubSettings[y].Key == setting.Key)
         {
-          Key = HttpUtility.UrlDecode(strings[0]);
-          string[] ValueArray = strings[1].Split(":");
-          if (ValueArray.Length == 2)
+          this.mSubSettings[y].Value = setting.Value;
+        }
+      }
+    }
+
+    public void SubSettingsAdd(Setting setting)
+    {
+      this.mSubSettings.Add(setting);
+    }
+
+
+
+    public bool SubSettingActive(Setting subSetting)
+    {
+      if ((this.DropDownGroupName + this.Value.ToString()) == subSetting.DropDownGroupName)
+      {
+        return true;
+      }
+      return false;
+    }
+    public string ToXml()
+    {
+      Xml xml = new Xml();
+      xml.WriteMemoryNew(1);
+      xml.WriteTagStart("Setting");
+      xml.WriteTagAndContents("DataType", DataType);
+      xml.WriteTagAndContents("Key", Key);
+      xml.WriteTagAndContents("Value", Value.ToString()!);
+      if (this.SubSettings.Count > 0)
+      {
+        xml.WriteTagStart("SubSettings");
+        for (int x = 0; x < this.SubSettings.Count; x++)
+        {
+          if (this.SubSettingActive(this.SubSettings[x]) == true)
           {
-            DataType = Enum.Parse<DATA_TYPE>(ValueArray[0], true);
-            if (DataType == DATA_TYPE.Color)
-            {
-              Value = ColorTranslator.FromHtml(HttpUtility.UrlDecode(ValueArray[1]));
-            }
-            else if (DataType == DATA_TYPE.Boolean)
-            {
-              Value = bool.Parse(ValueArray[1]);
-            }
-            else
-            {
-              Value = HttpUtility.UrlDecode(ValueArray[1]);
-            }
+            xml.WriteTagStart("SubSetting");
+            xml.WriteTagAndContents("DataType", this.SubSettings[x].DataType);
+            xml.WriteTagAndContents("Key", this.SubSettings[x].Key);
+            xml.WriteTagAndContents("Value", this.SubSettings[x].Value.ToString()!);
+            xml.WriteTagEnd("SubSetting");
           }
         }
-        else
-        {
-          throw new Exception("Invalid setting, the key and value must each be URL encoded and be in the format \"key=Value\"");
-        }
+        xml.WriteTagEnd("SubSettings");
       }
-      catch (Exception ex)
+      xml.WriteTagEnd("Setting");
+      return xml.ReadMemory();
+    }
+
+    public void FromXml(string xml)
+    {
+      DataType = Xml.GetXmlChunkAsEnum<DATA_TYPE>(ref xml, "DataType");
+      Key = Xml.GetXMLChunk(ref xml, "Key");
+      ParseValue(ref xml, DataType);
+      string subXml = Xml.GetXMLChunk(ref xml, "SubSettings");
+      do
       {
-        throw new Exception("Invalid setting, the key and value must each be URL encoded and be in the format \"key=DataType:Value\"", ex);
-      }
+        string subSettingStr = Xml.GetXMLChunk(ref subXml, "SubSetting");
+        if (subSettingStr.Length <= 0)
+          break;
+
+        DATA_TYPE dataType = Xml.GetXmlChunkAsEnum<DATA_TYPE>(ref subSettingStr, "DataType");
+        Setting setting = new Setting(dataType);
+        setting.Key = Xml.GetXMLChunk(ref subSettingStr, "Key");
+        ParseValue(ref subSettingStr, dataType, setting);
+        this.SubSettingsAdd(setting); //Parsing into a temp setting, so need to add, it will be updated later
+
+      } while (subXml.Length > 0);
+
+    }
+
+    private void ParseValue(ref string data, DATA_TYPE dataType, Setting? setting = null)
+    {
+      if (setting is null)
+        setting = this;
+
+      if (dataType == DATA_TYPE.String)
+        setting.Value = Xml.GetXMLChunk(ref data, "Value");
+      else if (dataType == DATA_TYPE.Boolean)
+        setting.Value = Xml.GetXMLChunkAsBool(ref data, "Value");
+      else if (dataType == DATA_TYPE.Integer)
+        setting.Value = Xml.GetXMLChunkAsLong(ref data, "Value");
+      else if (dataType == DATA_TYPE.Decimal)
+        setting.Value = Xml.GetXMLChunkAsDecimal(ref data, "Value");
+      else if (dataType == DATA_TYPE.Color)
+        setting.Value = Xml.GetXMLChunkAsColor(ref data, "Value");
     }
   }
 }

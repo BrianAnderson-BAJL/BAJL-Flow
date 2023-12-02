@@ -1,4 +1,5 @@
 ﻿using Core;
+using Core.Interfaces;
 using System.Collections.Specialized;
 using System.Drawing;
 using System.Net;
@@ -40,11 +41,10 @@ namespace Http
       {
         Setting s = new Setting("Uri", DATA_TYPE.String);
         s.Description = "The URIs this Http pluging should listen on, comma delimited. (http://*:80,http://*:443, ...)";
-        SettingAddIfMissing(s);
-        SettingAddIfMissing(s);
-        SettingAddIfMissing(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-        SettingAddIfMissing(new Setting("", "Designer", "BorderColor", Color.Orange));
-        SettingAddIfMissing(new Setting("", "Designer", "FontColor", Color.Black));
+        SettingAdd(s);
+        SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+        SettingAdd(new Setting("", "Designer", "BorderColor", Color.Orange));
+        SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
       }
       //SETTINGS
 
@@ -148,13 +148,16 @@ namespace Http
 
       //SAMPLE VARIABLES FOR DESIGNER
       {
-        Variable v = new Variable(Flow.VAR_NAME_FLOW_START);
-        Variable request = new Variable(Flow.VAR_REQUEST);
-        request.Add(new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object));
-        request.Add(new Variable(VAR_HEADERS, DATA_FORMAT_SUB_VARIABLES.Array));
-        request.Add(new Variable(Flow.VAR_DATA));
-        v.Add(request);
-        SampleVariables.Add(Flow.VAR_NAME_FLOW_START, v);
+
+        Variable root = new Variable(Flow.VAR_NAME_FLOW_START, DATA_FORMAT_SUB_VARIABLES.Block);
+        //Variable request = new Variable(Flow.VAR_REQUEST);
+        root.Add(new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object));
+        Variable headers = new Variable(VAR_HEADERS, DATA_FORMAT_SUB_VARIABLES.Array);
+        root.Add(headers);
+        Variable data = new Variable(Flow.VAR_DATA);
+        data.Add(new VariableString("YOUR_SAMPLE_DATA", "GOES_HERE"));
+        root.Add(data);
+        SampleStartData = root;
       }
       //SAMPLE VARIABLES FOR DESIGNER
     }
@@ -170,6 +173,12 @@ namespace Http
       }
       int index = -1;
       string[] urisString = { };
+      if (uris.Value is null)
+        return;
+
+      if (uris.Value.ToString() == "")
+        return;
+
       urisString = uris.Value.ToString()!.Split(',');
       for (index = 0; index < urisString.Length; index++) 
       {
@@ -230,7 +239,7 @@ namespace Http
               baseVar.Add(requestVar);
               requestVar.Add(new VariableObject(PARM_CONNECTION_HANDLE, context));
               requestVar.Add(GetHeaders(request));
-              if (request.ContentType == "application/json" && data != null && data.Length > 0)
+              if (request.ContentType == "application/json" && data is not null && data.Length > 0)
               {
                 Variable? v = Variable.JsonParse(ref data);
                 requestVar.Add(v);
@@ -263,11 +272,11 @@ namespace Http
       for (int x = 0; x < request.Headers.AllKeys.Length; x++)
       {
         string? k = request.Headers.AllKeys[x];
-        if (k != null)
+        if (k is not null)
         {
           VariableString headerVar = new VariableString(k, "");
           string[]? v = request.Headers.GetValues(k);
-          if (v != null)
+          if (v is not null)
           {
             for (int y = 0; y < v.Length; y++)
             {
@@ -288,7 +297,7 @@ namespace Http
         return result;  //Something is wrong, exit
 
       //Fix any uri or url problems
-      if (uri == null)
+      if (uri is null)
         uri = new Uri("");
       string url = uri.LocalPath.ToString();
       url = Options.FixUrl(url);
@@ -348,7 +357,7 @@ namespace Http
 
     public override void StopPlugin()
     {
-      if (Listener != null)
+      if (Listener is not null)
       {
         try
         {
@@ -397,7 +406,7 @@ namespace Http
 
       string rawData = "";
       if (dataformat == PARM_DATA_FORMAT_JSON)
-        rawData = data.ToJson(true);
+        rawData = data.ToJson(JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock);
       else if (dataformat == PARM_DATA_FORMAT_XML)
         throw new NotImplementedException(PARM_DATA_FORMAT_XML + " is not implemented yet");
       else if (dataformat == PARM_DATA_FORMAT_RAW)

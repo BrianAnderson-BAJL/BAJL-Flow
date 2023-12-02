@@ -1,4 +1,5 @@
 ﻿using Core;
+using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -35,33 +36,52 @@ namespace FlowEngineDesigner
     private void PopulateSettings()
     {
       lstSettings.Items.Clear();
+      lstSettings.Groups.Clear();
       this.Text = $"Plugin Settings [{mPlugin.Name}]";
       for (int x = 0; x < mPlugin.Settings.Count; x++)
       {
         Core.Setting s = mPlugin.Settings[x];
-        ListViewItem lvi = lstSettings.Items.Add(s.Key);
-        lvi.Tag = s;
-        lvi.SubItems.Add(s.DataType.ToString());
-        lvi.SubItems.Add(s.Value.ToString());
-        if (s.DataType == Core.DATA_TYPE.Color)
+        AddSettingToListView(s);
+
+        if (s.DataType == DATA_TYPE.String && s.StringSubType == STRING_SUB_TYPE.DropDownList)
         {
-          lvi.UseItemStyleForSubItems = false;
-          lvi.SubItems[2].BackColor = (Color)s.Value;
+          for (int y = 0; y < s.SubSettings.Count; y++)
+          {
+            if ((s.DropDownGroupName + s.Value.ToString()) == s.SubSettings[y].DropDownGroupName)
+            {
+              AddSettingToListView(s.SubSettings[y]);
+            }
+          }
         }
 
-        //Search for group
-        if (s.GroupName.Length > 0)
-        {
-          ListViewGroup? lvg = FindGroup(s.GroupName);
-          if (lvg == null)
-          {
-            lvg = new ListViewGroup(s.GroupName, s.GroupName);
-            lstSettings.Groups.Add(lvg);
-          }
-          lvi.Group = lvg;
-        }
       }
     }
+
+    private void AddSettingToListView(Setting s)
+    {
+      ListViewItem lvi = lstSettings.Items.Add(s.Key);
+      lvi.Tag = s;
+      lvi.SubItems.Add(s.DataType.ToString());
+      lvi.SubItems.Add(s.Value.ToString());
+      if (s.DataType == Core.DATA_TYPE.Color)
+      {
+        lvi.UseItemStyleForSubItems = false;
+        lvi.SubItems[2].BackColor = (Color)s.Value;
+      }
+
+      //Search for group
+      if (s.GroupName.Length > 0)
+      {
+        ListViewGroup? lvg = FindGroup(s.GroupName);
+        if (lvg is null)
+        {
+          lvg = new ListViewGroup(s.GroupName, s.GroupName);
+          lstSettings.Groups.Add(lvg);
+        }
+        lvi.Group = lvg;
+      }
+    }
+
 
     private ListViewGroup? FindGroup(string groupName)
     {
@@ -86,7 +106,7 @@ namespace FlowEngineDesigner
       if (lstSettings.SelectedItems.Count > 0)
       {
         Setting? s = lstSettings.SelectedItems[0].Tag as Setting;
-        if (s != null)
+        if (s is not null)
         {
           if (s.DataType == DATA_TYPE.String && s.StringSubType == STRING_SUB_TYPE.DropDownList)
           {
@@ -103,6 +123,11 @@ namespace FlowEngineDesigner
             frmSettingString f = new frmSettingString(s);
             f.ShowDialog();
           }
+          else if (s.DataType == DATA_TYPE.Integer || s.DataType == DATA_TYPE.Decimal)
+          {
+            frmSettingNumber f = new frmSettingNumber(s);
+            f.ShowDialog();
+          }
           PopulateSettings();
           mPlugin.SaveSettings();
         }
@@ -111,18 +136,6 @@ namespace FlowEngineDesigner
 
     private void lstSettings_MouseHover(object sender, EventArgs e)
     {
-      //Point mousePos = lstSettings.PointToClient(MousePosition);
-      //ListViewHitTestInfo hit = lstSettings.HitTest(mousePos);
-      //if (hit.Item != null)
-      //{
-      //  Setting? s = hit.Item.Tag as Setting;
-      //  if (s != null)
-      //  {
-
-      //    toolTip1.SetToolTip(lstSettings, s.ToolTip);
-      //    System.Diagnostics.Debug.WriteLine(s.ToolTip);
-      //  }
-      //}
     }
   }
 }

@@ -111,7 +111,7 @@ namespace Core
 
     public class Variable : IToJson
   {
-
+    public Variable? Parent = null;
     public DATA_TYPE DataType = DATA_TYPE._None;
     public DATA_FORMAT_SUB_VARIABLES SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
     public string Name = "";
@@ -135,8 +135,9 @@ namespace Core
 
     public void Add(Variable? v)
     {
-      if (v == null)
+      if (v is null)
         return;
+      v.Parent = this;
       SubVariables.Add(v);
     }
 
@@ -156,28 +157,48 @@ namespace Core
       return v;
     }
 
-    public virtual string ToJson(bool stripNameAndAddBlock = false) //
+    public virtual string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0) //
     {
+      string tabs = new string('\t', TabIndents);
+      TabIndents++;
       string jsonStr = "";
-      if (this.Name != "" && stripNameAndAddBlock == false) //
-        jsonStr += "\"" + this.Name + "\":";
-      if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block || stripNameAndAddBlock == true)
-        jsonStr += "{" + Environment.NewLine;
+      if (this.Name != "" && options == JSON_ROOT_BLOCK_OPTIONS.None)
+      {
+        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
+          jsonStr += tabs + "\"" + this.Name + "\":";
+      }
+      if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block || options == JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock)
+      {
+        jsonStr += "{";
+        if (this.SubVariables.Count > 0)
+          jsonStr += Environment.NewLine;
+      }
       else if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
-        jsonStr += "[" + Environment.NewLine;
+      {
+        jsonStr += "[";
+        if (this.SubVariables.Count > 0)
+          jsonStr += Environment.NewLine;
+      }
 
       for (int x = 0; x < this.SubVariables.Count; x++)
       {
-        jsonStr += this.SubVariables[x].ToJson();
+        jsonStr += this.SubVariables[x].ToJson(JSON_ROOT_BLOCK_OPTIONS.None, TabIndents);
         if (x < this.SubVariables.Count - 1)
           jsonStr += "," + Environment.NewLine;
       }
 
       if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
-        jsonStr += "]" + Environment.NewLine;
-      else if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block || stripNameAndAddBlock == true)
-        jsonStr += "}" + Environment.NewLine;
-
+      {
+        if (this.SubVariables.Count > 0)
+          jsonStr += Environment.NewLine + tabs;
+        jsonStr += "]";
+      }
+      else if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block || options == JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock)
+      {
+        if (this.SubVariables.Count > 0)
+          jsonStr += Environment.NewLine + tabs;
+        jsonStr += "}";
+      }
       return jsonStr;
     }
 
@@ -201,19 +222,19 @@ namespace Core
     /// <exception cref="Exception">Generic JSON parsing errors</exception>
     public static Variable? JsonParse(ref string jsonStr)
     {
-      if (jsonStr == null)
+      if (jsonStr is null)
         throw new ArgumentNullException(nameof(jsonStr));
       jsonStr = jsonStr.Trim();
       if (jsonStr.Length == 0)
         throw new ArgumentException("JSON is a zero length string");
-      if (jsonStr[0] != '[' && jsonStr[0] != '{')
-        throw new ArgumentException("JSON is invalid, it doesn't start with '[' or '{'");
+      //if (jsonStr[0] != '[' && jsonStr[0] != '{')
+      //  throw new ArgumentException("JSON is invalid, it doesn't start with '[' or '{'");
 
-      Variable? var = new Variable();
-      var.Name = "data";
+      //Variable? var = new Variable();
+      //var.Name = "data";
       ParserJson parser = new ParserJson();
-      parser.ParseJsonBlock(ref jsonStr, var);
-      return var;
+      
+      return parser.ParseJsonBlock(ref jsonStr);
     }
 
     public Variable? FindSubVariableByName(string name)
@@ -244,7 +265,7 @@ namespace Core
 
     public static Variable XmlParse(ref string xmlStr)
     {
-      if (xmlStr == null)
+      if (xmlStr is null)
         throw new ArgumentNullException(nameof(xmlStr));
       xmlStr = xmlStr.Trim();
       if (xmlStr.Length == 0)
@@ -358,11 +379,14 @@ namespace Core
       DataType = DATA_TYPE.String;
     }
 
-    public override string ToJson(bool stripNameAndAddBlock = false)
+    public override string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
     {
-      string jsonStr = "";
+      string jsonStr = new string('\t', TabIndents);
       if (this.Name != "")
-        jsonStr += "\"" + this.Name + "\":";
+      {
+        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
+          jsonStr += "\"" + this.Name + "\":";
+      }
       jsonStr += "\"" + this.Value + "\"";
       
       return jsonStr;
@@ -390,11 +414,14 @@ namespace Core
       this.DataType = DATA_TYPE.Integer;
     }
 
-    public override string ToJson(bool stripNameAndAddBlock = false)
+    public override string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
     {
-      string jsonStr = "";
+      string jsonStr = new string('\t', TabIndents);
       if (this.Name != "")
-        jsonStr += "\"" + this.Name + "\":";
+      {
+        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
+          jsonStr += "\"" + this.Name + "\":";
+      }
       jsonStr += this.Value.ToString();
 
       return jsonStr;
@@ -423,11 +450,14 @@ namespace Core
       this.DataType = DATA_TYPE.Decimal;
     }
 
-    public override string ToJson(bool stripNameAndAddBlock = false)
+    public override string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
     {
-      string jsonStr = "";
+      string jsonStr = new string('\t', TabIndents);
       if (this.Name != "")
-        jsonStr += "\"" + this.Name + "\":";
+      {
+        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
+          jsonStr += "\"" + this.Name + "\":";
+      }
       jsonStr += this.Value.ToString();
 
       return jsonStr;
@@ -455,11 +485,15 @@ namespace Core
       this.DataType = DATA_TYPE.Boolean;
     }
 
-    public override string ToJson(bool stripNameAndAddBlock = false)
+    public override string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
     {
-      string jsonStr = "";
+      string jsonStr = new string('\t', TabIndents);
+
       if (this.Name != "")
-        jsonStr += "\"" + this.Name + "\":";
+      {
+        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
+          jsonStr += "\"" + this.Name + "\":";
+      }
       jsonStr += this.Value.ToString();
 
       return jsonStr;

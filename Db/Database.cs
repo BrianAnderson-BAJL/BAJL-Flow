@@ -11,13 +11,13 @@ namespace Db
   public class Database : Core.Plugin
   {
     private IDatabase? mDatabase = null;
-    private const string DB_TYPE = "Database Type";
+    private const string DB_TYPE = "DatabaseType";
     private const string DB_TYPE_MY_SQL = "MySql";
     private const string DB_TYPE_SQL_SERVER = "Sql Server";
-    private const string DB_CONN_POOL_MAX = "Conn Pool Size Max";
-    private const string DB_CONN_POOL_MIN = "Conn Pool Size Min";
-    private const string DB_SHARE_WITH_PLUGINS = "Share Database Conn With Other Plugins";
-    public const string DB_TREAT_TINYINT_AS_BOOLEAN = "Treat Tinyint as Boolean";
+    private const string DB_CONN_POOL_MAX = "ConnPoolSizeMax";
+    private const string DB_CONN_POOL_MIN = "ConnPoolSizeMin";
+    private const string DB_SHARE_WITH_PLUGINS = "ShareDatabaseConnWithOtherPlugins";
+    public const string DB_TREAT_TINYINT_AS_BOOLEAN = "TreatTinyintAsBoolean";
     public override void Init()
     {
       base.Init();
@@ -47,28 +47,28 @@ namespace Db
 
 
 
-      List<Setting> settings = new List<Setting>(2);
-      settings.Add(new Setting(DB_TYPE, DB_TYPE_MY_SQL));
-      settings.Add(new Setting(DB_TYPE, DB_TYPE_SQL_SERVER));
-      SettingAddIfMissing(new Setting(DB_TYPE, "", DB_TYPE, DB_TYPE_MY_SQL, settings));
-      SettingAddIfMissing("Database", "");
-      SettingAddIfMissing("Url", "");
-      SettingAddIfMissing("Port", 0);
-      SettingAddIfMissing("User", "");
-      SettingAddIfMissing("Password", "");
-      SettingAddIfMissing(DB_CONN_POOL_MAX, 10);
-      SettingAddIfMissing(DB_CONN_POOL_MIN, 3);
-      SettingAddIfMissing(DB_SHARE_WITH_PLUGINS, true);
-      SettingAddIfMissing(DB_TREAT_TINYINT_AS_BOOLEAN, true);
-      SettingAddIfMissing(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-      SettingAddIfMissing(new Setting("", "Designer", "BorderColor", Color.Blue));
-      SettingAddIfMissing(new Setting("", "Designer", "FontColor", Color.White));
+      Setting setting = SettingAdd(new Setting(DB_TYPE, DB_TYPE_MY_SQL, STRING_SUB_TYPE.DropDownList));
+      setting.OptionAdd(DB_TYPE_MY_SQL);
+      setting.OptionAdd(DB_TYPE_SQL_SERVER);
+      SettingAdd(new Setting("Database", ""));
+      SettingAdd(new Setting("Url", ""));
+      SettingAdd(new Setting("Port", 0));
+      SettingAdd(new Setting("User", ""));
+      SettingAdd(new Setting("Password", ""));
+      SettingAdd(new Setting(DB_CONN_POOL_MAX, 10));
+      SettingAdd(new Setting(DB_CONN_POOL_MIN, 3));
+      SettingAdd(new Setting(DB_SHARE_WITH_PLUGINS, true));
+      SettingAdd(new Setting(DB_TREAT_TINYINT_AS_BOOLEAN, true));
+      SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+      SettingAdd(new Setting("", "Designer", "BorderColor", Color.Blue));
+      SettingAdd(new Setting("", "Designer", "FontColor", Color.White));
 
       this.StartPriority = 10000; //Database should start before other plugins, put at least a 1000 between other plugins to give room to manipulate the start up priority
     }
 
     public override void StartPluginDesigner(Dictionary<string, object> GlobalPluginValues)
     {
+      base.StartPluginDesigner(GlobalPluginValues);
       //We just want to open the database like normal
       StartPlugin(GlobalPluginValues);
     }

@@ -19,17 +19,16 @@ namespace FlowEngineDesigner
       InitializeComponent();
       mSetting = setting;
       lblLabel.Text = setting.Key;
-      for (int x = 0; x < setting.SubSettings.Count; x++)
+      if (setting.Options is null)
+        return;
+
+
+      for (int x = 0; x < setting.Options.Count; x++)
       {
-        cmbDropDown.Items.Add(setting.SubSettings[x].Value.ToString());
+        cmbDropDown.Items.Add(setting.Options[x]);
       }
-      for (int x = 0; x < cmbDropDown.Items.Count; x++)
-      {
-        if (cmbDropDown.Items[x].ToString() == setting.Value.ToString())
-        {
-          cmbDropDown.SelectedIndex = x;
-        }
-      }
+
+      Global.ComboBoxSetIndex(cmbDropDown, setting.Value.ToString()!);
     }
 
     private void frmSettingDropDown_Load(object sender, EventArgs e)
@@ -39,7 +38,10 @@ namespace FlowEngineDesigner
 
     private void cmbDropDown_SelectedIndexChanged(object sender, EventArgs e)
     {
-      mSetting.Value = mSetting.SubSettings[cmbDropDown.SelectedIndex].Value;
+      if (mSetting.Options is null)
+        return;
+
+      mSetting.Value = mSetting.Options[cmbDropDown.SelectedIndex];
     }
 
     private void btnOk_Click(object sender, EventArgs e)

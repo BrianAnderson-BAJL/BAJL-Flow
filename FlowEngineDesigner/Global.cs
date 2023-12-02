@@ -264,9 +264,9 @@ namespace FlowEngineDesigner
     }
     public static void DrawRoundedRectangle(this Graphics graphics, Pen pen, Rectangle bounds, int cornerRadius)
     {
-      if (graphics == null)
+      if (graphics is null)
         throw new ArgumentNullException("graphics");
-      if (pen == null)
+      if (pen is null)
         throw new ArgumentNullException("pen");
 
       using (GraphicsPath path = RoundedRect(bounds, cornerRadius))
@@ -277,9 +277,9 @@ namespace FlowEngineDesigner
 
     public static void FillRoundedRectangle(this Graphics graphics, Brush brush, Rectangle bounds, int cornerRadius)
     {
-      if (graphics == null)
+      if (graphics is null)
         throw new ArgumentNullException("graphics");
-      if (brush == null)
+      if (brush is null)
         throw new ArgumentNullException("brush");
 
       using (GraphicsPath path = CreateRoundedRectangle(bounds, cornerRadius, true))

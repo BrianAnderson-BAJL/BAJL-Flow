@@ -51,10 +51,10 @@ namespace FlowEngineDesigner
       if (e.Button == MouseButtons.Right)
       {
         tvToolbox.SelectedNode = e.Node;
-        if (e.Node.Tag != null)
+        if (e.Node.Tag is not null)
         {
           Core.Plugin? Pin = e.Node.Tag as Core.Plugin;
-          if (Pin != null && Pin.Settings.Count > 0)
+          if (Pin is not null && Pin.Settings.Count > 0)
           {
             cmsPopup.Show(MousePosition);
           }
@@ -69,10 +69,10 @@ namespace FlowEngineDesigner
 
     private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      if (tvToolbox.SelectedNode != null)
+      if (tvToolbox.SelectedNode is not null)
       {
         Core.Plugin? plugin = tvToolbox.SelectedNode.Tag as Core.Plugin;
-        if (plugin != null)
+        if (plugin is not null)
         {
           frmSettings f = new frmSettings(plugin);
           f.Show();
@@ -90,7 +90,7 @@ namespace FlowEngineDesigner
       if (e.Button == MouseButtons.Left)
       {
         TreeViewHitTestInfo tvi = tvToolbox.HitTest(new Point(e.X, e.Y));
-        if (tvi.Node != null && tvi.Node.Tag is Core.Function)
+        if (tvi.Node is not null && tvi.Node.Tag is Core.Function)
         {
           tvToolbox.SelectedNode = tvi.Node;
           DoDragDrop(tvi.Node.Tag, DragDropEffects.Copy);

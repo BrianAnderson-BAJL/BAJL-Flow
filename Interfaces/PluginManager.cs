@@ -37,7 +37,7 @@ namespace Core
           if (Types[y] is not null && Types[y].BaseType is not null && Types[y].BaseType!.FullName == "Core.Plugin")
           {
             Core.Plugin? p = Activator.CreateInstance(Types[y]) as Core.Plugin;
-            if (p != null)
+            if (p is not null)
             {
               p.Init();
               mPlugins.Add(p);
@@ -46,7 +46,7 @@ namespace Core
         }
       }
       PluginsLoaded = true;
-      if (OnPluginsChanged != null)
+      if (OnPluginsChanged is not null)
       {
         OnPluginsChanged(mPlugins);
       }

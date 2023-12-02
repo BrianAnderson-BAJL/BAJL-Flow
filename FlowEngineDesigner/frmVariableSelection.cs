@@ -37,7 +37,7 @@ namespace FlowEngineDesigner
         if (varNames.Length > 0)
         {
           TreeNode? node = GetNode(varNames[0], tvVariables.Nodes);
-          if (node != null && varNames.Length > 1)
+          if (node is not null && varNames.Length > 1)
           {
             for (int i = 1; i < varNames.Length; i++)
             {
@@ -64,12 +64,12 @@ namespace FlowEngineDesigner
     private void LoadVariables()
     {
       tvVariables.Nodes.Clear();
-      if (Flow.StartPlugin != null)
+      if (Flow.StartPlugin is not null)
       {
         //Flow.SampleData
-        for (int x = 0; x < Flow.StartPlugin.SampleVariables.Count; x++)
+        for (int x = 0; x < Flow.Variables.Count; x++)
         {
-          KeyValuePair<string, Variable> kvp = Flow.StartPlugin.SampleVariables.ElementAt(x);
+          KeyValuePair<string, Variable> kvp = Flow.Variables.ElementAt(x);
           TreeNode tn = tvVariables.Nodes.Add(kvp.Key);
           tn.Tag = kvp.Value;
           LoadVariableSubNodes(tn, kvp.Value);
@@ -103,10 +103,10 @@ namespace FlowEngineDesigner
     private string GetSelectedVariableName()
     {
       string varName = "";
-      if (tvVariables.SelectedNode != null)
+      if (tvVariables.SelectedNode is not null)
       {
         TreeNode tn = tvVariables.SelectedNode;
-        while (tn != null)
+        while (tn is not null)
         {
           if (varName != "")
             varName = tn.Text + "." + varName;

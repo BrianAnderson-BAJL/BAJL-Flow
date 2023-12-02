@@ -106,9 +106,9 @@ namespace FlowCore
       Function fun = new Function("Switch", this, Switch) { OutputsModifiable = true, }; //This is a switch the flow programmer needs to be able to modify the number of outputs (case val = 36, case val = 0, case default, ...)
       Functions.Add(fun);
 
-      SettingAddIfMissing(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-      SettingAddIfMissing(new Setting("", "Designer", "BorderColor", Color.Green));
-      SettingAddIfMissing(new Setting("", "Designer", "FontColor", Color.White));
+      SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+      SettingAdd(new Setting("", "Designer", "BorderColor", Color.Green));
+      SettingAdd(new Setting("", "Designer", "FontColor", Color.White));
 
       pddl = new PARM(EVENT, STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
       pddl.OptionAdd(EVENT_START);
@@ -119,11 +119,16 @@ namespace FlowCore
 
       //SAMPLE VARIABLES FOR DESIGNER
       {
-        Variable v = new Variable(Flow.VAR_NAME_FLOW_START);
-        Variable request = new Variable(Flow.VAR_REQUEST);
-        request.Add(new Variable(Flow.VAR_DATA));
-        v.Add(request);
-        SampleVariables.Add(Flow.VAR_NAME_FLOW_START, v);
+        Variable root = new Variable(Flow.VAR_NAME_FLOW_START, DATA_FORMAT_SUB_VARIABLES.Block);
+        Variable data = new Variable(Flow.VAR_DATA);
+        data.Add(new VariableString("YOUR_SAMPLE_DATA", "GOES_HERE"));
+        root.Add(data);
+        SampleStartData = root;
+        //Variable v = new Variable(Flow.VAR_NAME_FLOW_START);
+        //Variable request = new Variable(Flow.VAR_REQUEST);
+        //request.Add(new Variable(Flow.VAR_DATA));
+        //v.Add(request);
+        //SampleVariables.Add(Flow.VAR_NAME_FLOW_START, v);
       }
       //SAMPLE VARIABLES FOR DESIGNER
     }

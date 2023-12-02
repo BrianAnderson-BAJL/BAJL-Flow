@@ -10,13 +10,13 @@ namespace Core
   {
     public enum START_TYPE
     {
-      Now,
-      WaitForEvent,
+      Now,           //When debugging a flow you might want to use the debug data sent with the flow rather than waiting for an event
+      WaitForEvent,  //Sometimes when debugging a flow you want to test with the actual event
     }
     public enum CLONE_FLOW
     {
-      CloneFlow,
-      DoNotCloneFlow,
+      CloneFlow,      //Normal execution of flows is done on a clone/copy of the flow
+      DoNotCloneFlow, //This is used when debugging a flow, the designer sends the flow over and is executed only once, no need to clone it, if the user wants to run it again, they send the flow again.
     }
 
     public Variable? Var;

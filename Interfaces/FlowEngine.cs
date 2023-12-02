@@ -177,7 +177,7 @@ namespace Core
 
       Flow clonedFlow = request.FlowToStart.Clone(); //Need to clone the flow before running it
 
-      if (request.Var != null)
+      if (request.Var is not null)
       {
         clonedFlow.VariableAdd(request.Var.Name, request.Var);
       }
@@ -194,13 +194,13 @@ namespace Core
     public static void ThreadProc(object? stateInfo)
     {
       FlowRequest? flowRequest = stateInfo as FlowRequest;
-      if (flowRequest == null)
+      if (flowRequest is null)
         return;
 
       if (flowRequest.CloneFlow == FlowRequest.CLONE_FLOW.CloneFlow)
         flowRequest.FlowToStart = flowRequest.FlowToStart.Clone(); //Need to clone the flow before running it
 
-      if (flowRequest.Var != null)
+      if (flowRequest.Var is not null)
       {
         flowRequest.FlowToStart.VariableAdd(flowRequest.Var.Name, flowRequest.Var);
       }
