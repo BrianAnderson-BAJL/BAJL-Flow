@@ -1,6 +1,7 @@
 # BAJL Flow
 BAJL Flow Engine is a backend visual business logic controller. The main goal being to make code deployments easier to a Linux server. All our development is done on a Windows desktop, but the actual production system is Linux. We want to use it to replace our Python REST API.
 New Flows (executing code paths) can be deployed to the server without interruption of existing flows. Updates to existing flows can also be performed all without restarting the service or server.
+
 Each execution unit is called a "Flow", a flow contains "Steps" which are basically functions, each step has "Input" and "Output" connection points which are connected via "Links"
 
 # Components
@@ -31,7 +32,7 @@ Log flow events into a log file, includes archiving, rolling logs when they hit 
 Control users sessions with logins passwords and encryption, will handle all the normal stuff (login, logout, forgot password / password reset, logout all sessions, ...)
 
 ### Validation plugin
-Will perform any required validation of flow variables and json/xml elements exist in request.
+Will perform any required validation, currently email, phone numbers, and flow variables and json/xml elements exist in request.
 
 ### Timer plugin (planned)
 Start a flow every X seconds or at a specific time
