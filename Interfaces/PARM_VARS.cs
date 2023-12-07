@@ -55,6 +55,14 @@ namespace Core
       ParmVars.Add(pv);
     }
 
+    public void Remove(PARM_VAR var)
+    {
+      if (var.Parm.AllowMultiple == PARM.PARM_ALLOW_MULTIPLE.Multiple)
+      {
+        ParmVars.Remove(var);
+      }
+    }
+
     public PARM_VAR? FindByParmName(string parmName)
     {
       for (int x = 0; x < ParmVars.Count; x++)

@@ -41,7 +41,6 @@
       settingsToolStripMenuItem = new ToolStripMenuItem();
       usersToolStripMenuItem = new ToolStripMenuItem();
       optionsToolStripMenuItem = new ToolStripMenuItem();
-      setFocusOnMouseEnterToolStripMenuItem = new ToolStripMenuItem();
       highlightStepsOnExecutionToolStripMenuItem = new ToolStripMenuItem();
       serverToolStripMenuItem = new ToolStripMenuItem();
       connectToolStripMenuItem = new ToolStripMenuItem();
@@ -51,11 +50,12 @@
       usersToolStripMenuItem1 = new ToolStripMenuItem();
       securityProfilesToolStripMenuItem = new ToolStripMenuItem();
       changePasswordToolStripMenuItem = new ToolStripMenuItem();
+      flowOpenToolStripMenuItem = new ToolStripMenuItem();
       statusStrip1 = new StatusStrip();
       tsServer = new ToolStripStatusLabel();
       toolStripStatusLabel1 = new ToolStripStatusLabel();
       tsLoggedInAs = new ToolStripStatusLabel();
-      flowOpenToolStripMenuItem = new ToolStripMenuItem();
+      openFileDialog1 = new OpenFileDialog();
       menuStrip1.SuspendLayout();
       statusStrip1.SuspendLayout();
       SuspendLayout();
@@ -88,6 +88,7 @@
       openToolStripMenuItem.Name = "openToolStripMenuItem";
       openToolStripMenuItem.Size = new Size(103, 22);
       openToolStripMenuItem.Text = "&Open";
+      openToolStripMenuItem.Click += openToolStripMenuItem_Click;
       // 
       // exitToolStripMenuItem
       // 
@@ -132,7 +133,7 @@
       // 
       // settingsToolStripMenuItem
       // 
-      settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem, optionsToolStripMenuItem, setFocusOnMouseEnterToolStripMenuItem, highlightStepsOnExecutionToolStripMenuItem });
+      settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem, optionsToolStripMenuItem, highlightStepsOnExecutionToolStripMenuItem });
       settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
       settingsToolStripMenuItem.Size = new Size(61, 20);
       settingsToolStripMenuItem.Text = "S&ettings";
@@ -148,15 +149,7 @@
       optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
       optionsToolStripMenuItem.Size = new Size(226, 22);
       optionsToolStripMenuItem.Text = "&Options";
-      // 
-      // setFocusOnMouseEnterToolStripMenuItem
-      // 
-      setFocusOnMouseEnterToolStripMenuItem.Checked = true;
-      setFocusOnMouseEnterToolStripMenuItem.CheckState = CheckState.Checked;
-      setFocusOnMouseEnterToolStripMenuItem.Name = "setFocusOnMouseEnterToolStripMenuItem";
-      setFocusOnMouseEnterToolStripMenuItem.Size = new Size(226, 22);
-      setFocusOnMouseEnterToolStripMenuItem.Text = "Set Focus on Mouse enter";
-      setFocusOnMouseEnterToolStripMenuItem.Click += setFocusOnMouseEnterToolStripMenuItem_Click;
+      optionsToolStripMenuItem.Click += optionsToolStripMenuItem_Click;
       // 
       // highlightStepsOnExecutionToolStripMenuItem
       // 
@@ -204,23 +197,30 @@
       // usersToolStripMenuItem1
       // 
       usersToolStripMenuItem1.Name = "usersToolStripMenuItem1";
-      usersToolStripMenuItem1.Size = new Size(180, 22);
+      usersToolStripMenuItem1.Size = new Size(168, 22);
       usersToolStripMenuItem1.Text = "&Users...";
       usersToolStripMenuItem1.Click += usersToolStripMenuItem1_Click;
       // 
       // securityProfilesToolStripMenuItem
       // 
       securityProfilesToolStripMenuItem.Name = "securityProfilesToolStripMenuItem";
-      securityProfilesToolStripMenuItem.Size = new Size(180, 22);
+      securityProfilesToolStripMenuItem.Size = new Size(168, 22);
       securityProfilesToolStripMenuItem.Text = "Security Profiles...";
       securityProfilesToolStripMenuItem.Click += securityProfilesToolStripMenuItem_Click;
       // 
       // changePasswordToolStripMenuItem
       // 
       changePasswordToolStripMenuItem.Name = "changePasswordToolStripMenuItem";
-      changePasswordToolStripMenuItem.Size = new Size(180, 22);
+      changePasswordToolStripMenuItem.Size = new Size(168, 22);
       changePasswordToolStripMenuItem.Text = "Change &Password";
       changePasswordToolStripMenuItem.Click += changePasswordToolStripMenuItem_Click;
+      // 
+      // flowOpenToolStripMenuItem
+      // 
+      flowOpenToolStripMenuItem.Name = "flowOpenToolStripMenuItem";
+      flowOpenToolStripMenuItem.Size = new Size(168, 22);
+      flowOpenToolStripMenuItem.Text = "Flow Open...";
+      flowOpenToolStripMenuItem.Click += flowOpenToolStripMenuItem_Click;
       // 
       // statusStrip1
       // 
@@ -251,12 +251,9 @@
       tsLoggedInAs.Text = "Username";
       tsLoggedInAs.DoubleClick += tsLoggedInAs_DoubleClick;
       // 
-      // flowOpenToolStripMenuItem
+      // openFileDialog1
       // 
-      flowOpenToolStripMenuItem.Name = "flowOpenToolStripMenuItem";
-      flowOpenToolStripMenuItem.Size = new Size(180, 22);
-      flowOpenToolStripMenuItem.Text = "Flow Open...";
-      flowOpenToolStripMenuItem.Click += flowOpenToolStripMenuItem_Click;
+      openFileDialog1.FileName = "openFileDialog1";
       // 
       // frmMain
       // 
@@ -271,7 +268,6 @@
       FormClosing += frmMain_FormClosing;
       Load += frmMain_Load;
       ResizeEnd += frmMain_ResizeEnd;
-      MouseEnter += frmMain_MouseEnter;
       menuStrip1.ResumeLayout(false);
       menuStrip1.PerformLayout();
       statusStrip1.ResumeLayout(false);
@@ -295,7 +291,6 @@
     private ToolStripMenuItem usersToolStripMenuItem;
     private ToolStripMenuItem optionsToolStripMenuItem;
     private ToolStripMenuItem tracerToolStripMenuItem;
-    private ToolStripMenuItem setFocusOnMouseEnterToolStripMenuItem;
     private ToolStripMenuItem highlightStepsOnExecutionToolStripMenuItem;
     private ToolStripMenuItem serverToolStripMenuItem;
     private ToolStripMenuItem connectToolStripMenuItem;
@@ -310,5 +305,6 @@
     private ToolStripStatusLabel toolStripStatusLabel1;
     public ToolStripStatusLabel tsLoggedInAs;
     private ToolStripMenuItem flowOpenToolStripMenuItem;
+    private OpenFileDialog openFileDialog1;
   }
 }

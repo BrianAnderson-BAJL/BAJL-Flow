@@ -1,5 +1,6 @@
 ﻿using Core;
 using Core.Interfaces;
+using Database;
 using System.Drawing;
 using System.Numerics;
 
@@ -25,24 +26,27 @@ namespace Db
       Function func;
       Functions.Add(new Function("Open", this, Open));
       Functions.Add(new Function("Close", this, Close));
+
+
       func = new Function("Select", this, Select);
+      func.Validators.Add(new ValidatorAtLeastOneRec());
       func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
       PARM parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
       func.Parms.Add(parm);
-      
       func.RespNames = new Variable("recs");
       func.DefaultSaveResponseVariable = true;
       Functions.Add(func);
-      func = new Function("Insert", this, Insert);
+
+
+      func = new Function("Execute", this, Execute);
       func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
-      parm = new PARM("SQL Parameter", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple);
-      parm.NameChangeable = true;
+      parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
       func.Parms.Add(parm);
       func.RespNames.Add(new Variable("recordsInserted"));
       Functions.Add(func);
+
+
       Functions.Add(new Function("InsertMany", this, InsertMany));
-      Functions.Add(new Function("Delete", this, Delete));
-      Functions.Add(new Function("Update", this, Update));
       Functions.Add(new Function("GetInt", this, GetInt));
 
 
@@ -140,10 +144,16 @@ namespace Db
       return RESP.SetSuccess(var);
     }
 
-    public RESP Insert(Core.Flow flow, Variable[] vars)
+    public RESP Execute(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Db.Insert" );
-      return RESP.SetSuccess();
+      Global.Write("Db.Execute" );
+      if (mDatabase is null)
+        return RESP.SetError(1, "No active database connection");
+
+      vars[0].GetValue(out string sql);
+
+      Variable var = mDatabase.Execute(sql, vars);
+      return RESP.SetSuccess(var);
     }
 
     public RESP InsertMany(Core.Flow flow, Variable[] vars)
@@ -159,19 +169,5 @@ namespace Db
     }
 
 
-    public RESP Delete(Core.Flow flow, Variable[] vars)
-    {
-      Global.Write("Db.Delete");
-      return RESP.SetSuccess();
-    }
-
-
-    public RESP Update(Core.Flow flow, Variable[] vars)
-    {
-
-      Global.Write("Db.Update");
-
-      return RESP.SetSuccess();
-    }
   }
 }

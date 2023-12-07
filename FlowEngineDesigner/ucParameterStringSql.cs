@@ -13,9 +13,6 @@ namespace FlowEngineDesigner
 {
   public partial class ucParameterStringSql : ucParameter
   {
-    private PARM_VAR mParmVar;
-    private cFlowWrapper mFlow;
-    private FunctionStep? mStep;
 
     public ucParameterStringSql(PARM_VAR parmVar, FunctionStep? step, cFlowWrapper flow)
     {

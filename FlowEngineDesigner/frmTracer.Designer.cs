@@ -74,7 +74,6 @@
       toolStrip1.Size = new Size(938, 25);
       toolStrip1.TabIndex = 1;
       toolStrip1.Text = "toolStrip1";
-      toolStrip1.MouseEnter += toolStrip1_MouseEnter;
       // 
       // tsbClear
       // 
@@ -97,7 +96,6 @@
       Name = "frmTracer";
       Text = "Tracer";
       Load += frmTracer_Load;
-      MouseEnter += frmTracer_MouseEnter;
       toolStrip1.ResumeLayout(false);
       toolStrip1.PerformLayout();
       ResumeLayout(false);

@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-using System.Diagnostics;
-using Microsoft.VisualBasic.Devices;
-using Core;
+﻿using Core;
 using Core.Administration.Messages;
+using System.Numerics;
 using static FlowEngineDesigner.cEventManager;
 
 namespace FlowEngineDesigner
@@ -231,15 +220,6 @@ namespace FlowEngineDesigner
       }
     }
 
-    private void pictureBox1_Click(object sender, EventArgs e)
-    {
-
-    }
-
-    private void pictureBox1_DragDrop(object sender, DragEventArgs e)
-    {
-
-    }
 
     /// <summary>
     /// Drag and drop only ocures for the form not the controls on the form
@@ -392,29 +372,6 @@ namespace FlowEngineDesigner
       ShowZoom();
     }
 
-    private void frmFlow_MouseEnter(object sender, EventArgs e)
-    {
-      if (cOptions.FocusOnMouseEnter == true)
-      {
-        this.Focus();
-      }
-    }
-
-    private void toolStrip1_MouseEnter(object sender, EventArgs e)
-    {
-      if (cOptions.FocusOnMouseEnter == true)
-      {
-        this.Focus();
-      }
-    }
-
-    private void pictureBox1_MouseEnter(object sender, EventArgs e)
-    {
-      if (cOptions.FocusOnMouseEnter == true)
-      {
-        this.Focus();
-      }
-    }
 
     private void pictureBox1_DoubleClick(object sender, EventArgs e)
     {
@@ -435,15 +392,6 @@ namespace FlowEngineDesigner
       }
     }
 
-    private void frmFlow_KeyPress(object sender, KeyPressEventArgs e)
-    {
-
-    }
-
-    private void frmFlow_KeyUp(object sender, KeyEventArgs e)
-    {
-
-    }
 
     private void frmFlow_KeyDown(object sender, KeyEventArgs e)
     {
@@ -486,7 +434,7 @@ namespace FlowEngineDesigner
     /// <param name="m"></param>
     protected override void WndProc(ref Message m)
     {
-      int WM_PARENTNOTIFY = 0x0210;
+      const int WM_PARENTNOTIFY = 0x0210;
       if (this.Focused == false && m.Msg == WM_PARENTNOTIFY)
       {
         // Make this form auto-grab the focus when menu/controls are clicked

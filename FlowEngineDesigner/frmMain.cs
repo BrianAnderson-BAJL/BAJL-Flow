@@ -21,6 +21,7 @@ namespace FlowEngineDesigner
     private void toolboxToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmToolbox f = new frmToolbox();
+      Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Toolbox);
       f.Show();
     }
 
@@ -58,14 +59,13 @@ namespace FlowEngineDesigner
       formlayout4.size = new System.Numerics.Vector2(1457, 300);
       formlayout4.position = new System.Numerics.Vector2(322, 1020);
 
-      cLayout Layout = new cLayout()
+      Global.Layout = new cLayout()
       {
         FormLayouts = { formlayout1, formlayout2, formlayout3, formlayout4 }
       };
 
-      Layout.ExecuteLayout();
+      Global.Layout.ExecuteLayout();
 
-      setFocusOnMouseEnterToolStripMenuItem.Checked = cOptions.FocusOnMouseEnter;
       highlightStepsOnExecutionToolStripMenuItem.Checked = cOptions.HighlightStepsOnExecution;
 
       //TEST AREA
@@ -87,6 +87,7 @@ namespace FlowEngineDesigner
     private void newToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmFlow f = new frmFlow();
+      Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
       f.Show();
     }
 
@@ -104,22 +105,11 @@ namespace FlowEngineDesigner
     private void tracerToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmTracer f = new frmTracer();
+      Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Tracer);
       f.Show();
     }
 
-    private void frmMain_MouseEnter(object sender, EventArgs e)
-    {
-      if (cOptions.FocusOnMouseEnter == true)
-      {
-        this.Focus();
-      }
-    }
 
-    private void setFocusOnMouseEnterToolStripMenuItem_Click(object sender, EventArgs e)
-    {
-      cOptions.FocusOnMouseEnter = !cOptions.FocusOnMouseEnter;
-      setFocusOnMouseEnterToolStripMenuItem.Checked = cOptions.FocusOnMouseEnter;
-    }
 
     private void highlightStepsOnExecutionToolStripMenuItem_Click(object sender, EventArgs e)
     {
@@ -144,11 +134,6 @@ namespace FlowEngineDesigner
       f.Show();
     }
 
-    private void loginToolStripMenuItem_Click(object sender, EventArgs e)
-    {
-      frmAdministrationUserLogin f = new frmAdministrationUserLogin();
-      f.Show();
-    }
 
     private void changePasswordToolStripMenuItem_Click(object sender, EventArgs e)
     {
@@ -203,15 +188,32 @@ namespace FlowEngineDesigner
       f.Show();
       flowWrapper.PopulateSampleVariablesFromPlugin();
       f.pictureBox1.Refresh();
-
     }
+
+    private void openToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      openFileDialog1.Filter = "Flow file (*.flow)|*.flow|All files (*.*)|*.*";
+      openFileDialog1.Multiselect = true;
+      openFileDialog1.FileName = "";
+      openFileDialog1.DefaultExt = "flow";
+      DialogResult dr = openFileDialog1.ShowDialog();
+      if (dr == DialogResult.OK)
+      {
+        cFlowWrapper flow = new cFlowWrapper();
+        flow.XmlReadFile(openFileDialog1.FileName);
+        frmFlow f = new frmFlow(flow);
+        Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
+        f.Show();
+      }
+    }
+
     /// <summary>
     /// I use this to activate the form if it isn't the active window. If this isn't there it will take 2 clicks to activate a menu or toolstrip button, makes it rather annoying.
     /// </summary>
     /// <param name="m"></param>
     protected override void WndProc(ref Message m)
     {
-      int WM_PARENTNOTIFY = 0x0210;
+      const int WM_PARENTNOTIFY = 0x0210;
       if (this.Focused == false && m.Msg == WM_PARENTNOTIFY)
       {
         // Make this form auto-grab the focus when menu/controls are clicked
@@ -220,5 +222,9 @@ namespace FlowEngineDesigner
       base.WndProc(ref m);
     }
 
+    private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+
+    }
   }
 }

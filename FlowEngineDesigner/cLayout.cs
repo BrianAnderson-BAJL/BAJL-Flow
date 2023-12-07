@@ -61,6 +61,33 @@ namespace FlowEngineDesigner
       }
     }
 
+    public void ExecuteLayout(Form f, cLayoutForm.LAYOUT_FORM form)
+    {
+      cLayoutForm? layoutForm = FindLayout(form);
+      if (layoutForm is null)
+        return;
+
+      f.Left = (int)layoutForm.position.X;
+      f.Top = (int)layoutForm.position.Y;
+      f.Width = (int)layoutForm.size.X;
+      f.Height = (int)layoutForm.size.Y;
+
+    }
+
+    private cLayoutForm? FindLayout(cLayoutForm.LAYOUT_FORM form) 
+    {
+      for (int x = 0; x < FormLayouts.Count; x++)
+      {
+        cLayoutForm layoutForm = FormLayouts[x];
+
+        if (layoutForm.layoutForm == form)
+        {
+          return layoutForm;
+        }
+      }
+      return null;
+    }
+
     private Form? FindForm(string name)
     {
       for (int x = 0; x < Application.OpenForms.Count; x++)

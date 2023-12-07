@@ -152,7 +152,7 @@ namespace Http
         Variable root = new Variable(Flow.VAR_NAME_FLOW_START, DATA_FORMAT_SUB_VARIABLES.Block);
         //Variable request = new Variable(Flow.VAR_REQUEST);
         root.Add(new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object));
-        Variable headers = new Variable(VAR_HEADERS, DATA_FORMAT_SUB_VARIABLES.Array);
+        Variable headers = new Variable(VAR_HEADERS, DATA_FORMAT_SUB_VARIABLES.Block);
         root.Add(headers);
         Variable data = new Variable(Flow.VAR_DATA);
         data.Add(new VariableString("YOUR_SAMPLE_DATA", "GOES_HERE"));

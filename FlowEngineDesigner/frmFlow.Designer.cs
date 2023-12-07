@@ -54,8 +54,8 @@
       tslZoom = new ToolStripStatusLabel();
       toolStripDropDownButton1 = new ToolStripDropDownButton();
       tsbZoomOut = new ToolStripDropDownButton();
-      toolTip1 = new ToolTip(components);
       tssCenterView = new ToolStripStatusLabel();
+      toolTip1 = new ToolTip(components);
       ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
       menuStrip1.SuspendLayout();
       toolStrip1.SuspendLayout();
@@ -71,12 +71,9 @@
       pictureBox1.Size = new Size(797, 385);
       pictureBox1.TabIndex = 0;
       pictureBox1.TabStop = false;
-      pictureBox1.Click += pictureBox1_Click;
-      pictureBox1.DragDrop += pictureBox1_DragDrop;
       pictureBox1.Paint += pictureBox1_Paint;
       pictureBox1.DoubleClick += pictureBox1_DoubleClick;
       pictureBox1.MouseDown += pictureBox1_MouseDown;
-      pictureBox1.MouseEnter += pictureBox1_MouseEnter;
       pictureBox1.MouseMove += pictureBox1_MouseMove;
       pictureBox1.MouseUp += pictureBox1_MouseUp;
       // 
@@ -181,7 +178,6 @@
       toolStrip1.Size = new Size(800, 25);
       toolStrip1.TabIndex = 2;
       toolStrip1.Text = "toolStrip1";
-      toolStrip1.MouseEnter += toolStrip1_MouseEnter;
       // 
       // tsbPlay
       // 
@@ -267,15 +263,13 @@
       Controls.Add(menuStrip1);
       MainMenuStrip = menuStrip1;
       Name = "frmFlow";
+      StartPosition = FormStartPosition.Manual;
       Text = "Flow - [New]";
       Activated += frmFlow_Activated;
       Load += frmFlow_Load;
       DragDrop += frmFlow_DragDrop;
       DragEnter += frmFlow_DragEnter;
       KeyDown += frmFlow_KeyDown;
-      KeyPress += frmFlow_KeyPress;
-      KeyUp += frmFlow_KeyUp;
-      MouseEnter += frmFlow_MouseEnter;
       Resize += frmFlow_Resize;
       ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
       menuStrip1.ResumeLayout(false);

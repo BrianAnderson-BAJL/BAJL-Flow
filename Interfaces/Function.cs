@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static Core.FunctionValidator;
 
 namespace Core
 {
@@ -26,7 +27,7 @@ namespace Core
     public bool OutputsModifiable = false; //This is for a switch statement the flow programmer needs to be able to modify the number of outputs (case val = 36, case val = 0, case default, ...) NOT SURE IF THIS WILL BE SUPPORTED!
     public bool DefaultSaveResponseVariable = false;
     public bool UseReflection = false;
-
+    public FunctionValidatorManager Validators = new FunctionValidatorManager();
     /// <summary>
     /// The names of the return variables, these are needed for the designer, the author can change the name of the base variable if needed in the flow. (could have two connection_handle varialbes)
     /// </summary>

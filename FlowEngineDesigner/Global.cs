@@ -36,6 +36,7 @@ namespace FlowEngineDesigner
 
     public static string EXTRA_VALUE_IMAGE = "image";
 
+    public static cLayout Layout = new cLayout();
     public static frmMain? FormMain = null;
     //public static Size InputOutputConnectorSize = new Size(30,30);
     public static void LoadStaticImages()
@@ -165,12 +166,29 @@ namespace FlowEngineDesigner
 
   }
 
-  public static class FormExtension
+  public static class StringExtension
   {
-    public async static void CloseDelay(this Form form, int delayInMs)
+    public static int? FindEndingNumber(this string text)
     {
-      await Task.Delay(delayInMs);
-      form.Close();
+      string foundNumbers = "";
+      for (int x = text.Length - 1; x >= 0; x--)
+      {
+        if ("0123456789".Contains(text[x]) == true)
+        {
+          foundNumbers = text[x] + foundNumbers;
+        }
+        else
+        {
+          break;
+        }
+      }
+      if (foundNumbers.Length > 0)
+        if (int.TryParse(foundNumbers, out int val) == true)
+          return val;
+        else
+          return null;
+      else
+        return null;
     }
   }
 

@@ -1,3 +1,5 @@
+*.user
+*.cache
 .vs/
 Db/bin/
 Db/obj/

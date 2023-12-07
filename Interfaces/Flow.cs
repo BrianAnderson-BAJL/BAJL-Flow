@@ -556,6 +556,9 @@ namespace Core
           string links = Xml.GetXMLChunk(ref step, "Links"); //Can't fully parse the links here since we haven't loaded all the steps yet
           string parameters = Xml.GetXMLChunk(ref step, "Variables");
           FunctionStep fs = new FunctionStep(this, stepId, pluginName, functionName, stepPos, links); //Store the links XML with the step for now so we can link the steps together below
+          fs.RespNames.Name = saveRespVarName;
+          string tempValidatorName = Xml.GetXMLChunk(ref step, "ValidatorName");
+          fs.Validator = fs.Function.Validators.FindByName(tempValidatorName);
           ParseVariables(fs.Function.Parms, fs.ParmVars, ref parameters);
           functionSteps.Add(fs);
         }

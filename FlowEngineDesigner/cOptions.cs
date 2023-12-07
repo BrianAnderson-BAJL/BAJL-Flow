@@ -12,7 +12,6 @@ namespace FlowEngineDesigner
     public static string PluginPath = "./Plugins/";
     public static string PluginGraphicsPath = "./Plugins/Graphics/";
     public static string PluginStaticGraphicsPath = "./Plugins/StaticGraphics/";
-    public static bool FocusOnMouseEnter = false;
     public static int FlowUserHistoryMax = 0;
     public static bool HighlightStepsOnExecution = true;
     public static string BaseNewVariableName = "var";

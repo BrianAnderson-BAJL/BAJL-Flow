@@ -39,6 +39,13 @@ namespace Core
       Global.Write(errorDescription);
       return r;
     }
+
+    public void SetError(STEP_ERROR_NUMBERS errorNumber, string errorDescription)
+    {
+      mErrorNumber = (int)errorNumber;
+      mErrorDescription = errorDescription;
+    }
+
     public bool Success
     {
       get 

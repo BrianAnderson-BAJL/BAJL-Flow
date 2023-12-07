@@ -35,6 +35,7 @@
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
       Name = "ucParameter";
+      Size = new Size(300, 29);
       Load += ucParameter_Load;
       ResumeLayout(false);
     }

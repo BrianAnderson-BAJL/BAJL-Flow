@@ -80,11 +80,6 @@ namespace FlowEngineDesigner
       }
     }
 
-    private void tvToolbox_AfterSelect(object sender, TreeViewEventArgs e)
-    {
-
-    }
-
     private void tvToolbox_MouseDown(object sender, MouseEventArgs e)
     {
       if (e.Button == MouseButtons.Left)
@@ -98,20 +93,6 @@ namespace FlowEngineDesigner
       }
     }
 
-    private void frmToolbox_MouseEnter(object sender, EventArgs e)
-    {
-      if (cOptions.FocusOnMouseEnter == true)
-      {
-        this.Focus();
-      }
-    }
 
-    private void tvToolbox_MouseEnter(object sender, EventArgs e)
-    {
-      if (cOptions.FocusOnMouseEnter == true)
-      {
-        this.Focus();
-      }
-    }
   }
 }

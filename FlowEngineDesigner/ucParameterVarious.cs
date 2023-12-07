@@ -18,9 +18,6 @@ namespace FlowEngineDesigner
     const int DT_DECIMAL = 2;
     const int DT_BOOLEAN = 3;
     const int DT_VARIABLE = 4;
-    private PARM_VAR mParmVar;
-    private cFlowWrapper mFlow;
-    private FunctionStep? mStep;
     private int mParameterIndex = 0;
     public ucParameterVarious(PARM_VAR parmVar, FunctionStep? step, cFlowWrapper flow, int parameterIndex = 0)
     {
@@ -55,9 +52,9 @@ namespace FlowEngineDesigner
         cmbDataType.SelectedIndex = DT_BOOLEAN;
         //TODO: implement boolean various data type
       }
-      
 
-      
+
+
       if (mParmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Variable)
       {
         cmbDataType.SelectedIndex = DT_VARIABLE;
@@ -153,6 +150,14 @@ namespace FlowEngineDesigner
       {
         txtValue.Visible = true;
         nudNumber.Visible = false;
+      }
+    }
+
+    private void txtKey_TextChanged(object sender, EventArgs e)
+    {
+      if (mParmVar.Parm.NameChangeable == true)
+      {
+        mParmVar.ParmName = txtKey.Text;
       }
     }
   }

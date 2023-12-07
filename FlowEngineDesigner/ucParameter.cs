@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,10 +13,12 @@ namespace FlowEngineDesigner
 {
   public partial class ucParameter : UserControl
   {
-    public ucParameter()
-    {
-      InitializeComponent();
-    }
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.  IS SET ALWAYS IN CHILD CLASSES
+    protected PARM_VAR mParmVar;
+    protected cFlowWrapper mFlow;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+    protected FunctionStep? mStep;
+
 
     private void ucParameter_Load(object sender, EventArgs e)
     {
@@ -25,5 +28,11 @@ namespace FlowEngineDesigner
     public virtual void UpdateValues()
     {
     }
+
+    public PARM_VAR PARM_VAR
+    {
+      get { return mParmVar; }
+    }
+
   }
 }

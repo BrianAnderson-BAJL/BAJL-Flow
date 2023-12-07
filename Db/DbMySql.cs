@@ -1,15 +1,10 @@
 ﻿using Core;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
 using Core.Interfaces;
+using MySql.Data.MySqlClient;
 
 namespace Db
 {
-    public class DbMySql : IDatabase
+  public class DbMySql : IDatabase
   {
     private string ConnectionString = "";
     private Db.Database mDb;
@@ -197,16 +192,16 @@ namespace Db
       using (MySqlConnection connection = new MySqlConnection(ConnectionString))
       {
         connection.Open();
-        using (MySqlCommand command = new MySqlCommand($"SELECT * FROM {tableName} LIMIT 1" , connection))
+        using (MySqlCommand command = new MySqlCommand($"SHOW COLUMNS FROM {tableName}" , connection))
         {
           using (MySqlDataReader reader = command.ExecuteReader())
           {
             while (reader.Read())
             {
-              for (int x = 0; x < reader.FieldCount; x++)
-              {
-                fieldNames.Add(reader.GetName(x));
-              }
+              //for (int x = 0; x < reader.FieldCount; x++)
+              //{
+                fieldNames.Add(reader.GetString(0));
+              //}
             }
           }
         }

@@ -56,6 +56,13 @@ namespace Core
     Error,
   }
 
+  public enum STEP_ERROR_NUMBERS
+  {
+    //-1 to -1000 = FunctionValidator errors
+    FV_MustHaveOneRecord = -1,
+    _NoError = 0,
+  }
+
   public class Global
   {
     public static string[] IllegalFileNameCharacters = { "..", "*", "?", "#", "<", ">", "&", "{", "}", "\\\\", "$", "!", "'", "\"", ":", "`", "|", "=" };

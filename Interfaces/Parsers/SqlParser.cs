@@ -18,6 +18,7 @@ namespace Core.Parsers
         Keyword,
         Astrisk,
         Function,
+        Field,
         DatabaseStructure,   //Field or table name or such
         Delimter, //White space, or comma
         Parentheses,
@@ -45,10 +46,10 @@ namespace Core.Parsers
       /// </summary>
       public List<ParsedUnit> SubUnits = new List<ParsedUnit>();
 
-      public ParsedUnit(string value)
+      public ParsedUnit(string value, bool beforeFrom)
       {
         this.Value = value;
-        DiscoverUnitType();
+        DiscoverUnitType(beforeFrom);
       }
 
       /// <summary>
@@ -72,6 +73,9 @@ namespace Core.Parsers
       public int GetCountOf(UNIT_TYPE unitType)
       {
         int count = 0;
+        if (UnitType == UNIT_TYPE.Keyword)
+          count++;
+
         for (int x = 0; x < SubUnits.Count; x++)
         {
           if (SubUnits[x].UnitType == unitType)
@@ -81,9 +85,44 @@ namespace Core.Parsers
       }
 
       /// <summary>
+      /// This does not currently support sub queries
+      /// </summary>
+      /// <param name="unitType"></param>
+      /// <returns></returns>
+      public List<string> GetListOf(UNIT_TYPE unitType)
+      {
+        List<string> list = new List<string>();
+
+        if (unitType == UNIT_TYPE.Field)
+        {
+          bool isAs = false;
+          for (int x = 0; x < SubUnits.Count; x++)
+          {
+            if (SubUnits[x].Value.Equals("AS", StringComparison.InvariantCultureIgnoreCase) == true)
+              isAs = true;
+            if (isAs == false)
+              break;
+            //Skip over delimiters
+            if (SubUnits[x].UnitType == unitType)
+            {
+              list.Add(SubUnits[x].Value);
+              break;
+            }
+          }
+        }
+
+        if (list.Count == 0) //If there wasn't an AS in the SubUnits
+        {
+          if (UnitType == unitType)
+            list.Add(Value);
+        }
+        return list;
+      }
+
+      /// <summary>
       /// Set which kind of unit this word of text is and set the color for this unit
       /// </summary>
-      private void DiscoverUnitType()
+      private void DiscoverUnitType(bool beforeFrom)
       {
         if (this.Value == "*")
         {
@@ -139,7 +178,11 @@ namespace Core.Parsers
             return;
           }
         }
-        UnitType = UNIT_TYPE.DatabaseStructure;
+        if (beforeFrom == true)
+          UnitType = UNIT_TYPE.Field;
+        else
+          UnitType = UNIT_TYPE.DatabaseStructure;
+
         Color = DEFAULT_COLOR;
       }
     }
@@ -168,12 +211,14 @@ namespace Core.Parsers
     const string PARENTHESES_COLOR = "\\cf5 ";
     const string PARAM_COLOR = "\\cf6 ";
 
+    private bool BeforeFrom = true;
+    private ParsedUnit? PreviousParsedUnit = null;
     /// <summary>
     /// Find the next unit of the SQL
     /// </summary>
     /// <param name="sql">The SQL text</param>
     /// <param name="parent">If the sql is a parentheses then the parent will be the actual parentheses so sub units can be added</param>
-    private void ReadNextUnit(ref string sql, ParsedUnit? parent = null)
+    private void ReadNextUnit(ref string sql, ParsedUnit? parent = null, bool isAs = false)
     {
       if (sql.Length == 0)
         return;
@@ -188,24 +233,40 @@ namespace Core.Parsers
         sql = sql.Substring(index + 1);
       else
         sql = "";
-      unit = new ParsedUnit(word);
+
+      if (word.Length == 0 && delimiterId < 0)
+      {
+        ReadNextUnit(ref sql, parent, isAs);
+        return;
+      }
+      unit = new ParsedUnit(word, BeforeFrom);
 
       if (parent is not null)
       {
         parent.SubUnits.Add(unit);
         if (delimiterId >= 0)
         {
-          unit = new ParsedUnit(Delimiters[delimiterId]);
+          unit = new ParsedUnit(Delimiters[delimiterId], BeforeFrom);
           parent.SubUnits.Add(unit);
+          if (isAs == true)
+            ReadNextUnit(ref sql, parent, isAs);
         }
       }
-      else
+      else if (word.Equals("AS", StringComparison.OrdinalIgnoreCase) == false)
       {
         Units.Add(unit);
         if (delimiterId >= 0)
         {
-          unit = new ParsedUnit(Delimiters[delimiterId]);
+          unit = new ParsedUnit(Delimiters[delimiterId], BeforeFrom);
           Units.Add(unit);
+        }
+      }
+      else if (word.Length > 0) //word == AS
+      {
+        if (PreviousParsedUnit is not null) //Someone might of typed 'AS' as the first thing for some reason
+        {
+          PreviousParsedUnit.SubUnits.Add(unit);
+          ReadNextUnit(ref sql, PreviousParsedUnit, true);
         }
       }
 
@@ -218,6 +279,12 @@ namespace Core.Parsers
           ReadNextUnit(ref sql, unit);
         }
       }
+
+      if (word.Equals("FROM", StringComparison.OrdinalIgnoreCase) == true)
+      {
+        BeforeFrom = false;
+      }
+      PreviousParsedUnit = unit;
 
       ReadNextUnit(ref sql); //Let's get recursive to parse the entire SQL statement
       
@@ -323,6 +390,16 @@ namespace Core.Parsers
         count += Units[x].GetCountOf(unitType);
       }
       return count;
+    }
+
+    public List<string> GetListOf(ParsedUnit.UNIT_TYPE unitType)
+    {
+      List<string> list = new List<string>(32);
+      for (int x = 0; x < Units.Count; x++)
+      {
+        list.AddRange(Units[x].GetListOf(unitType));
+      }
+      return list;
     }
   }
 }

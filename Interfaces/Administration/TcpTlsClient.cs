@@ -98,7 +98,7 @@ namespace Core.Administration
         if (Client is null)
           return;
 
-        //Client.mStream.ReadTimeout = ReadPacketTimeout;
+        Client.mStream.ReadTimeout = ReadPacketTimeout;
         //SslStream NS = Client.mStream;
 
         while (mContinue == true)

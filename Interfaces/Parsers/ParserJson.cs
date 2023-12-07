@@ -381,8 +381,8 @@ namespace Core.Parsers
         return jsonVar;
       }
 
-      //if (jsonVar is null)
-      //  jsonVar = new Variable();
+      if (jsonVar is null)
+        jsonVar = newKey;
 
       do
       {
@@ -398,6 +398,8 @@ namespace Core.Parsers
           {
             if (temp.Name == "") //This new block doesn't have a name, just add the subblocks to the parent
             {
+              if (jsonVar is null)
+                jsonVar = newKey;
               for (int x = 0; x < temp.SubVariables.Count; x++)
               {
                 jsonVar.SubVariables.Add(temp.SubVariables[x]);

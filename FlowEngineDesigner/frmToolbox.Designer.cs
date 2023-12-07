@@ -42,10 +42,8 @@
       tvToolbox.Name = "tvToolbox";
       tvToolbox.Size = new Size(338, 682);
       tvToolbox.TabIndex = 0;
-      tvToolbox.AfterSelect += tvToolbox_AfterSelect;
       tvToolbox.NodeMouseClick += tvToolbox_NodeMouseClick;
       tvToolbox.MouseDown += tvToolbox_MouseDown;
-      tvToolbox.MouseEnter += tvToolbox_MouseEnter;
       // 
       // cmsPopup
       // 
@@ -70,7 +68,6 @@
       Name = "frmToolbox";
       Text = "Toolbox";
       Load += frmToolbox_Load;
-      MouseEnter += frmToolbox_MouseEnter;
       cmsPopup.ResumeLayout(false);
       ResumeLayout(false);
     }

@@ -92,6 +92,10 @@ namespace Core
       ResolveVariables = resolveVariables;
     }
 
+    public PARM_VAR ToParmVar()
+    {
+      return new PARM_VAR(this);
+    }
 
     public void OptionAdd(string option)
     {

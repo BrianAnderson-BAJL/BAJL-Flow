@@ -22,6 +22,8 @@ namespace Core
     public Variable RespNames = new Variable();
     public PARM_VARS ParmVars = new PARM_VARS();
     public string DebugTraceXml = "";
+    public FunctionValidator? Validator = null;
+    
 
     public FunctionStep(Flow flow, int id, string pluginName, string functionName, Vector2 pos, string linkStr)
     {
@@ -93,6 +95,8 @@ namespace Core
     /// <returns></returns>
     public virtual RESP Execute(Core.Flow flow)
     {
+      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
+
       if (ParmVars.Count < Function.Parms.Count) //ParmVars could have more parameters than Function.Parms if one of them is multiple
       {
         resps = RESP.SetError(1, "Not enough parameters to execute step");
@@ -128,9 +132,12 @@ namespace Core
       {
         resps = RESP.SetError(0, e.Message);
       }
-      GotoResults:
-
-      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
+    GotoResults:
+      if (resps.Success == false) //If there was an error, lets create the error number & description to be used in the flow, while the resp object contains the same info, it isn't accessible in the flow
+      {
+        var.Add(new VariableInteger("ErrorNumber", resps.ErrorNumber));
+        var.Add(new VariableString("ErrorDescription", resps.ErrorDescription));
+      }
       var.SubVariables.Add(new VariableObject("resp", resps));
       var.SubVariables.Add(new VariableObject("step", this));
       flow.VariableAdd(Flow.VAR_NAME_PREVIOUS_STEP, var);  //Previous step variable always contains the last steps values
@@ -139,6 +146,14 @@ namespace Core
         flow.VariableAdd(this.RespNames.Name, resps.Variable);  //If the flow author wants/needs the response later, they can store it in a new flow variable
       }
 
+      //Execute any Validators to double check that the response is correct, Validators can only update a step to be an error, it can't change an error into success.
+      if (resps.Success == true) 
+      {
+        if (this.Validator is not null)
+        {
+          this.Validator.Validate(resps);
+        }
+      }
       return resps;
     }
 
@@ -151,6 +166,7 @@ namespace Core
       f.RespNames.Name = RespNames.Name;
       f.SaveResponseVariable = SaveResponseVariable;
       f.LinkOutputs = this.LinkOutputs; //We don't need a deep copy of the links, they aren't modified
+      f.Validator = this.Validator;
       f.ParmVars = this.ParmVars.Clone();
       return f;
     }

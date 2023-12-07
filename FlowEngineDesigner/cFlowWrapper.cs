@@ -1,7 +1,9 @@
 ﻿using Core;
+using Core.Parsers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Eventing.Reader;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -59,17 +61,51 @@ namespace FlowEngineDesigner
       return flow;
     }
 
+#pragma warning disable CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+#pragma warning disable CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+    private struct PREV_STEP
+#pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
+#pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
+    {
+      public Core.FunctionStep Step;
+      public int OutputIndex;
+      public int Depth;
+
+      public PREV_STEP(Core.FunctionStep step, int outputIndex, int depth)
+      {
+        this.Step = step;
+        this.OutputIndex = outputIndex;
+        this.Depth = depth;
+      }
+
+      public static bool operator ==(PREV_STEP a, PREV_STEP b)
+      {
+        if (a.Step == b.Step && a.OutputIndex == b.OutputIndex)
+          return true;
+
+        return false;
+      }
+      public static bool operator !=(PREV_STEP a, PREV_STEP b)
+      {
+        if (a.Step != b.Step || a.OutputIndex != b.OutputIndex)
+          return true;
+
+        return false;
+      }
+
+    }
     public List<Variable> GetVariablesFromPreviousSteps(Core.FunctionStep step)
     {
+      int depth = 0;
       List<Variable> variables = new List<Variable>(32);
-      List<Core.FunctionStep> allPreviousSteps = new List<FunctionStep>(32);
-      List<Core.FunctionStep> stepsToCheck = FindPreviousSteps(step);
-      List<Core.FunctionStep> stepsTemp = new List<FunctionStep>();
+      List<PREV_STEP> allPreviousSteps = new List<PREV_STEP>(32);
+      List<PREV_STEP> stepsToCheck = FindPreviousSteps(step, depth++);
+      List<PREV_STEP> stepsTemp = new List<PREV_STEP>();
       while (stepsToCheck.Count > 0)
       {
         for (int x = 0; x < stepsToCheck.Count; x++)
         {
-          stepsTemp.AddRange(FindPreviousSteps(stepsToCheck[x]));
+          stepsTemp.AddRange(FindPreviousSteps(stepsToCheck[x].Step, depth++));
         }
         for (int x = 0; x < stepsToCheck.Count; x++)
         {
@@ -83,17 +119,58 @@ namespace FlowEngineDesigner
 
       for (int x = 0; x < allPreviousSteps.Count; x++)
       {
-        FunctionStep fs = allPreviousSteps[x];
-        if (fs.Function.RespNames.Name != "")
-          variables.Add(fs.RespNames);
+        PREV_STEP ps = allPreviousSteps[x];
+        if (ps.Step.Function.RespNames.Name != "" && ps.OutputIndex == RESP.SUCCESS)
+        {
+          if (ps.Step.Name == "Database.Select")
+          {
+            Variable var = ps.Step.RespNames.Clone();
+            PopulateVariablesFromSql(ps, ref var);
+            variables.Add(var);
+          }
+          else
+          {
+            variables.Add(ps.Step.RespNames);
+          }
+        }
+        else if (ps.OutputIndex != RESP.SUCCESS && ps.Depth == 0)
+        {
+          Variable err = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
+          err.Add(new VariableInteger("ErrorNumber", 0));
+          err.Add(new VariableString("ErrorDescription", ""));
+          variables.Add(err);
+        }
       }
       variables.Reverse();
       return variables;
     }
 
-    private List<Core.FunctionStep> FindPreviousSteps(Core.FunctionStep step)
+    private void PopulateVariablesFromSql(PREV_STEP ps, ref Variable var)
     {
-      List<Core.FunctionStep> previousteps = new List<Core.FunctionStep>();
+      if (ps.Step.ParmVars.Count == 0)
+        return;
+
+      PARM_VAR parmVar = ps.Step.ParmVars[0];
+      if (parmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal && parmVar.Var.DataType == DATA_TYPE.String)
+      {
+        VariableString? vs = parmVar.Var as VariableString;
+        if (vs is null)
+          return;
+
+        SqlParser sqlParser = new SqlParser();
+        sqlParser.ParseSql(vs.Value);
+        List<string> fields = sqlParser.GetListOf(SqlParser.ParsedUnit.UNIT_TYPE.Field);
+        var.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
+        for (int x = 0; x < fields.Count; x++)
+        {
+          var.Add(new VariableString(fields[x], ""));
+        }
+      }
+    }
+
+    private List<PREV_STEP> FindPreviousSteps(Core.FunctionStep step, int depth)
+    {
+      List<PREV_STEP> previousteps = new List<PREV_STEP>();
       for (int x = 0; x < functionSteps.Count; x++)
       {
         Core.FunctionStep ps = functionSteps[x];
@@ -102,7 +179,7 @@ namespace FlowEngineDesigner
           Link l = ps.LinkOutputs[y];
           if (l.Input.Step == step)
           {
-            previousteps.Add(ps);
+            previousteps.Add(new PREV_STEP(ps, y, depth));
           }
         }
       }
@@ -135,6 +212,8 @@ namespace FlowEngineDesigner
       if (this.Variables.ContainsKey(varName)) //At this point the Variables variable should be empty so will always not find a match, but check it anyway
         return true;
       if (varName == Flow.VAR_NAME_FLOW_START)
+        return true;
+      if (varName == Flow.VAR_NAME_PREVIOUS_STEP)
         return true;
 
       for (int x = 0; x < functionSteps.Count; x++)
@@ -740,6 +819,10 @@ namespace FlowEngineDesigner
       xml.WriteTagAndContents("Position", step.Position);
       xml.WriteTagAndContents("SaveResponseVariable", step.SaveResponseVariable);
       xml.WriteTagAndContents("SaveResponseVariableName", step.RespNames.Name);
+      if (step.Validator is not null)
+      {
+        xml.WriteTagAndContents("ValidatorName", step.Validator.Name);
+      }
       xml.WriteTagStart("Variables");
       XmlWriteVariables(xml, step.ParmVars);
       xml.WriteTagEnd("Variables");

@@ -16,9 +16,6 @@ namespace FlowEngineDesigner
     const int DT_INTEGER = 0;
     const int DT_VARIABLE = 1;
 
-    private PARM_VAR mParmVar;
-    private cFlowWrapper mFlow;
-    private FunctionStep? mStep;
 
     public ucParameterInteger(PARM_VAR parmVar, FunctionStep? step, cFlowWrapper flow)
     {

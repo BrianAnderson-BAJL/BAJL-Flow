@@ -74,6 +74,7 @@
       txtKey.Size = new Size(223, 23);
       txtKey.TabIndex = 15;
       txtKey.TabStop = false;
+      txtKey.TextChanged += txtKey_TextChanged;
       // 
       // cmbDataType
       // 

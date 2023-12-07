@@ -48,18 +48,7 @@ namespace FlowEngineDesigner
       lvTracer.Items.Clear();
     }
 
-    private void frmTracer_MouseEnter(object sender, EventArgs e)
-    {
 
-    }
-
-    private void toolStrip1_MouseEnter(object sender, EventArgs e)
-    {
-      if (cOptions.FocusOnMouseEnter == true)
-      {
-        this.Focus();
-      }
-    }
 
 
     /// <summary>
@@ -68,7 +57,7 @@ namespace FlowEngineDesigner
     /// <param name="m"></param>
     protected override void WndProc(ref Message m)
     {
-      int WM_PARENTNOTIFY = 0x0210;
+      const int WM_PARENTNOTIFY = 0x0210;
       if (this.Focused == false && m.Msg == WM_PARENTNOTIFY)
       {
         // Make this form auto-grab the focus when menu/controls are clicked
