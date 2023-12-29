@@ -66,7 +66,6 @@ namespace FlowEngineDesigner
 
       Global.Layout.ExecuteLayout();
 
-      highlightStepsOnExecutionToolStripMenuItem.Checked = cOptions.HighlightStepsOnExecution;
 
       //TEST AREA
 
@@ -111,11 +110,6 @@ namespace FlowEngineDesigner
 
 
 
-    private void highlightStepsOnExecutionToolStripMenuItem_Click(object sender, EventArgs e)
-    {
-      cOptions.HighlightStepsOnExecution = !cOptions.HighlightStepsOnExecution;
-      highlightStepsOnExecutionToolStripMenuItem.Checked = cOptions.HighlightStepsOnExecution;
-    }
 
     private void connectToolStripMenuItem_Click(object sender, EventArgs e)
     {
@@ -225,6 +219,11 @@ namespace FlowEngineDesigner
     private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
     {
 
+    }
+
+    private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      this.Close();
     }
   }
 }

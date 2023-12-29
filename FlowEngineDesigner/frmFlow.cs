@@ -1,5 +1,6 @@
 ﻿using Core;
 using Core.Administration.Messages;
+using Microsoft.VisualBasic.Devices;
 using System.Numerics;
 using static FlowEngineDesigner.cEventManager;
 
@@ -11,6 +12,7 @@ namespace FlowEngineDesigner
     cCamera Camera;
 
     HIT_RESULT SelectedItem;
+    HIT_RESULT ResizeItem;
 
     public frmFlow(cFlowWrapper? flowWrapper = null)
     {
@@ -106,6 +108,19 @@ namespace FlowEngineDesigner
             cMouse.FlowItem = SelectedItem.HitItem;
             cMouse.PreviousHitItem = SelectedItem;
           }
+          else if (SelectedItem.Type == HIT_RESULT.HIT_TYPE.Resize)
+          {
+            cMouse.PreviousHitItem = SelectedItem.Clone();
+            //We want to fool the system into thinking it actually selected the parent comment box so the resize handles continue to be drawn
+            SelectedItem.Type = HIT_RESULT.HIT_TYPE.Comment;
+            SelectedItem.HitItem = SelectedItem.ParentItem;
+            SelectedItem.ParentItem = null;
+            
+          }
+          else if (SelectedItem.Type == HIT_RESULT.HIT_TYPE.Comment)
+          {
+            cMouse.PreviousHitItem = SelectedItem;
+          }
         }
       }
     }
@@ -127,10 +142,16 @@ namespace FlowEngineDesigner
       }
       else if (cMouse.FlowItem is not null && cMouse.DraggingStart.HasValue == true)
       {
-        if (cMouse.FlowItem is Core.FunctionStep || cMouse.FlowItem is Core.Comment)
+        Vector2 v = cMouse.pos - cMouse.DraggingStart.Value;
+        v /= Camera.ZoomLevel;
+        if (cMouse.PreviousHitItem.Type == HIT_RESULT.HIT_TYPE.Resize)
         {
-          Vector2 v = cMouse.pos - cMouse.DraggingStart.Value;
-          v /= Camera.ZoomLevel;
+          cMouse.DraggingStart = cMouse.pos;
+          ResizeHandle? rh = cMouse.PreviousHitItem.HitItem as ResizeHandle;
+          rh?.Resize(v);
+        }
+        else if (cMouse.FlowItem is Core.FunctionStep || cMouse.FlowItem is Core.Comment)
+        {
           cMouse.DraggingStart = cMouse.pos;
           MoveSelectedItem(cMouse.FlowItem, v);
         }
@@ -139,8 +160,41 @@ namespace FlowEngineDesigner
       {
 
       }
+      else
+      {
+        if (SelectedItem.Type == HIT_RESULT.HIT_TYPE.Comment)
+        {
+          HIT_RESULT hr = Flow.HitTestResizeOnly(new Vector2(e.X, e.Y), Camera);
+          pictureBox1.Cursor = GetCursor(hr.HitItem as ResizeHandle);
+        }
+        else
+        {
+          if (ResizeItem.Hit == true)
+          {
+            pictureBox1.Cursor = Cursors.Default;
+            ResizeItem = new HIT_RESULT();
+          }
+        }
+      }
 
       pictureBox1.Refresh();
+    }
+
+    private Cursor GetCursor(ResizeHandle? rh)
+    {
+      if (rh is null)
+        return Cursors.Default;
+
+      if (rh.Location == ResizeHandle.RESIZE_LOCATION.TopLeft || rh.Location == ResizeHandle.RESIZE_LOCATION.BottomRight)
+        return Cursors.SizeNWSE;
+      else if (rh.Location == ResizeHandle.RESIZE_LOCATION.TopMiddle || rh.Location == ResizeHandle.RESIZE_LOCATION.BottomMiddle)
+        return Cursors.SizeNS;
+      else if (rh.Location == ResizeHandle.RESIZE_LOCATION.TopRight || rh.Location == ResizeHandle.RESIZE_LOCATION.BottomLeft)
+        return Cursors.SizeNESW;
+      else if (rh.Location == ResizeHandle.RESIZE_LOCATION.MiddleLeft|| rh.Location == ResizeHandle.RESIZE_LOCATION.MiddleRight)
+        return Cursors.SizeWE;
+
+      return Cursors.Default;
     }
 
     private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
@@ -151,64 +205,13 @@ namespace FlowEngineDesigner
       }
       else if (e.Button == MouseButtons.Left)
       {
-        if (cMouse.OverallState == cMouse.OVERALL_STATE.DrawComment && cMouse.DraggingStart.HasValue == true)
+        if (cMouse.OverallState == cMouse.OVERALL_STATE.DrawComment)
         {
-          cMouse.OverallState = cMouse.OVERALL_STATE.None;
-          pictureBox1.Cursor = Cursors.Default;
-          Comment c = new Comment();
-          c.Position = (cMouse.DraggingStart.Value - Camera.Position) / Camera.ZoomLevel;
-
-          c.Size = new Size((int)((cMouse.pos.X - cMouse.DraggingStart.Value.X) / Camera.ZoomLevel), (int)((cMouse.pos.Y - cMouse.DraggingStart.Value.Y) / Camera.ZoomLevel));
-          c.ColorBackground = cOptions.CommentColorBackgroundDefault;
-          c.ColorText = cOptions.CommentColorTextDefault;
-          Flow.Comments.Add(c);
+          CreateComment();          
         }
         else
         {
-          HIT_RESULT hit = Flow.HitTest(cMouse.pos, Camera);
-          if (hit.Hit == true)
-          {
-            if (hit.Type == HIT_RESULT.HIT_TYPE.Input)
-            {
-              Core.Input? ci = hit.HitItem as Core.Input;
-              if (ci is not null && ci.Step is not null)
-              {
-                Core.Output? co = cMouse.FlowItem as Core.Output;
-                if (co is not null)
-                {
-                  if (cMouse.PreviousHitItem.Type == HIT_RESULT.HIT_TYPE.Output && cMouse.PreviousHitItem.ParentItem is Core.FunctionStep)
-                  {
-                    Core.FunctionStep? step = cMouse.PreviousHitItem.ParentItem as Core.FunctionStep;
-                    if (step is not null)
-                    {
-                      co = co.Clone(step);
-                      step.LinkAdd(Flow, co, ci);
-                    }
-                  }
-                }
-              }
-            }
-            if (hit.Type == HIT_RESULT.HIT_TYPE.Output)
-            {
-              Core.Output? co = hit.HitItem as Core.Output;
-              if (co is not null && co.Step is not null)
-              {
-                Core.Input? ci = cMouse.FlowItem as Core.Input;
-                if (ci is not null)
-                {
-                  if (cMouse.PreviousHitItem.Type == HIT_RESULT.HIT_TYPE.Input && cMouse.PreviousHitItem.ParentItem is Core.FunctionStep)
-                  {
-                    Core.FunctionStep? step = cMouse.PreviousHitItem.ParentItem as Core.FunctionStep;
-                    if (step is not null)
-                    {
-                      ci = ci.Clone(step);
-                      step.LinkAdd(Flow, co, ci);
-                    }
-                  }
-                }
-              }
-            }
-          }
+          CreateLink();
         }
         cMouse.ButtonLeft = cMouse.BUTTON_STATE.Up;
       }
@@ -218,6 +221,75 @@ namespace FlowEngineDesigner
         cMouse.FlowItem = null;
         cMouse.DraggingStart = null;
       }
+    }
+
+    private void CreateLink()
+    {
+      if (cMouse.PreviousHitItem.Hit == false)
+        return;
+
+      Core.FunctionStep? previousStep = cMouse.PreviousHitItem.ParentItem as Core.FunctionStep;
+      if (previousStep is null)
+        return;
+
+
+      HIT_RESULT hit = Flow.HitTest(cMouse.pos, Camera);
+      if (hit.Hit == false)
+        return;
+
+
+      //Linking from an Output to an Input
+      if (hit.Type == HIT_RESULT.HIT_TYPE.Input)
+      {
+        if (cMouse.PreviousHitItem.Type != HIT_RESULT.HIT_TYPE.Output) //If we just hit an Input the previous step needs to be from an Output
+          return;
+
+        Core.Input? input = hit.HitItem as Core.Input;
+        if (input is null || input.Step is null)
+          return;
+
+        Core.Output? output = cMouse.FlowItem as Core.Output;
+        if (output is null)
+          return;
+
+        output = output.Clone(previousStep);
+        previousStep.LinkAdd(Flow, output, input);
+      }
+
+      //Linking from an Input to an Output
+      if (hit.Type == HIT_RESULT.HIT_TYPE.Output)
+      {
+        if (cMouse.PreviousHitItem.Type != HIT_RESULT.HIT_TYPE.Input) //If we just hit an Output the previous step needs to be from an Input
+          return;
+
+        Core.Output? output = hit.HitItem as Core.Output;
+        if (output is null || output.Step is null)
+          return;
+        Core.Input? input = cMouse.FlowItem as Core.Input;
+        if (input is null)
+          return;
+
+        input = input.Clone(previousStep);
+        previousStep.LinkAdd(Flow, output, input);
+      }
+    }
+
+    private void CreateComment()
+    {
+      if (cMouse.DraggingStart.HasValue == false)
+        return;
+
+      cMouse.OverallState = cMouse.OVERALL_STATE.None;
+      pictureBox1.Cursor = Cursors.Default;
+      Vector2 pos = (cMouse.DraggingStart.Value - Camera.Position) / Camera.ZoomLevel;
+      int width = (int)((cMouse.pos.X - cMouse.DraggingStart.Value.X) / Camera.ZoomLevel);
+      int height = (int)((cMouse.pos.Y - cMouse.DraggingStart.Value.Y) / Camera.ZoomLevel);
+      if (width < ResizeHandle.MIN_SIZE)
+        width = ResizeHandle.MIN_SIZE;
+      if (height < ResizeHandle.MIN_SIZE)
+        height = ResizeHandle.MIN_SIZE;
+      Size size = new Size(width, height);
+      Flow.CommentAdd(pos, size);
     }
 
 
@@ -414,6 +486,16 @@ namespace FlowEngineDesigner
           SelectedItem = new HIT_RESULT();
           pictureBox1.Refresh();
         }
+        else if (SelectedItem.Type == HIT_RESULT.HIT_TYPE.Comment)
+        {
+          Comment? comment = SelectedItem.HitItem as Core.Comment;
+          if (comment is not null)
+          {
+            Flow.Comments.Remove(comment);
+          }
+          SelectedItem = new HIT_RESULT();
+          pictureBox1.Refresh();
+        }
       }
     }
 
@@ -467,6 +549,11 @@ namespace FlowEngineDesigner
     {
       Flow.Center(Camera, pictureBox1);
       pictureBox1.Refresh();
+    }
+
+    private void pictureBox1_Click(object sender, EventArgs e)
+    {
+
     }
   }
 }

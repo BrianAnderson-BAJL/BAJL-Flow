@@ -40,6 +40,7 @@
       txtSaveResponseName = new TextBox();
       lblValidator = new Label();
       cmbValidators = new ComboBox();
+      lblValidatorDescription = new Label();
       gbParameters.SuspendLayout();
       gbPanel.SuspendLayout();
       SuspendLayout();
@@ -119,7 +120,7 @@
       // chkSaveResponse
       // 
       chkSaveResponse.AutoSize = true;
-      chkSaveResponse.Location = new Point(484, 68);
+      chkSaveResponse.Location = new Point(198, 92);
       chkSaveResponse.Name = "chkSaveResponse";
       chkSaveResponse.Size = new Size(147, 19);
       chkSaveResponse.TabIndex = 10;
@@ -148,7 +149,7 @@
       // lblValidator
       // 
       lblValidator.AutoSize = true;
-      lblValidator.Location = new Point(685, 12);
+      lblValidator.Location = new Point(538, 7);
       lblValidator.Name = "lblValidator";
       lblValidator.Size = new Size(56, 15);
       lblValidator.TabIndex = 13;
@@ -159,11 +160,18 @@
       cmbValidators.DropDownStyle = ComboBoxStyle.DropDownList;
       cmbValidators.Enabled = false;
       cmbValidators.FormattingEnabled = true;
-      cmbValidators.Location = new Point(685, 30);
+      cmbValidators.Location = new Point(538, 30);
       cmbValidators.Name = "cmbValidators";
       cmbValidators.Size = new Size(263, 23);
       cmbValidators.TabIndex = 14;
       cmbValidators.SelectedIndexChanged += cmbValidators_SelectedIndexChanged;
+      // 
+      // lblValidatorDescription
+      // 
+      lblValidatorDescription.Location = new Point(538, 56);
+      lblValidatorDescription.Name = "lblValidatorDescription";
+      lblValidatorDescription.Size = new Size(410, 47);
+      lblValidatorDescription.TabIndex = 15;
       // 
       // frmStepProperties
       // 
@@ -171,6 +179,7 @@
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
       ClientSize = new Size(960, 416);
+      Controls.Add(lblValidatorDescription);
       Controls.Add(cmbValidators);
       Controls.Add(lblValidator);
       Controls.Add(txtSaveResponseName);
@@ -203,5 +212,6 @@
     private Panel gbPanel;
     private Button btnDeleteParameter;
     private Button btnAddParameter;
+    private Label lblValidatorDescription;
   }
 }

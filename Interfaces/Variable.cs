@@ -233,8 +233,10 @@ namespace Core
       //Variable? var = new Variable();
       //var.Name = "data";
       ParserJson parser = new ParserJson();
-      
-      return parser.ParseJsonBlock(ref jsonStr);
+      Variable? var = parser.ParseJsonBlock(ref jsonStr);
+      if (var is not null && var.Name == "" && var.SubVariables.Count > 0)
+        return var.SubVariables[0];
+      return var;
     }
 
     public Variable? FindSubVariableByName(string name)

@@ -46,6 +46,13 @@ namespace Core
       mErrorDescription = errorDescription;
     }
 
+    public void SetSuccess()
+    {
+      mOutputIndex = SUCCESS;
+      mErrorNumber = 0;
+      mErrorDescription = "";
+    }
+
     public bool Success
     {
       get 

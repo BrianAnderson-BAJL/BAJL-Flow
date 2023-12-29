@@ -15,6 +15,7 @@ namespace Core
     public delegate void ValidatorDelegate(RESP resp);
 
     public string Name = "";
+    public string Descriptoin = "";
 
     public virtual void Validate(RESP resp)
     {

@@ -2,6 +2,7 @@
 using Core.Administration.Packets;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -33,6 +34,7 @@ namespace Core.Administration
       Processors.Add(Packet.PACKET_TYPE.FlowSave, ProcessFlowSave);
       Processors.Add(Packet.PACKET_TYPE.FlowOpen, ProcessFlowOpen);
       Processors.Add(Packet.PACKET_TYPE.FlowDebug, ProcessFlowDebug);
+      Processors.Add(Packet.PACKET_TYPE.CloseConnection, ProcessCloseConnection);
 
     }
 
@@ -510,5 +512,11 @@ namespace Core.Administration
 
     }
 
+    private static void ProcessCloseConnection(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+#if DEBUG
+      FlowEngine.Instance.Stop(); //Stop the flow engine running after a disconnect for development purposes.
+#endif
+    }
   }
 }

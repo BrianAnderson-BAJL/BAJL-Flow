@@ -25,6 +25,11 @@ namespace Validation
       parm.OptionAdd("+1 ###-###-####");
       function.Parms.Add(parm);
       Functions.Add(function);
+
+      function = new Function("VariableHasValue", this, VariableHasValue);
+      function.Parms.Add("Variable", DATA_TYPE.Various, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple);
+      Functions.Add(function);
+
       //SETTINGS
       {
         SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
@@ -92,6 +97,20 @@ namespace Validation
     public RESP Phone(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Validation.Phone");
+
+      return RESP.SetSuccess();
+    }
+
+    public RESP VariableHasValue(Core.Flow flow, Variable[] vars)
+    {
+      Global.Write("Validation.VariableHasValue");
+
+      for (int x = 0; x < vars.Length; x++)
+      {
+        vars[x].GetValueAsString(out string var);
+        if (var.Length == 0)
+          return RESP.SetError(1, "Variable is empty");
+      }
 
       return RESP.SetSuccess();
     }

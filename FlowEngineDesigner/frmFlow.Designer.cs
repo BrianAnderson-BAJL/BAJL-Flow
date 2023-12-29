@@ -71,6 +71,7 @@
       pictureBox1.Size = new Size(797, 385);
       pictureBox1.TabIndex = 0;
       pictureBox1.TabStop = false;
+      pictureBox1.Click += pictureBox1_Click;
       pictureBox1.Paint += pictureBox1_Paint;
       pictureBox1.DoubleClick += pictureBox1_DoubleClick;
       pictureBox1.MouseDown += pictureBox1_MouseDown;

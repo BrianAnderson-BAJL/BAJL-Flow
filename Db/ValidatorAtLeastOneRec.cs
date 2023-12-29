@@ -13,6 +13,7 @@ namespace Database
     public ValidatorAtLeastOneRec() 
     {
       Name = "At least one record";
+      Descriptoin = "If the recordset contains at least one record then this is a success. If the recordset doesn't contain any records then it is a failure/error.";
     }
 
     public override void Validate(RESP resp)

@@ -10,6 +10,7 @@ using System.Drawing.Imaging;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.ExceptionServices;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -299,12 +300,43 @@ namespace FlowEngineDesigner
       return new HIT_RESULT();
     }
 
+    public HIT_RESULT HitTestResizeOnly(Vector2 v, cCamera camera)
+    {
+      for (int x = 0; x < Comments.Count; x++)
+      {
+        for (int y = 0; y < Comments[x].ResizeRects.Length; y++)
+        {
+          ResizeHandle resizeHandle = Comments[x].ResizeRects[y];
+          Rectangle r = camera.CreateDrawingRectNoShrink(resizeHandle.GetDrawingRect());
+          if (r.Contains(v) == true)
+          {
+            return new HIT_RESULT() { Hit = true, HitItem = resizeHandle, ParentItem = Comments[x], Type = HIT_RESULT.HIT_TYPE.Resize, Position = Comments[x].Position };
+          }
+        }
+      }
+      return new HIT_RESULT();
+    }
+
 
     private bool IsPointNearLink(Vector2 point, Link link, cCamera camera)
     {
       Vector2 inputPos = camera.CreateDrawingPosition(link.Input.Position);
       Vector2 outputPos = camera.CreateDrawingPosition(link.Output.Position);
 
+      //Compare with a bounding box for the line segment first
+      int x = (int)Math.Min(inputPos.X, outputPos.X);
+      int y = (int)Math.Min(inputPos.Y, outputPos.Y);
+      int width = (int)Math.Abs(inputPos.X - outputPos.X);
+      if (width < cOptions.LinkLineSelectDistance)
+        width = cOptions.LinkLineSelectDistance;
+      int height = (int)Math.Abs(inputPos.Y - outputPos.Y);
+      if (height < cOptions.LinkLineSelectDistance)
+        height = cOptions.LinkLineSelectDistance;
+      Rectangle r = new Rectangle(x, y, width, height);
+      if (r.Contains(point) == false)
+        return false;
+
+      //We got here, must be within the bounding box, now check if it is near the actual line.
       double numerator = Math.Abs((outputPos.Y - inputPos.Y) * point.X - (outputPos.X - inputPos.X) * point.Y + outputPos.X * inputPos.Y - outputPos.Y * inputPos.X);
 
       double denominator = Math.Sqrt(Math.Pow(outputPos.Y - inputPos.Y, 2) + Math.Pow(outputPos.X - inputPos.X, 2));
@@ -322,10 +354,20 @@ namespace FlowEngineDesigner
 
     private HIT_RESULT HitTestComments(Vector2 v, cCamera camera)
     {
+      Rectangle r;
       for (int x = 0; x < Comments.Count; x++)
       {
+        for (int y = 0; y < Comments[x].ResizeRects.Length; y++)
+        {
+          ResizeHandle resizeHandle = Comments[x].ResizeRects[y];
+          r = camera.CreateDrawingRectNoShrink(resizeHandle.GetDrawingRect());
+          if (r.Contains(v) == true)
+          {
+            return new HIT_RESULT() { Hit = true, HitItem = resizeHandle, ParentItem = Comments[x], Type = HIT_RESULT.HIT_TYPE.Resize, Position = Comments[x].Position };
+          }
+        }
         Comment comment = Comments[x];
-        Rectangle r = camera.CreateDrawingRect(comment.Position, comment.Size);
+        r = camera.CreateDrawingRect(comment.Position, comment.Size);
         if (r.Contains(v) == true)
         {
           return new HIT_RESULT() { Hit = true, HitItem = comment, ParentItem = null, Type = HIT_RESULT.HIT_TYPE.Comment, Position = comment.Position };
@@ -428,7 +470,19 @@ namespace FlowEngineDesigner
       }
     }
 
+    public void CommentAdd(Vector2 pos, SizeF size)
+    {
+      Comment comment = new Comment();
+      comment.Position = pos;
 
+      comment.Size = size;
+      comment.ColorBackground = cOptions.CommentColorBackgroundDefault;
+      comment.ColorText = cOptions.CommentColorTextDefault;
+
+      Comments.Add(comment);
+    }
+
+    
 
 
 
@@ -455,7 +509,7 @@ namespace FlowEngineDesigner
 
     private void DrawComment(Graphics graphics, cCamera camera, Comment comment)
     {
-      
+      comment.Selected = false;
       Rectangle r = camera.CreateDrawingRect(comment.Position, comment.Size);
       Color c = cOptions.CommentColorBackgroundDefault;
       Brush b = new SolidBrush(c);
@@ -483,6 +537,7 @@ namespace FlowEngineDesigner
           pos.Y += sizeString.Height;
         }
       }
+
       //graphics.DrawString(
 
     }
@@ -498,7 +553,7 @@ namespace FlowEngineDesigner
 
     private void DrawLink(Link link, Graphics graphics, cCamera camera, int width, Color color)
     {
-      
+      link.Selected = false;
       Pen p = new Pen(color, width);
       Vector2 v1 = link.Output.Position;
       v1 = camera.CreateDrawingPosition(v1);
@@ -513,23 +568,34 @@ namespace FlowEngineDesigner
 
     public void DrawSelection(HIT_RESULT hr, Graphics graphics, cCamera camera)
     {
-      if (hr.Type == HIT_RESULT.HIT_TYPE.Function && hr.HitItem is not null)
+      if (hr.HitItem is null)
+        return;
+
+      hr.HitItem.Selected = true;
+
+      if (hr.Type == HIT_RESULT.HIT_TYPE.Function)
       {
         Size s = new Size(Global.SelectorStep.Width, Global.SelectorStep.Height);
         Rectangle r = camera.CreateDrawingRect(hr.HitItem.Position - new Vector2(10, 10), s);
         graphics.DrawImage(Global.SelectorStep, r);
       }
-      else if (hr.Type == HIT_RESULT.HIT_TYPE.Comment && hr.HitItem is not null)
+      else if (hr.Type == HIT_RESULT.HIT_TYPE.Comment)
       {
         Comment? comment = hr.HitItem as Comment;
         if (comment is not null)
         {
-          Size s = new Size(comment.Size.Width + 18, comment.Size.Height + 18);
+          SizeF s = new SizeF(comment.Size.Width + 18, comment.Size.Height + 18);
           Rectangle r = camera.CreateDrawingRect(hr.HitItem.Position - new Vector2(10, 10), s);
           graphics.DrawImage(Global.SelectorStep, r);
+
+          for (int x = 0; x < comment.ResizeRects.Length; x++)
+          {
+            graphics.FillRoundedRectangle(new SolidBrush(Color.Gray), camera.CreateDrawingRectNoShrink(comment.ResizeRects[x].GetDrawingRect()), 1);
+          }
+
         }
       }
-      else if (hr.Type == HIT_RESULT.HIT_TYPE.Link && hr.HitItem is not null)
+      else if (hr.Type == HIT_RESULT.HIT_TYPE.Link)
       {
         Link? link = hr.HitItem as Link;
         if (link is not null)
@@ -552,6 +618,7 @@ namespace FlowEngineDesigner
 
     private void DrawStep(Graphics graphics, cCamera camera, FunctionStep step)
     {
+      step.Selected = false;
       Bitmap? bm = step.ExtraValues[Global.EXTRA_VALUE_IMAGE] as Bitmap;
       if (bm is null)
         throw new Exception("Missing 'image' tag in step.ExtraValues[], can't draw step");

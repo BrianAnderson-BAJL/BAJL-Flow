@@ -41,7 +41,6 @@ namespace FlowCore
       Functions.Add(function);
 
 
-      Functions.Add(function);
       function = new Function("Flow Run", this, FlowRun);
       function.Parms.Add(PARM_FLOW_NAME, DATA_TYPE.String);
       function.Parms.Add("Variable", DATA_TYPE._None);
@@ -59,10 +58,9 @@ namespace FlowCore
       pddl.OptionAdd(OPTION_SUCCESS);
       pddl.OptionAdd(OPTION_ERROR);
       function.Parms.Add(pddl);
-      function.Parms.Add("Variable", DATA_TYPE._None);
-
-      function.Parms.Add("Variable", DATA_TYPE._None);
+      function.Parms.Add("Variable", DATA_TYPE.Various);
       Functions.Add(function);
+
       Functions.Add(new Function("If", this, If));
 
       function = new Function("Variables Exists", this, VariablesExists);

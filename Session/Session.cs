@@ -59,7 +59,7 @@ namespace Session
       vars[1].GetValue(out string password);
 
       //Check if the LoginId already exists in the database
-      Variable varLoginId = new VariableString("@LoginId", loginId);
+      Variable varLoginId = new VariableString("@LoginId", loginId); //Need to name the varialbe '@LoginId' to be used in the SQL
       Variable records = Database.Select("SELECT UserId FROM Users Where LoginId = @LoginId", varLoginId);
       if (records.SubVariables.Count > 0) //Has a record, means it found a user with the same LoginId
       {

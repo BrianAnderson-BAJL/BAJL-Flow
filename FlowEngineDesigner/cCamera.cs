@@ -48,8 +48,25 @@ namespace FlowEngineDesigner
       }
     }
 
+    public Rectangle CreateDrawingRect(Vector2 pos, Rectangle rect)
+    {
+      int x = (int)(((pos.X + rect.X) * ZoomLevelActual) + this.Position.X);
+      int y = (int)(((pos.Y + rect.Y) * ZoomLevelActual) + this.Position.Y);
+      int width = (int)(rect.Width * ZoomLevelActual);
+      int height = (int)(rect.Height * ZoomLevelActual);
+      return new Rectangle(x, y, width, height);
+    }
 
-    public Rectangle CreateDrawingRect(Vector2 pos, Size size)
+    public Rectangle CreateDrawingRectNoShrink(Rectangle rect)
+    {
+      int x = (int)((rect.X * ZoomLevelActual) + this.Position.X);
+      int y = (int)((rect.Y * ZoomLevelActual) + this.Position.Y);
+      int width = (int)(rect.Width); // * ZoomLevelActual
+      int height = (int)(rect.Height); // * ZoomLevelActual
+      return new Rectangle(x, y, width, height);
+    }
+
+    public Rectangle CreateDrawingRect(Vector2 pos, SizeF size)
     {
       int x = (int)((pos.X * ZoomLevelActual) + this.Position.X);
       int y = (int)((pos.Y * ZoomLevelActual) + this.Position.Y);

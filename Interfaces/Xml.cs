@@ -139,6 +139,10 @@ namespace Core
     {
       WriteTagAndContents(TagName, Value.Width.ToString() + "," + Value.Height.ToString());
     }
+    public void WriteTagAndContents(string TagName, SizeF Value)
+    {
+      WriteTagAndContents(TagName, Value.Width.ToString() + "," + Value.Height.ToString());
+    }
 
     public void WriteTagAndContents(string TagName, decimal Value)
     {

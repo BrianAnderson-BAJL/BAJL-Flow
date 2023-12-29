@@ -98,7 +98,6 @@ namespace Core.Administration
         if (Client is null)
           return;
 
-        Client.mStream.ReadTimeout = ReadPacketTimeout;
         //SslStream NS = Client.mStream;
 
         while (mContinue == true)
@@ -113,8 +112,6 @@ namespace Core.Administration
               Packet Packet = new Packet();
               //Packet.ReadAllData(Br);
               Packet.ReadAllTlsData(Client.mStream);
-              if (Packet.PacketType == Packet.PACKET_TYPE.CloseConnection)
-                break;
               if (Packet.PacketType != Packet.PACKET_TYPE._Unknown)
                 OnNewPacket(Packet, Client);
             }

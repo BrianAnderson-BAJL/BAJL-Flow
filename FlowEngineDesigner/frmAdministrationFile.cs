@@ -44,7 +44,10 @@ namespace FlowEngineDesigner
       }
       FlowsGet message = new FlowsGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn!.SessionKey);
       cServer.SendAndResponse(message.GetPacket(), Callback_Files);
-
+      if (FileMode == FILE_MODE.Open)
+      {
+        chkDeployLive.Enabled = false;
+      }
     }
 
     private void frmAdministrationFile_Activated(object sender, EventArgs e)

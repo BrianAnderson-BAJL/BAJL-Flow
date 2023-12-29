@@ -39,9 +39,7 @@
       layoutToolStripMenuItem = new ToolStripMenuItem();
       layout1ToolStripMenuItem = new ToolStripMenuItem();
       settingsToolStripMenuItem = new ToolStripMenuItem();
-      usersToolStripMenuItem = new ToolStripMenuItem();
       optionsToolStripMenuItem = new ToolStripMenuItem();
-      highlightStepsOnExecutionToolStripMenuItem = new ToolStripMenuItem();
       serverToolStripMenuItem = new ToolStripMenuItem();
       connectToolStripMenuItem = new ToolStripMenuItem();
       disconnectToolStripMenuItem = new ToolStripMenuItem();
@@ -79,22 +77,23 @@
       // newToolStripMenuItem
       // 
       newToolStripMenuItem.Name = "newToolStripMenuItem";
-      newToolStripMenuItem.Size = new Size(103, 22);
+      newToolStripMenuItem.Size = new Size(180, 22);
       newToolStripMenuItem.Text = "&New";
       newToolStripMenuItem.Click += newToolStripMenuItem_Click;
       // 
       // openToolStripMenuItem
       // 
       openToolStripMenuItem.Name = "openToolStripMenuItem";
-      openToolStripMenuItem.Size = new Size(103, 22);
+      openToolStripMenuItem.Size = new Size(180, 22);
       openToolStripMenuItem.Text = "&Open";
       openToolStripMenuItem.Click += openToolStripMenuItem_Click;
       // 
       // exitToolStripMenuItem
       // 
       exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-      exitToolStripMenuItem.Size = new Size(103, 22);
+      exitToolStripMenuItem.Size = new Size(180, 22);
       exitToolStripMenuItem.Text = "E&xit";
+      exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
       // 
       // viewToolStripMenuItem
       // 
@@ -133,30 +132,17 @@
       // 
       // settingsToolStripMenuItem
       // 
-      settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem, optionsToolStripMenuItem, highlightStepsOnExecutionToolStripMenuItem });
+      settingsToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { optionsToolStripMenuItem });
       settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
       settingsToolStripMenuItem.Size = new Size(61, 20);
       settingsToolStripMenuItem.Text = "S&ettings";
       // 
-      // usersToolStripMenuItem
-      // 
-      usersToolStripMenuItem.Name = "usersToolStripMenuItem";
-      usersToolStripMenuItem.Size = new Size(226, 22);
-      usersToolStripMenuItem.Text = "&Users";
-      // 
       // optionsToolStripMenuItem
       // 
       optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-      optionsToolStripMenuItem.Size = new Size(226, 22);
+      optionsToolStripMenuItem.Size = new Size(180, 22);
       optionsToolStripMenuItem.Text = "&Options";
       optionsToolStripMenuItem.Click += optionsToolStripMenuItem_Click;
-      // 
-      // highlightStepsOnExecutionToolStripMenuItem
-      // 
-      highlightStepsOnExecutionToolStripMenuItem.Name = "highlightStepsOnExecutionToolStripMenuItem";
-      highlightStepsOnExecutionToolStripMenuItem.Size = new Size(226, 22);
-      highlightStepsOnExecutionToolStripMenuItem.Text = "Highlight steps on execution";
-      highlightStepsOnExecutionToolStripMenuItem.Click += highlightStepsOnExecutionToolStripMenuItem_Click;
       // 
       // serverToolStripMenuItem
       // 
@@ -170,28 +156,28 @@
       // connectToolStripMenuItem
       // 
       connectToolStripMenuItem.Name = "connectToolStripMenuItem";
-      connectToolStripMenuItem.Size = new Size(180, 22);
+      connectToolStripMenuItem.Size = new Size(167, 22);
       connectToolStripMenuItem.Text = "&Connect";
       connectToolStripMenuItem.Click += connectToolStripMenuItem_Click;
       // 
       // disconnectToolStripMenuItem
       // 
       disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
-      disconnectToolStripMenuItem.Size = new Size(180, 22);
+      disconnectToolStripMenuItem.Size = new Size(167, 22);
       disconnectToolStripMenuItem.Text = "Disconnect";
       disconnectToolStripMenuItem.Click += disconnectToolStripMenuItem_Click;
       // 
       // connectRecentToolStripMenuItem
       // 
       connectRecentToolStripMenuItem.Name = "connectRecentToolStripMenuItem";
-      connectRecentToolStripMenuItem.Size = new Size(180, 22);
+      connectRecentToolStripMenuItem.Size = new Size(167, 22);
       connectRecentToolStripMenuItem.Text = "Connect &Recent...";
       // 
       // administrationToolStripMenuItem
       // 
       administrationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem1, securityProfilesToolStripMenuItem, changePasswordToolStripMenuItem, flowOpenToolStripMenuItem });
       administrationToolStripMenuItem.Name = "administrationToolStripMenuItem";
-      administrationToolStripMenuItem.Size = new Size(180, 22);
+      administrationToolStripMenuItem.Size = new Size(167, 22);
       administrationToolStripMenuItem.Text = "&Administration";
       // 
       // usersToolStripMenuItem1
@@ -288,10 +274,8 @@
     private ToolStripMenuItem layoutToolStripMenuItem;
     private ToolStripMenuItem layout1ToolStripMenuItem;
     private ToolStripMenuItem settingsToolStripMenuItem;
-    private ToolStripMenuItem usersToolStripMenuItem;
     private ToolStripMenuItem optionsToolStripMenuItem;
     private ToolStripMenuItem tracerToolStripMenuItem;
-    private ToolStripMenuItem highlightStepsOnExecutionToolStripMenuItem;
     private ToolStripMenuItem serverToolStripMenuItem;
     private ToolStripMenuItem connectToolStripMenuItem;
     private ToolStripMenuItem connectRecentToolStripMenuItem;

@@ -132,6 +132,7 @@ namespace Core
       {
         resps = RESP.SetError(0, e.Message);
       }
+
     GotoResults:
       if (resps.Success == false) //If there was an error, lets create the error number & description to be used in the flow, while the resp object contains the same info, it isn't accessible in the flow
       {
@@ -146,13 +147,10 @@ namespace Core
         flow.VariableAdd(this.RespNames.Name, resps.Variable);  //If the flow author wants/needs the response later, they can store it in a new flow variable
       }
 
-      //Execute any Validators to double check that the response is correct, Validators can only update a step to be an error, it can't change an error into success.
-      if (resps.Success == true) 
+      //Execute the Validator to double check that the response is correct, Validators can turn a SUCCESS to ERROR or Change and ERROR to SUCCESS.
+      if (this.Validator is not null)
       {
-        if (this.Validator is not null)
-        {
-          this.Validator.Validate(resps);
-        }
+        this.Validator.Validate(resps);
       }
       return resps;
     }

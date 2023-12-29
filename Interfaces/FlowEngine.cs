@@ -26,12 +26,13 @@ namespace Core
     private object mThreadPoolCriticalSection = new object();
     private static STATE mState = STATE._None;
 
+    internal static FlowEngine Instance = new FlowEngine();
 
 
     public void Init(string[] args)
     {
-      
       Global.Write("Initializing...");
+      Instance = this;
       Packet.ReversePacketId = true;
       Console.CancelKeyPress += Console_CancelKeyPress;
       mState = STATE.Initializing;

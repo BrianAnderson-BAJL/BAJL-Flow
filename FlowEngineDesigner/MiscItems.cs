@@ -18,6 +18,16 @@ namespace FlowEngineDesigner
       Output,   //Has parent - step
       Link,
       Comment,
+
+      //Resize handles
+      Resize,
+      //ResizeTopMiddle = 7,
+      //ResizeTopRight = 8,
+      //ResizeMiddleLeft = 9,
+      //ResizeMiddleRight = 10,
+      //ResizeBottomLeft = 11,
+      //ResizeBottomMiddle = 12,
+      //ResizeBottomRight = 13,
     }
     public bool Hit;
     public HIT_TYPE Type;
@@ -32,6 +42,17 @@ namespace FlowEngineDesigner
       HitItem = null;
       ParentItem = null;
       Position = Vector2.Zero;
+    }
+
+    public HIT_RESULT Clone()
+    {
+      HIT_RESULT hr = new HIT_RESULT();
+      hr.Hit = this.Hit;
+      hr.Type = this.Type;
+      hr.HitItem = this.HitItem;
+      hr.ParentItem = this.ParentItem;
+      hr.Position = this.Position;
+      return hr;
     }
   }
 

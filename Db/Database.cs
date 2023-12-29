@@ -19,17 +19,19 @@ namespace Db
     private const string DB_CONN_POOL_MIN = "ConnPoolSizeMin";
     private const string DB_SHARE_WITH_PLUGINS = "ShareDatabaseConnWithOtherPlugins";
     public const string DB_TREAT_TINYINT_AS_BOOLEAN = "TreatTinyintAsBoolean";
+    private const int DB_ERROR = (int)STEP_ERROR_NUMBERS.DatabaseErrorMin;
     public override void Init()
     {
       base.Init();
 
       Function func;
-      Functions.Add(new Function("Open", this, Open));
-      Functions.Add(new Function("Close", this, Close));
+      //Functions.Add(new Function("Open", this, Open));
+      //Functions.Add(new Function("Close", this, Close));
 
 
       func = new Function("Select", this, Select);
       func.Validators.Add(new ValidatorAtLeastOneRec());
+      func.Validators.Add(new ValidatorZeroRecords());
       func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
       PARM parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
       func.Parms.Add(parm);
@@ -47,7 +49,13 @@ namespace Db
 
 
       Functions.Add(new Function("InsertMany", this, InsertMany));
-      Functions.Add(new Function("GetInt", this, GetInt));
+
+      //func = new Function("GetInt", this, GetInt);
+      //func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
+      //parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
+      //func.Parms.Add(parm);
+      //func.RespNames.Add(new Variable("recordsInserted"));
+      //Functions.Add(func);
 
 
 
@@ -120,27 +128,35 @@ namespace Db
       //Nothing to dispose of yet!
     }
 
-    public RESP Open(Core.Flow flow, Variable[] vars)
-    {
-      Global.Write("Db.Open - ");
-      return RESP.SetSuccess();
-    }
+    //public RESP Open(Core.Flow flow, Variable[] vars)
+    //{
+    //  Global.Write("Db.Open - ");
+    //  return RESP.SetSuccess();
+    //}
 
-    public RESP Close(Core.Flow flow, Variable[] vars)
-    {
-      Global.Write("Db.Close");
-      return RESP.SetSuccess();
-    }
+    //public RESP Close(Core.Flow flow, Variable[] vars)
+    //{
+    //  Global.Write("Db.Close");
+    //  return RESP.SetSuccess();
+    //}
 
     public RESP Select(Core.Flow flow, Variable[] vars)
     {
       Global.Write("Db.Select");
       if (mDatabase is null)
-        return RESP.SetError(1, "No active database connection");
+        return RESP.SetError(2000, "No active database connection");
 
       vars[0].GetValue(out string sql);
 
-      Variable var = mDatabase.Select(sql, vars);
+      Variable? var = null;
+      try
+      {
+        var = mDatabase.Select(sql, vars);
+      }
+      catch (Exception ex)
+      {
+        return RESP.SetError(2001, ex.Message);
+      }
       return RESP.SetSuccess(var);
     }
 
@@ -148,11 +164,18 @@ namespace Db
     {
       Global.Write("Db.Execute" );
       if (mDatabase is null)
-        return RESP.SetError(1, "No active database connection");
+        return RESP.SetError(2002, "No active database connection");
 
       vars[0].GetValue(out string sql);
-
-      Variable var = mDatabase.Execute(sql, vars);
+      Variable? var = null;
+      try
+      {
+        var = mDatabase.Execute(sql, vars);
+      }
+      catch (Exception ex)
+      {
+        return RESP.SetError(2003, ex.Message);
+      }
       return RESP.SetSuccess(var);
     }
 
@@ -162,11 +185,11 @@ namespace Db
       return RESP.SetSuccess();
     }
 
-    public RESP GetInt(Core.Flow flow, Variable[] vars)
-    {
-      Global.Write("Db.GetInt");
-      return RESP.SetSuccess();
-    }
+    //public RESP GetInt(Core.Flow flow, Variable[] vars)
+    //{
+    //  Global.Write("Db.GetInt");
+    //  return RESP.SetSuccess();
+    //}
 
 
   }

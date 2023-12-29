@@ -42,6 +42,7 @@ namespace Core
           break;
         case Packet.PACKET_TYPE.UserLogin:
         case Packet.PACKET_TYPE.UserLogout:
+        case Packet.PACKET_TYPE.CloseConnection:
           rc = true; //Always true
           break;
 

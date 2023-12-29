@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -60,7 +62,19 @@ namespace Core
   {
     //-1 to -1000 = FunctionValidator errors
     FV_MustHaveOneRecord = -1,
-    _NoError = 0,
+    _NoError = 0, //SUCCESS
+    FlowCoreErrorMin = 1,
+    FlowCoreErrorMax = 1999,
+    DatabaseErrorMin = 2000,
+    DatabaseErrorMax = 2999,
+    HttpErrorMin = 3000,
+    HttpErrorMax = 3999,
+    LoggerErrorMin = 4000,
+    LoggerErrorMax = 4999,
+    SessionErrorMin = 5000,
+    SessionErrorMax = 5999,
+    ValidationErrorMin = 6000,
+    ValidationErrorMax = 6999,
   }
 
   public class Global
@@ -174,7 +188,19 @@ namespace Core
     }
 
 
+
   }
 
 
+  public static class Vector2Extension
+  {
+    public static Point ToPoint(this Vector2 vec)
+    {
+      return new Point((int)vec.X, (int)vec.Y);
+    }
+    public static Point ToPoint(this Vector2 vec, int addAmount)
+    {
+      return new Point((int)vec.X + addAmount, (int)vec.Y + addAmount);
+    }
+  }
 }

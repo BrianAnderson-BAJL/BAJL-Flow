@@ -13,7 +13,6 @@ namespace FlowEngineDesigner
     public static string PluginGraphicsPath = "./Plugins/Graphics/";
     public static string PluginStaticGraphicsPath = "./Plugins/StaticGraphics/";
     public static int FlowUserHistoryMax = 0;
-    public static bool HighlightStepsOnExecution = true;
     public static string BaseNewVariableName = "var";
     public static Color CommentColorBackgroundDefault = Color.FromArgb(255, 188, 255, 189);
     public static Color CommentColorTextDefault = Color.Black;

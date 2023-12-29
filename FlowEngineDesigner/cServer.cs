@@ -198,7 +198,7 @@ namespace FlowEngineDesigner
       {
         if (cServer.UserLoggedIn is not null)
         {
-          Send(new BaseMessage(Packet.PACKET_TYPE.CloseConnection).GetPacket());
+          Send(new BaseMessage(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, Packet.PACKET_TYPE.CloseConnection).GetPacket());
         }
         if (Client is not null)
           Client.Close();

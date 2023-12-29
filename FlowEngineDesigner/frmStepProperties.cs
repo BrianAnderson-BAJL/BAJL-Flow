@@ -32,6 +32,7 @@ namespace FlowEngineDesigner
 
     private void frmStepProperties_Load(object sender, EventArgs e)
     {
+      ScrollBarWidthSubtract = System.Windows.Forms.SystemInformation.VerticalScrollBarWidth;
       txtSaveResponseName.Text = mStep.RespNames.Name;
       chkSaveResponse.Checked = mStep.SaveResponseVariable;
       txtType.Text = mStep.Name;
@@ -56,7 +57,7 @@ namespace FlowEngineDesigner
       {
         btnAddParameter.Visible = false;
       }
-      
+
       for (int x = 0; x < mStep.ParmVars.Count; x++)
       {
 
@@ -67,7 +68,7 @@ namespace FlowEngineDesigner
         {
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
           uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + YSpaceBetweenControls);
-          uc.Size = new Size(gbPanel.Width - WidthSubtract, uc.Size.Height);
+          uc.Size = new Size(gbPanel.Width - WidthSubtract - ScrollBarWidthSubtract, uc.Size.Height);
           gbPanel.Controls.Add(uc);
           userControls.Add(uc);
         }
@@ -224,10 +225,12 @@ namespace FlowEngineDesigner
       {
         Core.FunctionValidator? validator = cmbValidators.SelectedItem as Core.FunctionValidator;
         mStep.Validator = validator;
+        lblValidatorDescription.Text = validator?.Descriptoin ?? "";
       }
       else
       {
         mStep.Validator = null;
+        lblValidatorDescription.Text = "";
       }
     }
 
@@ -235,7 +238,7 @@ namespace FlowEngineDesigner
     {
       //if (FindMultipleParmVarCount() == 1)
       //{
-        //MessageBox.Show("Are you sure you want to delete the last 'Multiple' parameter? You will not be able to add a new one afterwards
+      //MessageBox.Show("Are you sure you want to delete the last 'Multiple' parameter? You will not be able to add a new one afterwards
       //}
 
       Button? btn = sender as Button;
@@ -264,14 +267,14 @@ namespace FlowEngineDesigner
 
     private void gbPanel_Paint(object sender, PaintEventArgs e)
     {
-      if (gbPanel.VerticalScroll.Visible == true)
+      //if (gbPanel.VerticalScroll.Visible == true)
       {
-        ScrollBarWidthSubtract = System.Windows.Forms.SystemInformation.VerticalScrollBarWidth;
+
       }
-      else
-      {
-        ScrollBarWidthSubtract = 0;
-      }
+      //else
+      //{
+      //  ScrollBarWidthSubtract = 0;
+      //}
     }
   }
 }

@@ -7,6 +7,7 @@ using System.Buffers.Binary;
 using static Core.Administration.Messages.BaseResponse;
 using Core.Administration.Messages;
 using System.Net.Security;
+using MySqlX.XDevAPI;
 
 namespace Core.Administration
 {
@@ -137,11 +138,13 @@ namespace Core.Administration
     public void ReadAllTlsData(SslStream stream)
     {
       byte[] temp = new byte[sizeof(int)];
+      stream.ReadTimeout = System.Threading.Timeout.Infinite; //No timeout when waiting for the first 4 bytes
       int dataRead = stream.Read(temp, 0, sizeof(int));
       if (dataRead == 4)
       {
         int length = BinaryPrimitives.ReadInt32BigEndian(temp);
         ReceiveData = new byte[length];
+        stream.ReadTimeout = 5000; //If we don't receive the rest of the packet within 5 seconds the connection will be killed
         stream.Read(ReceiveData, 0, length);
         GetData(out PacketType);
         GetData(out int val); //Can't put 'PacketId' property here, gives an error about using properties in out or ref parameters
