@@ -9,7 +9,7 @@ namespace Core.Interfaces
   public interface IDatabase
   {
     void Connect(string connectionString);
-    VariableInteger Execute(string SQL, params Variable[] vars);
+    Variable Execute(string SQL, params Variable[] vars);
     Variable Select(string SQL, params Variable[] vars);
 
     List<string> GetTables();

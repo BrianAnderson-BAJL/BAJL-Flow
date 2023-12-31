@@ -59,7 +59,7 @@ namespace Session
       vars[1].GetValue(out string password);
 
       //Check if the LoginId already exists in the database
-      Variable varLoginId = new VariableString("@LoginId", loginId); //Need to name the varialbe '@LoginId' to be used in the SQL
+      Variable varLoginId = new Variable("@LoginId", loginId); //Need to name the varialbe '@LoginId' to be used in the SQL
       Variable records = Database.Select("SELECT UserId FROM Users Where LoginId = @LoginId", varLoginId);
       if (records.SubVariables.Count > 0) //Has a record, means it found a user with the same LoginId
       {
@@ -69,11 +69,11 @@ namespace Session
 
       //LoginId doesn't exist, lets hash the password and insert it into the database
       string passwordHash = SecureHasherV1.Hash(password);
-      VariableInteger recordsAffected = Database.Execute("INSERT INTO Users (LoginId, Password) VALUES (@LoginId, @Password)", varLoginId, new VariableString("@Password", passwordHash));
+      Variable recordsAffected = Database.Execute("INSERT INTO Users (LoginId, Password) VALUES (@LoginId, @Password)", varLoginId, new Variable("@Password", passwordHash));
       if (recordsAffected.Value > 0 && recordsAffected.SubVariables.Count > 0)
       {
         recordsAffected.SubVariables[0].GetValue(out long newId); //The only sub variable will be the new Id of the record that was inserted
-        return RESP.SetSuccess(Database.Select("SELECT * FROM Users WHERE UserId = @UserId", new VariableInteger("@UserId", newId)));
+        return RESP.SetSuccess(Database.Select("SELECT * FROM Users WHERE UserId = @UserId", new Variable("@UserId", newId)));
       }
       else
         return RESP.SetError(2, "Failed to insert user into database");

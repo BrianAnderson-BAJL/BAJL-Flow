@@ -11,7 +11,6 @@ namespace Core
   {
     public Input Input = new Input("Input", Vector2.Zero);
     public Output Output = new Output();
-    //public Flow Flow;
 
     public Link(int id, Output output, Input input)
     {

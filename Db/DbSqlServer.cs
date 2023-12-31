@@ -22,7 +22,7 @@ namespace Db
       throw new NotImplementedException();
     }
 
-    public VariableInteger Execute(string SQL, params Variable[] vars)
+    public Variable Execute(string SQL, params Variable[] vars)
     {
       throw new NotImplementedException();
     }

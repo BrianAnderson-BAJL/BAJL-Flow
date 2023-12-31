@@ -217,7 +217,7 @@ namespace Core
       xml.WriteTagAndContents("Success", resp.Success);
       xml.WriteTagAndContents("ErrorNumber", resp.ErrorNumber);
       xml.WriteTagAndContents("ErrorDescription", resp.ErrorDescription);
-      xml.WriteTagAndContents("OutputIndex", resp.OutputIndex);
+      xml.WriteTagAndContents("OutputType", resp.OutputType);
       xml.WriteTagStart("FlowVariables");
       for (int x = 0; x < this.Variables.Values.Count; x++)
       {
@@ -306,7 +306,7 @@ namespace Core
       }
       if (baseVar is not null)
       {
-        VariableString? var = FindVariable(baseVar, varSplit) as VariableString;
+        Variable? var = FindVariable(baseVar, varSplit) as Variable;
         if (var is not null)
         {
           return var.Value;
@@ -331,7 +331,7 @@ namespace Core
       }
       if (baseVar is not null)
       {
-        VariableObject? variableObject = FindVariable(baseVar, varSplit) as VariableObject;
+        Variable? variableObject = FindVariable(baseVar, varSplit) as Variable;
         if (variableObject is not null)
         {
           return variableObject.Value;
@@ -554,12 +554,12 @@ namespace Core
           bool saveRespVar = Xml.GetXMLChunkAsBool(ref step, "SaveResponseVariable");
           string saveRespVarName = Xml.GetXMLChunk(ref step, "SaveResponseVariableName");
           string links = Xml.GetXMLChunk(ref step, "Links"); //Can't fully parse the links here since we haven't loaded all the steps yet
-          string parameters = Xml.GetXMLChunk(ref step, "Variables");
+          string vars = Xml.GetXMLChunk(ref step, "Variables");
           FunctionStep fs = new FunctionStep(this, stepId, pluginName, functionName, stepPos, links); //Store the links XML with the step for now so we can link the steps together below
           fs.RespNames.Name = saveRespVarName;
           string tempValidatorName = Xml.GetXMLChunk(ref step, "ValidatorName");
           fs.Validator = fs.Function.Validators.FindByName(tempValidatorName);
-          ParseVariables(fs.Function.Parms, fs.ParmVars, ref parameters);
+          ParseVariables(fs.Function.Parms, fs.ParmVars, ref vars);
           functionSteps.Add(fs);
         }
       } while (step.Length > 0);

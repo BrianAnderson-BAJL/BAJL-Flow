@@ -108,18 +108,27 @@ namespace Core
     /// <param name="pos"></param>
     public void OutputAdd(string label)
     {
-      mOutputs.Add(new Output(label, Outputs.Count));
+      mOutputs.Add(new Output(label, Output.TYPE.Success));
     }
 
     public void OutputAddSuccess()
     {
       mOutputs.Clear();
-      mOutputs.Add(new Output(Output.SUCCESS_LABEL, Outputs.Count));
+      mOutputs.Add(new Output(Output.SUCCESS_LABEL, Output.TYPE.Success));
     }
 
     public void OutputAddError()
     {
-      mOutputs.Add(new Output(Output.ERROR_LABEL, Outputs.Count));
+      mOutputs.Add(new Output(Output.ERROR_LABEL, Output.TYPE.Error));
+    }
+
+    public void UpdateErrorOutputLabel(string label)
+    {
+      Output? output = FindOutputByType(Output.TYPE.Error);
+      if (output is null)
+        throw new Exception("Unable to find Output.Type == Error");
+
+      output.Label = label;
     }
 
 
@@ -132,6 +141,16 @@ namespace Core
       for (int x = 0; x < Outputs.Count; x++)
       {
         if (Outputs[x].Label == label)
+          return Outputs[x];
+      }
+      return null;
+    }
+
+    public Output? FindOutputByType(Output.TYPE type)
+    {
+      for (int x = 0; x < Outputs.Count; ++x)
+      {
+        if (Outputs[x].Type == type) 
           return Outputs[x];
       }
       return null;

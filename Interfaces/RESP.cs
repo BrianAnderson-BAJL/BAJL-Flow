@@ -12,29 +12,29 @@ namespace Core
     public const uint ERROR = 1;
     private int mErrorNumber = 0;
     private string mErrorDescription = "";
-    private uint mOutputIndex = 0; //0 = SUCCESS
-    private Variable? Output = null;
+    private Output.TYPE mOutputType = Output.TYPE.Success;
+    private Variable? OutputVar = null;
 
 
     public Variable? Variable
     {
-      get { return Output; }
-      private set { Output = value; }
+      get { return OutputVar; }
+      private set { OutputVar = value; }
     }
 
     public static RESP SetSuccess(Variable? output = null)
     {
       RESP r = new RESP();
-      r.mOutputIndex = SUCCESS;
+      r.mOutputType = Output.TYPE.Success;
       r.mErrorNumber = 0;
-      r.Output = output;
+      r.OutputVar = output;
       return r;
     }
     public static RESP SetError(int errornumber, string errorDescription, uint outputIndex = 1)
     {
       RESP r = new RESP();
       r.mErrorNumber = errornumber;
-      r.mOutputIndex = outputIndex;
+      r.mOutputType = Output.TYPE.Error;
       r.mErrorDescription = errorDescription;
       Global.Write(errorDescription);
       return r;
@@ -48,7 +48,7 @@ namespace Core
 
     public void SetSuccess()
     {
-      mOutputIndex = SUCCESS;
+      mOutputType = Output.TYPE.Success;
       mErrorNumber = 0;
       mErrorDescription = "";
     }
@@ -57,16 +57,16 @@ namespace Core
     {
       get 
       { 
-        if (mOutputIndex == 0)
+        if (mOutputType == Output.TYPE.Success)
           return true;
         else
           return false;
       }
     }
 
-    public int OutputIndex
+    public Output.TYPE OutputType
     {
-      get {return (int)mOutputIndex; }
+      get {return mOutputType; }
     }
 
     public int ErrorNumber

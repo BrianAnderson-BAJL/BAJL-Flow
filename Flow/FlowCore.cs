@@ -64,7 +64,7 @@ namespace FlowCore
       Functions.Add(new Function("If", this, If));
 
       function = new Function("Variables Exists", this, VariablesExists);
-      function.Outputs[1].Label = "Var Missing";
+      function.UpdateErrorOutputLabel("Var Missing");
       function.Parms.Add("Variable Name", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple);
       Functions.Add(function);
 
@@ -118,8 +118,8 @@ namespace FlowCore
       //SAMPLE VARIABLES FOR DESIGNER
       {
         Variable root = new Variable(Flow.VAR_NAME_FLOW_START, DATA_FORMAT_SUB_VARIABLES.Block);
-        Variable data = new Variable(Flow.VAR_DATA);
-        data.Add(new VariableString("YOUR_SAMPLE_DATA", "GOES_HERE"));
+        Variable data = new Variable(Flow.VAR_DATA, "");
+        data.Add(new Variable("YOUR_SAMPLE_DATA", "GOES_HERE"));
         root.Add(data);
         SampleStartData = root;
         //Variable v = new Variable(Flow.VAR_NAME_FLOW_START);
@@ -222,10 +222,10 @@ namespace FlowCore
     private static RESP Trace(Core.Flow flow, Variable[] vars)
     {
       Variable varPreviousStepResp = vars[0];
-      VariableObject? varResp = varPreviousStepResp.FindSubVariableByName("resp") as VariableObject;
+      Variable? varResp = varPreviousStepResp.FindSubVariableByName("resp") as Variable;
       if (varResp is null)
         return RESP.SetSuccess();
-      VariableObject? varStep = varPreviousStepResp.FindSubVariableByName("step") as VariableObject;
+      Variable? varStep = varPreviousStepResp.FindSubVariableByName("step") as Variable;
       if (varStep is null)
         return RESP.SetSuccess();
 
@@ -261,7 +261,7 @@ namespace FlowCore
       Variable var = new Variable();
       for (int x = 0; x < splitStr.Length; x++)
       {
-        var.Add(new VariableString(x.ToString(), splitStr[x]));
+        var.Add(new Variable(x.ToString(), splitStr[x]));
       }
       return RESP.SetSuccess(var);
     }
@@ -321,11 +321,9 @@ namespace FlowCore
       if (vars.Length == 0)
         return RESP.SetSuccess();
 
-      VariableInteger? i = vars[0] as VariableInteger;
-      if (i is null)
-        return RESP.SetSuccess();
+      vars[0].GetValue(out long val);
 
-      Thread.Sleep((int)i.Value);
+      Thread.Sleep((int)val);
         
       return RESP.SetSuccess();
     }

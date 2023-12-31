@@ -9,10 +9,17 @@ namespace Core
 {
   public class Output : FlowBase
   {
+    public enum TYPE
+    {
+      Success,
+      Error,
+    }
+
     public string Label = "";
     public Vector2 Offset;
     public FunctionStep? Step = null;
-    public int OutputIndex = 0;
+    //public int OutputIndex = 0;
+    public TYPE Type = TYPE.Success;
 
     public static readonly string SUCCESS_LABEL = "Success";
     public static readonly string ERROR_LABEL = "Error";
@@ -30,23 +37,23 @@ namespace Core
     {
     }
 
-    public Output(string label, int outputIndex)
+    public Output(string label, TYPE outputType)
     {
       Label = label;
-      Offset = SUCCESS_OUTPUT_POS + (OUTPUT_OFFSET * outputIndex);
-      OutputIndex = outputIndex;
+      Offset = SUCCESS_OUTPUT_POS + (OUTPUT_OFFSET * (int)outputType);
+      Type = outputType;
     }
-    public Output(string label, FunctionStep functionStep, int outputIndex)
+    public Output(string label, FunctionStep functionStep, TYPE outputType)
     {
       Label = label;
-      Offset = SUCCESS_OUTPUT_POS + (OUTPUT_OFFSET * outputIndex);
+      Offset = SUCCESS_OUTPUT_POS + (OUTPUT_OFFSET * (int)outputType);
       this.Step = functionStep;
-      this.OutputIndex = outputIndex;
+      Type = outputType;
     }
 
     public Output Clone(FunctionStep fs)
     {
-      return new Output(this.Label, fs, this.OutputIndex);
+      return new Output(this.Label, fs, this.Type);
     }
 
     public new Vector2 Position

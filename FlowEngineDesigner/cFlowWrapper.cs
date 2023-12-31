@@ -69,26 +69,26 @@ namespace FlowEngineDesigner
 #pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
     {
       public Core.FunctionStep Step;
-      public int OutputIndex;
+      public Output.TYPE OutputType;
       public int Depth;
 
-      public PREV_STEP(Core.FunctionStep step, int outputIndex, int depth)
+      public PREV_STEP(Core.FunctionStep step, Output.TYPE outputType, int depth)
       {
         this.Step = step;
-        this.OutputIndex = outputIndex;
+        this.OutputType = outputType;
         this.Depth = depth;
       }
 
       public static bool operator ==(PREV_STEP a, PREV_STEP b)
       {
-        if (a.Step == b.Step && a.OutputIndex == b.OutputIndex)
+        if (a.Step == b.Step && a.OutputType == b.OutputType)
           return true;
 
         return false;
       }
       public static bool operator !=(PREV_STEP a, PREV_STEP b)
       {
-        if (a.Step != b.Step || a.OutputIndex != b.OutputIndex)
+        if (a.Step != b.Step || a.OutputType != b.OutputType)
           return true;
 
         return false;
@@ -117,32 +117,32 @@ namespace FlowEngineDesigner
         stepsToCheck.AddRange(stepsTemp);
         stepsTemp.Clear();
       }
-
+      allPreviousSteps.Reverse();
       for (int x = 0; x < allPreviousSteps.Count; x++)
       {
-        PREV_STEP ps = allPreviousSteps[x];
-        if (ps.Step.Function.RespNames.Name != "" && ps.OutputIndex == RESP.SUCCESS)
+        PREV_STEP prevStep = allPreviousSteps[x];
+        if (prevStep.Step.Function.RespNames.Name != "" && prevStep.OutputType == Output.TYPE.Success)
         {
-          if (ps.Step.Name == "Database.Select")
+          if (prevStep.Step.Name == "Database.Select")
           {
-            Variable var = ps.Step.RespNames.Clone();
-            PopulateVariablesFromSql(ps, ref var);
+            Variable var = prevStep.Step.RespNames.Clone();
+            PopulateVariablesFromSql(prevStep, ref var);
             variables.Add(var);
           }
           else
           {
-            variables.Add(ps.Step.RespNames);
+            variables.Add(prevStep.Step.RespNames);
           }
         }
-        else if (ps.OutputIndex != RESP.SUCCESS && ps.Depth == 0)
+        else if (prevStep.OutputType != Output.TYPE.Success && prevStep.Depth == 0)
         {
-          Variable err = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
-          err.Add(new VariableInteger("ErrorNumber", 0));
-          err.Add(new VariableString("ErrorDescription", ""));
+          Variable err = new Variable(Flow.VAR_NAME_PREVIOUS_STEP, "");
+          err.Add(new Variable("ErrorNumber", 0));
+          err.Add(new Variable("ErrorDescription", ""));
           variables.Add(err);
         }
       }
-      variables.Reverse();
+      //variables.Reverse();
       return variables;
     }
 
@@ -154,7 +154,7 @@ namespace FlowEngineDesigner
       PARM_VAR parmVar = ps.Step.ParmVars[0];
       if (parmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal && parmVar.Var.DataType == DATA_TYPE.String)
       {
-        VariableString? vs = parmVar.Var as VariableString;
+        Variable? vs = parmVar.Var as Variable;
         if (vs is null)
           return;
 
@@ -164,7 +164,7 @@ namespace FlowEngineDesigner
         var.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
         for (int x = 0; x < fields.Count; x++)
         {
-          var.Add(new VariableString(fields[x], ""));
+          var.Add(new Variable(fields[x], ""));
         }
       }
     }
@@ -180,7 +180,7 @@ namespace FlowEngineDesigner
           Link l = ps.LinkOutputs[y];
           if (l.Input.Step == step)
           {
-            previousteps.Add(new PREV_STEP(ps, y, depth));
+            previousteps.Add(new PREV_STEP(ps, l.Output.Type, depth));
           }
         }
       }

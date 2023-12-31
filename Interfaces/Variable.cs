@@ -5,138 +5,134 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Core
 {
 
-    //public abstract class aVar
-    //{
-    //  public string Name;
-    //  public List<aVar> SubVariables;
-
-    //}
-
-    //public class Var<T> : aVar
-    //{
-    //  public const string BASE_VAR_NAME = "base";
-
-    //  //public DATA_TYPE DataType = DATA_TYPE._None;
-    //  //public string Name = "";
-    //  //public List<aVar> SubVariables;
-    //  public T Value {get; set; }
-
-
-    //  //Object,
-    //  //String,
-    //  //Integer,
-    //  //Decimal,
-    //  //Boolean,
-    //  //Color,
-    //  //DropDownList,
-    //  //DropDownAllowCustom,
-    //  //Block, //Json or XML block of elements
-    //  //Array, //Json array
-
-    //  public Var(T val)
-    //  {
-    //    //if (typeof(T) == typeof(long) || typeof(T) == typeof(int))
-    //    //  DataType = DATA_TYPE.Integer;
-    //    //else if (typeof(T) == typeof(decimal) || typeof(T) == typeof(float))
-    //    //  DataType = DATA_TYPE.Decimal;
-    //    //else if (typeof(T) == typeof(bool))
-    //    //  DataType = DATA_TYPE.Boolean;
-    //    //else if (typeof(T) == typeof(System.Drawing.Color))
-    //    //  DataType = DATA_TYPE.Color;
-    //    //else if (typeof(T) == typeof(string))
-    //    //  DataType = DATA_TYPE.String;
-    //    SubVariables = new List<aVar>();
-    //    Value = val;
-    //  }
-
-
-    //  public static object CreateVar(string xml)
-    //  {
-    //    string nameTemp = Xml.GetXMLChunk(ref xml, "Name");
-    //    string literalTemp = Xml.GetXMLChunk(ref xml, "Literal");
-    //    string dataTypeTemp = Xml.GetXMLChunk(ref xml, "DataType");
-    //    string valueTemp = Xml.GetXMLChunk(ref xml, "Value");
-    //    return new Var<long>(0);
-    //  }
-
-    //  public override bool Equals(object? obj)
-    //  {
-    //    if (obj is null)
-    //      return false;
-
-    //    return base.Equals(obj);
-    //  }
-
-    //  public override int GetHashCode()
-    //  {
-    //    return base.GetHashCode();
-    //  }
-    //}
-
-    //public class Type_DropDownList
-    //{
-    //  string Value;
-    //  public static bool operator ==(Type_DropDownList dd1, Type_DropDownList dd2)
-    //  {
-    //    if (dd1.ToString() == dd2.ToString())
-    //      return true;
-    //    return false;
-    //  }
-
-    //  public static bool operator !=(Type_DropDownList dd1, Type_DropDownList dd2)
-    //  {
-    //    if (dd1.ToString() == dd2.ToString())
-    //      return false;
-    //    return true;
-    //  }
-
-    //  public bool Equals(Type_DropDownList? dd)
-    //  {
-    //    if (dd == null)
-    //      return false;
-    //    return (this == dd);
-    //  }
-
-    //  public override bool Equals(object obj) => Equals(obj as Type_DropDownList);
-
-    //  public override string ToString()
-    //  {
-    //    return Value;
-    //  }
-    //}
-
-    public class Variable : IToJson
+  public class Variable : IToJson
   {
-    public Variable? Parent = null;
     public DATA_TYPE DataType = DATA_TYPE._None;
-    public DATA_FORMAT_SUB_VARIABLES SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
     public string Name = "";
-    public List<Variable> SubVariables = new List<Variable>();
+    public List<Variable> SubVariables;
+    public DATA_FORMAT_SUB_VARIABLES SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
+    public Variable? Parent = null;
+    public dynamic Value { get; set; }
 
-    public Variable() { }
-    public Variable(string name) 
+    /// <summary>
+    /// Perform a deep copy of a variable and all subvariables
+    /// </summary>
+    /// <param name="var"></param>
+    public Variable(Variable var)
     {
-      Name = name.ToLower();
+      this.DataType = var.DataType;
+      this.Value = var.Value;
+      this.Name = var.Name;
+      this.Parent = var.Parent;
+
+      this.SubVariables = new List<Variable>(var.SubVariables.Count);
+      for (int x = 0; x < var.SubVariables.Count; x++)
+      {
+        this.Add(var.SubVariables[x].Clone());
+      }
     }
-    public Variable(string name, DATA_TYPE dataType)
+
+
+    public Variable()
     {
-      Name = name;
-      DataType = dataType;
+      DataType = DATA_TYPE._None;
+      Name = "";
+      Value = "";
+      SubVariables = new List<Variable>();
     }
-    public Variable(string name, DATA_FORMAT_SUB_VARIABLES subdataFormat)
+    public Variable(string name)
     {
+      DataType = DATA_TYPE._None;
       Name = name;
-      SubVariablesFormat = subdataFormat;
+      Value = "";
+      SubVariables = new List<Variable>();
+    }
+    public Variable(string name, long val)
+    {
+      DataType = DATA_TYPE.Integer;
+      Name = name;
+      Value = val;
+      SubVariables = new List<Variable>();
+    }
+    public Variable(string name, string val)
+    {
+      DataType = DATA_TYPE.String;
+      Name = name;
+      Value = val;
+      SubVariables = new List<Variable>();
+    }
+    public Variable(string name, bool val)
+    {
+      DataType = DATA_TYPE.Boolean;
+      Name = name;
+      Value = val;
+      SubVariables = new List<Variable>();
+    }
+    public Variable(string name, decimal val)
+    {
+      DataType = DATA_TYPE.Decimal;
+      Name = name;
+      Value = val;
+      SubVariables = new List<Variable>();
+    }
+    public Variable(string name, object val)
+    {
+      DataType = DATA_TYPE.Object;
+      Name = name;
+      Value = val;
+      SubVariables = new List<Variable>();
+    }
+
+    public void GetValue(out dynamic val)
+    {
+      val = Value;
+      return;
+    }
+
+    public void GetValue(out string val)
+    {
+      if (DataType != DATA_TYPE.String)
+        throw new Exception("Expected DATA_TYPE.String, actual DATA_TYPE == " + DataType.ToString());
+
+      val = Value;
+      return;
+    }
+
+    public void GetValue(out bool val)
+    {
+      if (DataType != DATA_TYPE.Boolean)
+        throw new Exception("Expected DATA_TYPE.Boolean, actual DATA_TYPE == " + DataType.ToString());
+
+      val = (bool)Value;
+      return;
+    }
+    public void GetValue(out long val)
+    {
+      if (DataType != DATA_TYPE.Integer)
+        throw new Exception("Expected DATA_TYPE.Integer, actual DATA_TYPE == " + DataType.ToString());
+
+      val = (long)Value;
+      return;
+    }
+    public void GetValue(out decimal val)
+    {
+      if (DataType != DATA_TYPE.Decimal)
+        throw new Exception("Expected DATA_TYPE.Decimal, actual DATA_TYPE == " + DataType.ToString());
+
+      val = (decimal)Value;
+      return;
     }
 
     public void Add(Variable? v)
     {
       if (v is null)
         return;
+
       v.Parent = this;
       SubVariables.Add(v);
     }
@@ -148,16 +144,11 @@ namespace Core
 
     public Variable Clone()
     {
-      Variable v = new Variable(Name);
-      v.DataType = DataType;
-      for (int x = 0; x < SubVariables.Count; x++)
-      {
-        v.SubVariables.Add(SubVariables[x].Clone());
-      }
-      return v;
+      return new Variable(this);
     }
 
-    public virtual string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0) //
+
+    public virtual string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
     {
       string tabs = new string('\t', TabIndents);
       TabIndents++;
@@ -202,24 +193,6 @@ namespace Core
       return jsonStr;
     }
 
-    public virtual string XmlCreate()
-    {
-      Xml xml = new Xml();
-      xml.WriteMemoryNew();
-      xml.WriteTagStart("Variables");
-
-      xml.WriteTagEnd("Variables");
-      return xml.ReadMemory();
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="jsonStr"></param>
-    /// <returns></returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="ArgumentException"></exception>
-    /// <exception cref="Exception">Generic JSON parsing errors</exception>
     public static Variable? JsonParse(ref string jsonStr)
     {
       if (jsonStr is null)
@@ -238,6 +211,7 @@ namespace Core
         return var.SubVariables[0];
       return var;
     }
+
 
     public Variable? FindSubVariableByName(string name)
     {
@@ -264,266 +238,10 @@ namespace Core
       return true; //Didn't find the variable, so it isn't there, it wasn't deleted, but it is gone, so still a success
     }
 
-
-    public static Variable XmlParse(ref string xmlStr)
-    {
-      if (xmlStr is null)
-        throw new ArgumentNullException(nameof(xmlStr));
-      xmlStr = xmlStr.Trim();
-      if (xmlStr.Length == 0)
-        throw new ArgumentException("XML is a zero length string");
-      if (xmlStr[0] != '<')
-        throw new ArgumentException("XML is invalid, it doesn't start with '<'");
-      Variable xml = new Variable();
-      xml.Name = "data";
-      ParserXml parser = new ParserXml();
-      parser.ParseXml(ref xmlStr, xml);
-      return xml;
-    }
-
     public void GetValueAsString(out string value)
     {
-      value = "";
-      if (this.DataType == DATA_TYPE.String)
-      {
-        this.GetValue(out value);
-      }
-      else if (this.DataType == DATA_TYPE.Integer)
-      {
-        this.GetValue(out long temp);
-        value = temp.ToString();
-      }
-      else if (this.DataType == DATA_TYPE.Decimal)
-      {
-        this.GetValue(out decimal temp);
-        value = temp.ToString();
-      }
-      else if (this.DataType == DATA_TYPE.Boolean)
-      {
-        this.GetValue(out bool temp);
-        value = temp.ToString();
-      }
-    }
-
-    public void GetValue(out string value)
-    {
-      value = "";
-      VariableString? vs = this as VariableString;
-      if (vs is not null)
-        value = vs.Value;
-    }
-
-    public void GetValue(out long value)
-    {
-      value = 0;
-      VariableInteger? vi = this as VariableInteger;
-      if (vi is not null)
-      {
-        value = vi.Value;
-      }
+      value = Value.ToString();
       return;
     }
-
-    public void GetValue(out decimal value)
-    {
-      value = 0;
-      VariableDecimal? vd = this as VariableDecimal;
-      if (vd is not null)
-      {
-        value = vd.Value;
-      }
-      return;
-    }
-
-    public void GetValue(out bool value)
-    {
-      value = false;
-      VariableBoolean? vb = this as VariableBoolean;
-      if (vb is not null)
-      {
-        value = vb.Value;
-      }
-      return;
-    }
-
-    public void GetValue(out object value)
-    {
-      value = "";
-      VariableObject? vs = this as VariableObject;
-      if (vs is not null)
-        value = vs.Value;
-    }
-
-    public void GetValue<T>(out T? value) where T : class
-    {
-      value = null;
-      VariableObject? vs = this as VariableObject;
-      if (vs is not null)
-        value = (T)vs.Value;
-    }
-
   }
-
-  public class VariableString : Variable
-  {
-    public string Value = "";
-    public VariableString(Variable v)
-    {
-      this.Name = v.Name;
-      this.SubVariables = v.SubVariables;
-      this.DataType = DATA_TYPE.String;
-    }
-
-    public VariableString(string name, string value)
-    {
-      Name = name;
-      Value = value;
-      DataType = DATA_TYPE.String;
-    }
-
-    public override string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
-    {
-      string jsonStr = new string('\t', TabIndents);
-      if (this.Name != "")
-      {
-        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
-          jsonStr += "\"" + this.Name + "\":";
-      }
-      jsonStr += "\"" + this.Value + "\"";
-      
-      return jsonStr;
-    }
-
-    public override string ToString()
-    {
-      return this.Name + " [string] " + this.Value;
-    }
-  }
-
-  public class VariableInteger : Variable
-  {
-    public long Value;
-    public VariableInteger(Variable v)
-    {
-      this.Name = v.Name;
-      this.SubVariables = v.SubVariables;
-      this.DataType = DATA_TYPE.Integer;
-    }
-    public VariableInteger(string name, long val)
-    {
-      this.Name = name;
-      this.Value = val;
-      this.DataType = DATA_TYPE.Integer;
-    }
-
-    public override string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
-    {
-      string jsonStr = new string('\t', TabIndents);
-      if (this.Name != "")
-      {
-        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
-          jsonStr += "\"" + this.Name + "\":";
-      }
-      jsonStr += this.Value.ToString();
-
-      return jsonStr;
-    }
-
-
-    public override string ToString()
-    {
-      return this.Name + " [int] " + this.Value.ToString();
-    }
-
-  }
-  public class VariableDecimal : Variable
-  {
-    public decimal Value;
-    public VariableDecimal(Variable v)
-    {
-      this.Name = v.Name;
-      this.SubVariables = v.SubVariables;
-      this.DataType = DATA_TYPE.Decimal;
-    }
-    public VariableDecimal(string name, decimal value)
-    {
-      this.Name = name;
-      this.Value= value;
-      this.DataType = DATA_TYPE.Decimal;
-    }
-
-    public override string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
-    {
-      string jsonStr = new string('\t', TabIndents);
-      if (this.Name != "")
-      {
-        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
-          jsonStr += "\"" + this.Name + "\":";
-      }
-      jsonStr += this.Value.ToString();
-
-      return jsonStr;
-    }
-
-    public override string ToString()
-    {
-      return this.Name + " [dec] " + this.Value.ToString();
-    }
-  }
-
-  public class VariableBoolean : Variable
-  {
-    public bool Value;
-    public VariableBoolean(Variable v)
-    {
-      this.Name = v.Name.ToLower();
-      this.SubVariables = v.SubVariables;
-      this.DataType = DATA_TYPE.Boolean;
-    }
-    public VariableBoolean(string name, bool value)
-    {
-      this.Name = name;
-      this.Value = value;
-      this.DataType = DATA_TYPE.Boolean;
-    }
-
-    public override string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
-    {
-      string jsonStr = new string('\t', TabIndents);
-
-      if (this.Name != "")
-      {
-        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
-          jsonStr += "\"" + this.Name + "\":";
-      }
-      jsonStr += this.Value.ToString();
-
-      return jsonStr;
-    }
-
-
-    public override string ToString()
-    {
-      return this.Name + " [bool] " + this.Value.ToString();
-    }
-
-  }
-
-  public class VariableObject : Variable
-  {
-    public object Value;
-    public VariableObject(string key, object v)
-    {
-      Name = key;
-      Value = v;
-      this.DataType = DATA_TYPE.Object;
-
-    }
-    public override string ToString()
-    {
-      return this.Name + " [obj] " + this.Value.ToString();
-    }
-
-  }
-
 }

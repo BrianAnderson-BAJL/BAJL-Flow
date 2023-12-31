@@ -436,26 +436,26 @@ namespace Core.Parsers
         {
           if (jsonType.NextValueType == JSON_VALUE_TYPE.String)
           {
-            VariableString vs = new VariableString(newKey); //We now know it is a string, lets transform it into such
-            vs.Value = ParseJsonStringValue(ref jsonStr);
+            string tempStr = ParseJsonStringValue(ref jsonStr);
+            Variable vs = new Variable(newKey.Name, tempStr); //We now know it is a string, lets transform it into such
             jsonVar.SubVariables.Add(vs); //Now we can add it to the sub variables list, now that we know the data type
           }
           else if (jsonType.NextValueType == JSON_VALUE_TYPE.Integer)
           {
-            VariableInteger vi = new VariableInteger(newKey); //We now know it is a string, lets transform it into such
-            vi.Value = ParseJsonIntegerValue(ref jsonStr);
+            long tempLong = ParseJsonIntegerValue(ref jsonStr);
+            Variable vi = new Variable(newKey.Name, tempLong); //We now know it is a string, lets transform it into such
             jsonVar.SubVariables.Add(vi); //Now we can add it to the sub variables list, now that we know the data type
           }
           else if (jsonType.NextValueType == JSON_VALUE_TYPE.Decimal)
           {
-            VariableDecimal vd = new VariableDecimal(newKey); //We now know it is a string, lets transform it into such
-            vd.Value = ParseJsonDecimalValue(ref jsonStr);
+            decimal tempDec = ParseJsonDecimalValue(ref jsonStr);
+            Variable vd = new Variable(newKey.Name, tempDec); //We now know it is a string, lets transform it into such
             jsonVar.SubVariables.Add(vd); //Now we can add it to the sub variables list, now that we know the data type
           }
           else if (jsonType.NextValueType == JSON_VALUE_TYPE.Boolean)
           {
-            VariableBoolean vi = new VariableBoolean(newKey); //We now know it is a string, lets transform it into such
-            vi.Value = ParseJsonBooleanValue(ref jsonStr);
+            bool tempBool = ParseJsonBooleanValue(ref jsonStr);
+            Variable vi = new Variable(newKey.Name, tempBool); //We now know it is a string, lets transform it into such
             jsonVar.SubVariables.Add(vi); //Now we can add it to the sub variables list, now that we know the data type
           }
           else if (jsonType.NextValueType == JSON_VALUE_TYPE.Array)

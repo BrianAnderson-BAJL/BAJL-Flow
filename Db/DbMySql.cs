@@ -35,37 +35,27 @@ namespace Db
       //Skip the 0 (zero) entry, that is the actual SQL, get all the paramenters after that
       for (int x = 1; x < vars.Length; x++)
       {
-        if (vars[x].DataType == DATA_TYPE.String)
-        {
-          vars[x].GetValue(out string val);
-          cmd.Parameters.AddWithValue(vars[x].Name, val);
-        }
-        else if (vars[x].DataType == DATA_TYPE.Integer)
-        {
-          vars[x].GetValue(out long val);
-          cmd.Parameters.AddWithValue(vars[x].Name, val);
-        }
-        else if (vars[x].DataType == DATA_TYPE.Decimal)
-        {
-          vars[x].GetValue(out decimal val);
-          cmd.Parameters.AddWithValue(vars[x].Name, val);
-        }
-        else if (vars[x].DataType == DATA_TYPE.Boolean)
-        {
-          vars[x].GetValue(out bool val);
-          byte valByte = 0;
-          if (val == true)
-            valByte = 1;
-          cmd.Parameters.AddWithValue(vars[x].Name, valByte);
-        }
+        vars[x].GetValue(out dynamic val);
+
+        cmd.Parameters.AddWithValue(vars[x].Name, val);
+        
+
+        //else if (vars[x].DataType == DATA_TYPE.Boolean)
+        //{
+        //  vars[x].GetValue(out bool val);
+        //  byte valByte = 0;
+        //  if (val == true)
+        //    valByte = 1;
+        //  cmd.Parameters.AddWithValue(vars[x].Name, valByte);
+        //}
 
         //cmd.Parameters.AddWithValue(vars[x].Name, 
       }
     }
 
-    public VariableInteger Execute(string SQL, params Variable[] vars)
+    public Variable Execute(string SQL, params Variable[] vars)
     {
-      VariableInteger root = new VariableInteger("RecordsAffected", 0);
+      Variable root = new Variable("RecordsAffected", 0);
       using (MySqlConnection connection = new MySqlConnection(ConnectionString))
       {
         connection.Open();
@@ -75,7 +65,7 @@ namespace Db
           PopulateParameters(command, vars);
           long recordsAffected = command.ExecuteNonQuery();
           if (SQL.StartsWith("INSERT", StringComparison.InvariantCultureIgnoreCase) == true)
-            root.SubVariables.Add(new VariableInteger("LastInsertedId", command.LastInsertedId));
+            root.SubVariables.Add(new Variable("LastInsertedId", command.LastInsertedId));
 
           root.Value = recordsAffected;
         }
@@ -85,7 +75,7 @@ namespace Db
 
     public Variable Select(string SQL, params Variable[] vars)
     {
-      Variable root = new Variable("Recordset");
+      Variable root = new Variable("Recordset", "");
       using (MySqlConnection connection = new MySqlConnection(ConnectionString))
       {
         connection.Open();
@@ -98,7 +88,7 @@ namespace Db
             bool tinyAsBool = mDb.SettingGetAsBoolean(Db.Database.DB_TREAT_TINYINT_AS_BOOLEAN);
             while (reader.Read())
             {
-              Variable row = new Variable();
+              Variable row = new Variable("record", "");
               Variable column;
               for (int x = 0; x < reader.FieldCount; x++) 
               {
@@ -107,52 +97,60 @@ namespace Db
                 Type type = reader.GetFieldType(x);
                 if (reader.IsDBNull(x) == true)
                 {
-                  column = new Variable(columnName);
+                  column = new Variable(columnName, "");
                 }
                 else if (type == typeof(string))
                 {
-                  column = new VariableString(columnName, reader.GetString(x));
+                  column = new Variable(columnName, reader.GetString(x));
                 }
                 else if (type == typeof(short))
                 {
-                  column = new VariableInteger(columnName, reader.GetInt16(x));
+                  column = new Variable(columnName, (long)reader.GetInt16(x));
                 }
                 else if (type == typeof(int))
                 {
-                  column = new VariableInteger(columnName, reader.GetInt32(x));
+                  column = new Variable(columnName, (long)reader.GetInt32(x));
                 }
                 else if (type == typeof(long))
                 {
-                  column = new VariableInteger(columnName, reader.GetInt64(x));
+                  column = new Variable(columnName, reader.GetInt64(x));
+                }
+                else if (type == typeof(float))
+                {
+                  column = new Variable(columnName, (decimal)reader.GetFloat(x));
+                }
+                else if (type == typeof(double))
+                {
+                  column = new Variable(columnName, (decimal)reader.GetDouble(x));
                 }
                 else if (type == typeof(decimal))
                 {
-                  column = new VariableDecimal(columnName, reader.GetDecimal(x));
+                  column = new Variable(columnName, reader.GetDecimal(x));
                 }
                 else if (type == typeof(DateTime))
                 {
-                  column = new VariableString(columnName, reader.GetDateTime(x).ToString());
+                  column = new Variable(columnName, reader.GetDateTime(x).ToString());
                 }
                 else if (type == typeof(byte) && tinyAsBool == false)
                 {
-                  column = new VariableInteger(columnName, reader.GetByte(x));
+                  column = new Variable(columnName, reader.GetByte(x));
                 }
                 else if (type == typeof(sbyte) && tinyAsBool == false)
                 {
-                  column = new VariableInteger(columnName, reader.GetSByte(x));
+                  column = new Variable(columnName, reader.GetSByte(x));
                 }
                 else if ((type == typeof(sbyte) || type == typeof(byte)) && tinyAsBool == true)
                 {
-                  column = new VariableBoolean(columnName, reader.GetSByte(x) >= 1);
+                  column = new Variable(columnName, reader.GetSByte(x) >= 1);
                 }
                 else if (type == typeof(byte) && tinyAsBool == true)
                 {
-                  column = new VariableBoolean(columnName, reader.GetByte(x) >= 1);
+                  column = new Variable(columnName, reader.GetByte(x) >= 1);
                 }
                 else
                 {
                   Global.Write($"Unknown column type [{type.Name}]", DEBUG_TYPE.Warning);
-                  column = new VariableString(columnName, $"Unknown column type [{type.Name}]");
+                  column = new Variable(columnName, $"Unknown column type [{type.Name}]");
                 }
                 row.SubVariables.Add(column);
               }

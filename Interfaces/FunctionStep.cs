@@ -19,7 +19,7 @@ namespace Core
     public string LinkStr = "";
     public Dictionary<string, object> ExtraValues = new Dictionary<string, object>(); //This is only for the designer, in case they want to store some extra stuff with the step (step image data)
     public bool SaveResponseVariable = false;
-    public Variable RespNames = new Variable();
+    public Variable RespNames = new Variable("", "");
     public PARM_VARS ParmVars = new PARM_VARS();
     public string DebugTraceXml = "";
     public FunctionValidator? Validator = null;
@@ -69,7 +69,7 @@ namespace Core
       for (int x = 0; x < LinkOutputs.Count; x++)
       {
         FunctionStep? s = LinkOutputs[x].Input.Step;
-        if (s is not null && resps.OutputIndex == LinkOutputs[x].Output.OutputIndex)
+        if (s is not null && resps.OutputType == LinkOutputs[x].Output.Type)
         {
           nextSteps.Add(s);
         }
@@ -95,7 +95,7 @@ namespace Core
     /// <returns></returns>
     public virtual RESP Execute(Core.Flow flow)
     {
-      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
+      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP, "");
 
       if (ParmVars.Count < Function.Parms.Count) //ParmVars could have more parameters than Function.Parms if one of them is multiple
       {
@@ -120,7 +120,7 @@ namespace Core
         }
         else
         {
-          vars[x] = new VariableString($"varName{x}", pv.VariableName);
+          vars[x] = new Variable($"varName{x}", pv.VariableName);
         }
       }
 
@@ -136,11 +136,11 @@ namespace Core
     GotoResults:
       if (resps.Success == false) //If there was an error, lets create the error number & description to be used in the flow, while the resp object contains the same info, it isn't accessible in the flow
       {
-        var.Add(new VariableInteger("ErrorNumber", resps.ErrorNumber));
-        var.Add(new VariableString("ErrorDescription", resps.ErrorDescription));
+        var.Add(new Variable("ErrorNumber", resps.ErrorNumber));
+        var.Add(new Variable("ErrorDescription", resps.ErrorDescription));
       }
-      var.SubVariables.Add(new VariableObject("resp", resps));
-      var.SubVariables.Add(new VariableObject("step", this));
+      var.SubVariables.Add(new Variable("resp", resps));
+      var.SubVariables.Add(new Variable("step", this));
       flow.VariableAdd(Flow.VAR_NAME_PREVIOUS_STEP, var);  //Previous step variable always contains the last steps values
       if (this.SaveResponseVariable == true)
       {

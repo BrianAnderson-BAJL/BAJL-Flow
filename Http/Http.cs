@@ -155,7 +155,7 @@ namespace Http
         Variable headers = new Variable(VAR_HEADERS, DATA_FORMAT_SUB_VARIABLES.Block);
         root.Add(headers);
         Variable data = new Variable(Flow.VAR_DATA);
-        data.Add(new VariableString("YOUR_SAMPLE_DATA", "GOES_HERE"));
+        data.Add(new Variable("YOUR_SAMPLE_DATA", "GOES_HERE"));
         root.Add(data);
         SampleStartData = root;
       }
@@ -237,7 +237,7 @@ namespace Http
               Variable baseVar = new Variable(Flow.VAR_NAME_FLOW_START);
               Variable requestVar = new Variable(Flow.VAR_REQUEST);
               baseVar.Add(requestVar);
-              requestVar.Add(new VariableObject(PARM_CONNECTION_HANDLE, context));
+              requestVar.Add(new Variable(PARM_CONNECTION_HANDLE, context));
               requestVar.Add(GetHeaders(request));
               if (request.ContentType == "application/json" && data is not null && data.Length > 0)
               {
@@ -274,13 +274,13 @@ namespace Http
         string? k = request.Headers.AllKeys[x];
         if (k is not null)
         {
-          VariableString headerVar = new VariableString(k, "");
+          Variable headerVar = new Variable(k, "");
           string[]? v = request.Headers.GetValues(k);
           if (v is not null)
           {
             for (int y = 0; y < v.Length; y++)
             {
-              headerVar.Add(new VariableString(k, v[y]));
+              headerVar.Add(new Variable(k, v[y]));
             }
           }
           headers.Add(headerVar);

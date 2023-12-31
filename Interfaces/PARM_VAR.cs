@@ -64,20 +64,20 @@ namespace Core
     {
       if (Parm.DataType != DATA_TYPE.String && Parm.StringSubType != STRING_SUB_TYPE.DropDownList && Parm.DataType != DATA_TYPE.Various)
         throw new ArgumentException("PARM_VAR.SetVariableLiteral(string) -  DataType is not a String");
-      mVar = new VariableString(Parm.Name, val);
+      mVar = new Variable(Parm.Name, val);
     }
 
     public void SetVariableLiteral(long val)
     {
       if (Parm.DataType != DATA_TYPE.Integer && Parm.DataType != DATA_TYPE.Various)
         throw new ArgumentException("PARM_VAR.SetVariableLiteral(long) -  DataType is not an Integer");
-      mVar = new VariableInteger(Parm.Name, val);
+      mVar = new Variable(Parm.Name, val);
     }
     public void SetVariableLiteral(decimal val)
     {
       if (Parm.DataType != DATA_TYPE.Decimal && Parm.DataType != DATA_TYPE.Various)
         throw new ArgumentException("PARM_VAR.SetVariableLiteral(decimal) -  DataType is not an Decimal");
-      mVar = new VariableDecimal(Parm.Name, val);
+      mVar = new Variable(Parm.Name, val);
     }
 
     public void SetVariableLiteral(Variable var)
@@ -109,7 +109,7 @@ namespace Core
       val = "";
       if (ParmLiteralOrVariable == PARM_L_OR_V.Literal)
       {
-        VariableString? vs = Var as VariableString;
+        Variable? vs = Var as Variable;
         if (vs is not null)
         {
           val = vs.Value;
@@ -122,7 +122,7 @@ namespace Core
       }
       else if (VarName is not null && flow is not null)
       {
-        VariableString? vs = flow.FindVariable(VarName.Value) as VariableString;
+        Variable? vs = flow.FindVariable(VarName.Value);
         if (vs is not null)
         {
           val = vs.Value;
@@ -137,9 +137,8 @@ namespace Core
       val = 0;
       if (ParmLiteralOrVariable == PARM_L_OR_V.Literal)
       {
-        VariableInteger? vs = Var as VariableInteger;
-        if (vs is not null)
-          val = vs.Value;
+        if (Var is not null)
+          val = Var.Value;
       }
       else if (VarName is not null)
       {
@@ -152,9 +151,8 @@ namespace Core
       val = 0;
       if (ParmLiteralOrVariable == PARM_L_OR_V.Literal)
       {
-        VariableDecimal? vs = Var as VariableDecimal;
-        if (vs is not null)
-          val = vs.Value;
+        if (Var is not null)
+          val = Var.Value;
       }
       else if (VarName is not null)
       {
@@ -167,9 +165,8 @@ namespace Core
       val = false;
       if (ParmLiteralOrVariable == PARM_L_OR_V.Literal)
       {
-        VariableBoolean? vs = Var as VariableBoolean;
-        if (vs is not null)
-          val = vs.Value;
+        if (Var is not null)
+          val = Var.Value;
       }
       else if (VarName is not null)
       {
@@ -201,7 +198,7 @@ namespace Core
     public PARM_VAR(PARM parm, long value)
     {
       Parm = parm;
-      mVar = new VariableInteger(parm.Name, value);
+      mVar = new Variable(parm.Name, value);
       VarName = null;
       ParmLiteralOrVariable = PARM_L_OR_V.Literal;
       this.ParmName = parm.Name;
@@ -216,7 +213,7 @@ namespace Core
     public PARM_VAR(PARM parm, string value)
     {
       Parm = parm;
-      mVar = new VariableString(parm.Name, value);
+      mVar = new Variable(parm.Name, value);
       VarName = null;
       ParmLiteralOrVariable = PARM_L_OR_V.Literal;
       this.ParmName = parm.Name;
@@ -225,7 +222,7 @@ namespace Core
     public PARM_VAR(PARM parm, object value)
     {
       Parm = parm;
-      mVar = new VariableObject(parm.Name, value);
+      mVar = new Variable(parm.Name, value);
       VarName = null;
       ParmLiteralOrVariable = PARM_L_OR_V.Literal;
       this.ParmName = parm.Name;
@@ -234,7 +231,7 @@ namespace Core
     public PARM_VAR(PARM parm, decimal value)
     {
       Parm = parm;
-      mVar = new VariableDecimal(parm.Name, value);
+      mVar = new Variable(parm.Name, value);
       VarName = null;
       ParmLiteralOrVariable = PARM_L_OR_V.Literal;
       this.ParmName = parm.Name;
@@ -243,7 +240,7 @@ namespace Core
     public PARM_VAR(PARM parm, bool value)
     {
       Parm = parm;
-      mVar = new VariableBoolean(parm.Name, value);
+      mVar = new Variable(parm.Name, value);
       VarName = null;
       ParmLiteralOrVariable = PARM_L_OR_V.Literal;
       this.ParmName = parm.Name;
