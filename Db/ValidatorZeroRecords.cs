@@ -16,7 +16,7 @@ namespace Database
       Descriptoin = "If the SQL returns zero records in the recordset then consider this a success. Might want to ensure that an Email address does not already appear in the database.";
     }
 
-    public override void Validate(RESP resp)
+    public override void Validate(ref RESP resp)
     {
       if (resp.Success == false)
         return; //It already failed for another reason, maybe bad SQL, no need to check more

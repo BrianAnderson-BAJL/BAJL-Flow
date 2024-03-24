@@ -38,7 +38,7 @@ namespace FlowEngineDesigner
       UserLoginResponse loginResponse = new UserLoginResponse(e.Packet);
       cServer.UserLoggedIn = new Core.User();
       cServer.UserLoggedIn.LoginId = loginResponse.LoginId;
-      cServer.UserLoggedIn.SecurityProfile = loginResponse.SecurityProfile;
+      cServer.UserLoggedIn.SecurityProfileNameTemp = loginResponse.SecurityProfile;
       cServer.UserLoggedIn.NameFirst = loginResponse.NameFirst;
       cServer.UserLoggedIn.NameSur = loginResponse.NameSur;
       cServer.UserLoggedIn.SessionKey = loginResponse.SessionKey;
@@ -53,7 +53,7 @@ namespace FlowEngineDesigner
 
       cServer.RefreshSecurityProfiles();
 
-
+      Global.FormMain.debugAlwaysToolStripMenuItem.Checked = cOptions.AdministrationDebugAlways;
     }
 
     private void frmServerConnect_Load(object sender, EventArgs e)

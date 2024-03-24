@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using static Core.Parsers.SqlParser.ParsedUnit;
 
 namespace Core.Parsers
 {
@@ -18,7 +19,7 @@ namespace Core.Parsers
         Keyword,
         Astrisk,
         Function,
-        Field,
+        FieldOrResult,
         DatabaseStructure,   //Field or table name or such
         Delimter, //White space, or comma
         Parentheses,
@@ -27,9 +28,14 @@ namespace Core.Parsers
       }
 
       /// <summary>
-      /// The actual word that is part of the SQL. ('SELECT', 'WHERE', ...)
+      /// The actual word or delimiter that is part of the SQL. ('SELECT', 'WHERE', ...)
       /// </summary>
       public string Value = "";
+
+      /// <summary>
+      /// If this is a FieldOrResult UNIT_TYPE it could be renamed to this if the previous keyword was 'AS'
+      /// </summary>
+      public string Name = "";
 
       /// <summary>
       /// What kind of unit is this (Keyword, Function, Delimiter, ...)
@@ -93,7 +99,7 @@ namespace Core.Parsers
       {
         List<string> list = new List<string>();
 
-        if (unitType == UNIT_TYPE.Field)
+        if (unitType == UNIT_TYPE.FieldOrResult)
         {
           bool isAs = false;
           for (int x = 0; x < SubUnits.Count; x++)
@@ -118,6 +124,17 @@ namespace Core.Parsers
         }
         return list;
       }
+
+      public ParsedUnit? GetLastOf(UNIT_TYPE unitType)
+      {
+        for (int x = SubUnits.Count - 1; x >= 0; x--)
+        {
+          if (SubUnits[x].UnitType == unitType)
+            return SubUnits[x];
+        }
+        return null;
+      }
+      
 
       /// <summary>
       /// Set which kind of unit this word of text is and set the color for this unit
@@ -179,7 +196,7 @@ namespace Core.Parsers
           }
         }
         if (beforeFrom == true)
-          UnitType = UNIT_TYPE.Field;
+          UnitType = UNIT_TYPE.FieldOrResult;
         else
           UnitType = UNIT_TYPE.DatabaseStructure;
 

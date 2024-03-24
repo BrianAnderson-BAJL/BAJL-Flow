@@ -43,7 +43,7 @@ namespace Core
       Offset = SUCCESS_OUTPUT_POS + (OUTPUT_OFFSET * (int)outputType);
       Type = outputType;
     }
-    public Output(string label, FunctionStep functionStep, TYPE outputType)
+    public Output(string label, FunctionStep? functionStep, TYPE outputType)
     {
       Label = label;
       Offset = SUCCESS_OUTPUT_POS + (OUTPUT_OFFSET * (int)outputType);
@@ -54,6 +54,11 @@ namespace Core
     public Output Clone(FunctionStep fs)
     {
       return new Output(this.Label, fs, this.Type);
+    }
+
+    public Output Clone()
+    {
+      return new Output(this.Label, this.Step, this.Type);
     }
 
     public new Vector2 Position

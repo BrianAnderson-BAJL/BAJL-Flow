@@ -103,7 +103,6 @@ namespace Core
     /// </summary>
     /// <param name="val"></param>
     /// <param name="flow"></param>
-    /// <exception cref="NotImplementedException"></exception>
     public bool GetValue(out string val, Flow? flow = null)
     {
       val = "";
@@ -131,6 +130,8 @@ namespace Core
       }
       return false;
     }
+
+
 
     public void GetValue(out long val, Flow? flow = null)
     {

@@ -56,9 +56,10 @@ namespace FlowEngineDesigner
           for (int x = 0; x < response.Users.Count; x++)
           {
             ListViewItem lvi = lstUsers.Items.Add(response.Users[x].LoginId);
+            response.Users[x].SecurityProfile = cServer.FindSecurityProfileByName(response.Users[x].SecurityProfileNameTemp);
             lvi.SubItems.Add(response.Users[x].NameFirst);
             lvi.SubItems.Add(response.Users[x].NameSur);
-            lvi.SubItems.Add(response.Users[x].SecurityProfile);
+            lvi.SubItems.Add(response.Users[x].SecurityProfile.Name);
             lvi.Tag = response.Users[x];
           }
         }

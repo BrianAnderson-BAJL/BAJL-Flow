@@ -41,6 +41,7 @@
       lblValidator = new Label();
       cmbValidators = new ComboBox();
       lblValidatorDescription = new Label();
+      lblPosition = new Label();
       gbParameters.SuspendLayout();
       gbPanel.SuspendLayout();
       SuspendLayout();
@@ -65,7 +66,7 @@
       // btnOk
       // 
       btnOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      btnOk.Location = new Point(857, 362);
+      btnOk.Location = new Point(857, 547);
       btnOk.Name = "btnOk";
       btnOk.Size = new Size(91, 42);
       btnOk.TabIndex = 8;
@@ -79,7 +80,7 @@
       gbParameters.Controls.Add(gbPanel);
       gbParameters.Location = new Point(18, 108);
       gbParameters.Name = "gbParameters";
-      gbParameters.Size = new Size(930, 242);
+      gbParameters.Size = new Size(930, 427);
       gbParameters.TabIndex = 9;
       gbParameters.TabStop = false;
       gbParameters.Text = "Parameters";
@@ -92,7 +93,7 @@
       gbPanel.Controls.Add(btnAddParameter);
       gbPanel.Location = new Point(6, 22);
       gbPanel.Name = "gbPanel";
-      gbPanel.Size = new Size(918, 214);
+      gbPanel.Size = new Size(918, 399);
       gbPanel.TabIndex = 4;
       gbPanel.Paint += gbPanel_Paint;
       // 
@@ -173,12 +174,21 @@
       lblValidatorDescription.Size = new Size(410, 47);
       lblValidatorDescription.TabIndex = 15;
       // 
+      // lblPosition
+      // 
+      lblPosition.AutoSize = true;
+      lblPosition.Location = new Point(27, 572);
+      lblPosition.Name = "lblPosition";
+      lblPosition.Size = new Size(0, 15);
+      lblPosition.TabIndex = 16;
+      // 
       // frmStepProperties
       // 
       AcceptButton = btnOk;
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(960, 416);
+      ClientSize = new Size(960, 601);
+      Controls.Add(lblPosition);
       Controls.Add(lblValidatorDescription);
       Controls.Add(cmbValidators);
       Controls.Add(lblValidator);
@@ -213,5 +223,6 @@
     private Button btnDeleteParameter;
     private Button btnAddParameter;
     private Label lblValidatorDescription;
+    private Label lblPosition;
   }
 }

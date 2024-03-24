@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Numerics;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,10 +16,11 @@ namespace Core
   /// </summary>
   public class Xml
   {
-    public enum BASE_64_ENCODE
+    public enum BAJL_ENCODE
     {
       None,
-      Encoded,
+      Simple,
+      Base64Encoding,
 
     }
 #pragma warning disable CS8602 // Dereference of a possibly null reference.
@@ -123,7 +125,8 @@ namespace Core
 
     public void WriteTagAndContents(string TagName, Color Value)
     {
-      WriteTagAndContents(TagName, Value.ToString());
+      //{R:0 G:0 B:0 A:0}
+      WriteTagAndContents(TagName, $"{{R:{Value.R} G:{Value.G} B:{Value.B} A:{Value.A}}}");
     }
 
     public void WriteTagAndContents(string TagName, Vector3 Value)
@@ -180,13 +183,17 @@ namespace Core
     //  TagName = Tabs + "<" + TagName + ">" + WebUtility.HtmlEncode(Value) + "</" + TagName + ">";
     //  mWriter.WriteLine(TagName);
     //}
-    public void WriteTagAndContents(string TagName, string Value, BASE_64_ENCODE encoding = BASE_64_ENCODE.None)
+    public void WriteTagAndContents(string TagName, string Value, BAJL_ENCODE encoding = BAJL_ENCODE.None)
     {
       string Tabs = BuildTabsBasedOnIndentLevel();
-      if (encoding == BASE_64_ENCODE.Encoded)
+      if (encoding == BAJL_ENCODE.Base64Encoding)
       {
         byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes(Value);
         Value = System.Convert.ToBase64String(plainTextBytes);
+      }
+      else if (encoding == BAJL_ENCODE.Simple)
+      {
+        Value = System.Web.HttpUtility.HtmlEncode(Value);
       }
       TagName = Tabs + "<" + TagName + ">" + Value + "</" + TagName + ">";
       mWriter.WriteLine(TagName);
@@ -208,25 +215,17 @@ namespace Core
       mIndentLevel++;
     }
 
-    public void WriteTagContents(string Value, BASE_64_ENCODE encoding = BASE_64_ENCODE.None)
+    public void WriteTagContentsBare(string Value, BAJL_ENCODE encoding = BAJL_ENCODE.None)
     {
       //mIndentLevel++;
-      string Tabs = BuildTabsBasedOnIndentLevel();
-      if (encoding == BASE_64_ENCODE.Encoded)
+      if (encoding == BAJL_ENCODE.Base64Encoding)
       {
         byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes(Value);
         Value = System.Convert.ToBase64String(plainTextBytes);
       }
-      mWriter.WriteLine(Tabs + Value);
-      //mIndentLevel--;
-    }
-    public void WriteTagContentsBare(string Value, BASE_64_ENCODE encoding = BASE_64_ENCODE.None)
-    {
-      //mIndentLevel++;
-      if (encoding == BASE_64_ENCODE.Encoded)
+      else if (encoding == BAJL_ENCODE.Simple)
       {
-        byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes(Value);
-        Value = System.Convert.ToBase64String(plainTextBytes);
+        Value = System.Web.HttpUtility.HtmlEncode(Value);
       }
       mWriter.Write(Value);
       //mIndentLevel--;
@@ -294,14 +293,14 @@ namespace Core
     public static T GetXmlChunkAsEnum<T>(ref string XML, string Tag)  where T : struct
     {
       string val = GetXMLChunk(ref XML, Tag);
-      return Enum.Parse<T>(val);
+      return System.Enum.Parse<T>(val);
     }
     public static T GetXmlChunkAsEnum<T>(ref string XML, string Tag, T defaultValue) where T : struct, System.Enum
     {
       string val = GetXMLChunk(ref XML, Tag);
       try
       {
-        T enumVal = Enum.Parse<T>(val);
+        T enumVal = System.Enum.Parse<T>(val);
         return enumVal;
       }
       catch
@@ -356,16 +355,16 @@ namespace Core
       return Rect;
     }
 
-    public static int GetXMLChunkAsInt(ref string XML, string Tag, ref int StartPos)
-    {
-      string Temp = GetXMLChunk(ref XML, Tag, ref StartPos);
-      int Value = 0;
-      if (Temp.Length > 0)
-      {
-        Value = int.Parse(Temp, culture);
-      }
-      return Value;
-    }
+    //public static int GetXMLChunkAsInt(ref string XML, string Tag, ref int StartPos)
+    //{
+    //  string Temp = GetXMLChunk(ref XML, Tag, ref StartPos);
+    //  int Value = 0;
+    //  if (Temp.Length > 0)
+    //  {
+    //    Value = int.Parse(Temp, culture);
+    //  }
+    //  return Value;
+    //}
 
     public static int GetXMLChunkAsInt(ref string XML, string Tag)
     {
@@ -405,13 +404,13 @@ namespace Core
       return Value;
     }
 
-    public static Vector2 GetXMLChunkAsVector2(ref string XML, string Tag, ref int StartPos)
-    {
-      string Value = Xml.GetXMLChunk(ref XML, Tag, ref StartPos);
-      //{X:0 Y:0}
-      Vector2 NewVector = ConvertStringToVector2(Value);
-      return NewVector;
-    }
+    //public static Vector2 GetXMLChunkAsVector2(ref string XML, string Tag, ref int StartPos)
+    //{
+    //  string Value = Xml.GetXMLChunk(ref XML, Tag, ref StartPos);
+    //  //{X:0 Y:0}
+    //  Vector2 NewVector = ConvertStringToVector2(Value);
+    //  return NewVector;
+    //}
 
     public static Vector2 GetXMLChunkAsVector2(ref string XML, string Tag)
     {
@@ -437,6 +436,28 @@ namespace Core
         }
       }
       return NewVector;
+    }
+
+    public static SizeF GetXMLChunkAsSizeF(ref string XML, string Tag)
+    {
+      string Value = Xml.GetXMLChunk(ref XML, Tag);
+      //0,0
+      SizeF s = ConvertStringToSizeF(Value);
+      return s;
+    }
+    public static SizeF ConvertStringToSizeF(string Value)
+    {
+      SizeF s = new SizeF(0, 0);
+      if (Value.Length >= 3)
+      {
+        string[] Chunks = Value.Split(DelimiterComma);
+        if (Chunks.Length == 2)
+        {
+          s.Width = float.Parse(Chunks[0], culture);
+          s.Height = float.Parse(Chunks[1], culture);
+        }
+      }
+      return s;
     }
 
     public static Size GetXMLChunkAsSize(ref string XML, string Tag)
@@ -481,29 +502,29 @@ namespace Core
       return NewVector;
     }
 
-    public static Color GetXMLChunkAsColor(ref string XML, string Tag, ref int StartPos)
-    {
-      string Value = Xml.GetXMLChunk(ref XML, Tag, ref StartPos);
-      //{R:0 G:0 B:0 A:0}
-      Color NewColor = Color.White;
-      if (Value.Length >= 17)
-      {
-        Value = Value.Substring(1, Value.Length - 2);
-        string[] Chunks = Value.Split(DelimiterSpace);
-        string[] Rstr = Chunks[0].Split(DelimiterColon);
-        string[] Gstr = Chunks[1].Split(DelimiterColon);
-        string[] Bstr = Chunks[2].Split(DelimiterColon);
-        string[] Astr = Chunks[3].Split(DelimiterColon);
+    //public static Color GetXMLChunkAsColor(ref string XML, string Tag, ref int StartPos)
+    //{
+    //  string Value = Xml.GetXMLChunk(ref XML, Tag, ref StartPos);
+    //  //{R:0 G:0 B:0 A:0}
+    //  Color NewColor = Color.White;
+    //  if (Value.Length >= 17)
+    //  {
+    //    Value = Value.Substring(1, Value.Length - 2);
+    //    string[] Chunks = Value.Split(DelimiterSpace);
+    //    string[] Rstr = Chunks[0].Split(DelimiterColon);
+    //    string[] Gstr = Chunks[1].Split(DelimiterColon);
+    //    string[] Bstr = Chunks[2].Split(DelimiterColon);
+    //    string[] Astr = Chunks[3].Split(DelimiterColon);
        
-        byte R = byte.Parse(Rstr[1], culture);
-        byte G = byte.Parse(Gstr[1], culture);
-        byte B = byte.Parse(Bstr[1], culture);
-        byte A = byte.Parse(Astr[1], culture);
+    //    byte R = byte.Parse(Rstr[1], culture);
+    //    byte G = byte.Parse(Gstr[1], culture);
+    //    byte B = byte.Parse(Bstr[1], culture);
+    //    byte A = byte.Parse(Astr[1], culture);
 
-        NewColor = Color.FromArgb(A, R, G, B);
-      }
-      return NewColor;
-    }
+    //    NewColor = Color.FromArgb(A, R, G, B);
+    //  }
+    //  return NewColor;
+    //}
 
     public static Color GetXMLChunkAsColor(ref string XML, string Tag)
     {
@@ -559,33 +580,33 @@ namespace Core
       return NewQ;
     }
 
-    public static float GetXMLChunkAsFloat(ref string XML, string Tag, ref int StartPos)
-    {
-      string Temp = GetXMLChunk(ref XML, Tag, ref StartPos);
-      float Value = 0;
-      if (Temp.Length > 0)
-      {
-        Value = float.Parse(Temp, culture);
-      }
-      return Value;
-    }
+    //public static float GetXMLChunkAsFloat(ref string XML, string Tag, ref int StartPos)
+    //{
+    //  string Temp = GetXMLChunk(ref XML, Tag, ref StartPos);
+    //  float Value = 0;
+    //  if (Temp.Length > 0)
+    //  {
+    //    Value = float.Parse(Temp, culture);
+    //  }
+    //  return Value;
+    //}
 
-    public static float GetXMLChunkAsFloat(ref string XML, string Tag)
-    {
-      string Temp = GetXMLChunk(ref XML, Tag);
-      float Value = 0;
-      if (Temp.Length > 0)
-      {
-        try
-        {
-          Value = float.Parse(Temp, culture);
-        }
-        catch
-        {
-        }
-      }
-      return Value;
-    }
+    //public static float GetXMLChunkAsFloat(ref string XML, string Tag)
+    //{
+    //  string Temp = GetXMLChunk(ref XML, Tag);
+    //  float Value = 0;
+    //  if (Temp.Length > 0)
+    //  {
+    //    try
+    //    {
+    //      Value = float.Parse(Temp, culture);
+    //    }
+    //    catch
+    //    {
+    //    }
+    //  }
+    //  return Value;
+    //}
 
     public static decimal GetXMLChunkAsDecimal(ref string XML, string Tag)
     {
@@ -630,12 +651,12 @@ namespace Core
       return FieldFound;
     }
 
-    public static bool GetXMLChunkAsBool(ref string XML, string Tag, out bool Value)
-    {
-      Value = false;
-      GetXMLChunkAsBool(ref XML, Tag, out Value, false);
-      return Value;
-    }
+    //public static bool GetXMLChunkAsBool(ref string XML, string Tag, out bool Value)
+    //{
+    //  Value = false;
+    //  GetXMLChunkAsBool(ref XML, Tag, out Value, false);
+    //  return Value;
+    //}
 
     public static bool GetXMLChunkAsBool(ref string XML, string Tag)
     {
@@ -654,46 +675,46 @@ namespace Core
 
 
 
-    public static string GetXMLChunk(ref string XML, string Tag, ref int StartPos)
-    {
-      string ReturnValue = "";
+    //public static string GetXMLChunk(ref string XML, string Tag, ref int StartPos)
+    //{
+    //  string ReturnValue = "";
 
-      if (StartPos >= XML.Length)
-        return "";
+    //  if (StartPos >= XML.Length)
+    //    return "";
 
-      StartPos = (int)XML.IndexOf("<" + Tag + ">", StartPos, StringComparison.OrdinalIgnoreCase);
+    //  StartPos = (int)XML.IndexOf("<" + Tag + ">", StartPos, StringComparison.OrdinalIgnoreCase);
 
-      int EndPos = 0;
+    //  int EndPos = 0;
 
-      if (StartPos < 0) //We didn't find the tag, lets jump out
-      {
-        return "";
-      }
-      EndPos = (int)XML.IndexOf("</" + Tag + ">", StartPos, StringComparison.OrdinalIgnoreCase);
+    //  if (StartPos < 0) //We didn't find the tag, lets jump out
+    //  {
+    //    return "";
+    //  }
+    //  EndPos = (int)XML.IndexOf("</" + Tag + ">", StartPos, StringComparison.OrdinalIgnoreCase);
 
-      if ((StartPos > -1) && (EndPos > -1))
-      {
-        StartPos = StartPos + (int)Tag.Length + 2;
-        int Length = EndPos - StartPos;
-        ReturnValue = XML.SubStr(StartPos, Length);
-        //string StartCharacters = SubStr(ref XML, 0, StartPos - Tag.Length - 2);
-        //string EndCharacters = SubStr(ref XML, EndPos + Tag.Length + 3, XML.Length - EndPos - Tag.Length - 3);
-        //XML = StartCharacters + EndCharacters;
-        StartPos = EndPos;
-      }
-      return ReturnValue;
-    }
+    //  if ((StartPos > -1) && (EndPos > -1))
+    //  {
+    //    StartPos = StartPos + (int)Tag.Length + 2;
+    //    int Length = EndPos - StartPos;
+    //    ReturnValue = XML.SubStr(StartPos, Length);
+    //    //string StartCharacters = SubStr(ref XML, 0, StartPos - Tag.Length - 2);
+    //    //string EndCharacters = SubStr(ref XML, EndPos + Tag.Length + 3, XML.Length - EndPos - Tag.Length - 3);
+    //    //XML = StartCharacters + EndCharacters;
+    //    StartPos = EndPos;
+    //  }
+    //  return ReturnValue;
+    //}
 
-    public static string GetXMLChunkBeforeTag(ref string XML, string Tag)
-    {
-      string ReturnValue = "";
-      int StartPos = (int)XML.IndexOf("<" + Tag + ">", StringComparison.OrdinalIgnoreCase);
-      if (StartPos < 0)
-        return "";
-      ReturnValue = XML.Substring(0, StartPos - 1);
-      XML = XML.Substring(StartPos);
-      return ReturnValue;
-    }
+    //public static string GetXMLChunkBeforeTag(ref string XML, string Tag)
+    //{
+    //  string ReturnValue = "";
+    //  int StartPos = (int)XML.IndexOf("<" + Tag + ">", StringComparison.OrdinalIgnoreCase);
+    //  if (StartPos < 0)
+    //    return "";
+    //  ReturnValue = XML.Substring(0, StartPos - 1);
+    //  XML = XML.Substring(StartPos);
+    //  return ReturnValue;
+    //}
 
     /// <summary>
     /// Retrieve an XML value that can be Base 64 encoded (HTML or XML stored in XML, or similar)
@@ -702,15 +723,23 @@ namespace Core
     /// <param name="Tag"></param>
     /// <param name="encoding"></param>
     /// <returns></returns>
-    public static string GetXMLChunk(ref string XML, string Tag, BASE_64_ENCODE encoding)
+    public static string GetXMLChunk(ref string XML, string Tag, BAJL_ENCODE encoding = BAJL_ENCODE.None)
     {
-      string val = GetXMLChunk(ref XML, Tag);
-      byte[] data = System.Convert.FromBase64String(val);
-      return System.Text.Encoding.UTF8.GetString(data);
+      string val = GetXMLChunk(ref XML, Tag, null);
+      if (encoding == BAJL_ENCODE.Base64Encoding)
+      {
+        byte[] data = System.Convert.FromBase64String(val);
+        val = System.Text.Encoding.UTF8.GetString(data);
+      }
+      else if (encoding == BAJL_ENCODE.Simple)
+      {
+        val = System.Web.HttpUtility.HtmlDecode(val);
+      }
+      return val;
     }
 
 
-    public static string GetXMLChunk(ref string XML, string Tag, string? ParentTag = null)
+    public static string GetXMLChunk(ref string XML, string Tag, string? ParentTag, BAJL_ENCODE encoding = BAJL_ENCODE.None)
     {
       string ReturnValue = "";
 

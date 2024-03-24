@@ -17,7 +17,7 @@ namespace Core
     public string Name = "";
     public string Descriptoin = "";
 
-    public virtual void Validate(RESP resp)
+    public virtual void Validate(ref RESP resp)
     {
     }
   }

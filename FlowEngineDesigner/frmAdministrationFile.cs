@@ -83,7 +83,7 @@ namespace FlowEngineDesigner
         else
           tvDirectories.SelectedNode = tvDirectories.Nodes[0];
 
-        
+
       }
     }
 
@@ -208,12 +208,12 @@ namespace FlowEngineDesigner
       string fileName = txtFileName.Text;
       if (tvDirectories.SelectedNode is not null && tvDirectories.SelectedNode.Text != "/") //Only append the path if something is selected and it isn't the root path /
       {
-        fileName = tvDirectories.SelectedNode.Text + "/" + fileName;
+        fileName = BuildPathFromTree(fileName);
       }
 
       if (FileMode == FILE_MODE.Save)
       {
-        FlowSave fs = new FlowSave(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, fileName, chkDeployLive.Checked, FlowWrapper!.XmlWriteMemory()); //Stupid parser doesn't understand that FlowWrapper can't be null here, so the !
+        FlowSave fs = new FlowSave(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, fileName, chkDeployLive.Checked, FlowWrapper!.XmlWriteMemory()); //Stupid code parser doesn't understand that FlowWrapper can't be null here, so the !
         cServer.SendAndResponse(fs.GetPacket(), Callback_FileSave);
       }
       if (FileMode == FILE_MODE.Open)
@@ -223,11 +223,27 @@ namespace FlowEngineDesigner
       }
     }
 
+    private string BuildPathFromTree(string fileName)
+    {
+      string path = "";
+      fileName = Path.GetFileName(fileName);
+      TreeNode currentNode = tvDirectories.SelectedNode;
+      while (currentNode is not null)
+      {
+        path = currentNode.Text + path;
+        currentNode = currentNode.Parent;
+        if (currentNode.Text == "/")
+          break;
+      }
+      return path + "/" + fileName;
+    }
+
     private void Callback_FileSave(Core.Administration.EventArgsPacket e)
     {
       BaseResponse response = new BaseResponse(e.Packet);
       if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)
       {
+        Call_Back(FlowWrapper);
         this.Close();
       }
     }
@@ -238,10 +254,13 @@ namespace FlowEngineDesigner
       if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)
       {
         string flowXml = response.FlowXml;
+
         //if (FlowWrapper is not null)
         //{
         FlowWrapper = new cFlowWrapper();
         FlowWrapper.XmlRead(ref flowXml);
+        FlowWrapper.FileName = response.FileName;
+
         Call_Back(FlowWrapper);
         //}
         //else
@@ -252,6 +271,10 @@ namespace FlowEngineDesigner
         //  //f.Show();
         //}
         this.Close();
+      }
+      else
+      {
+        MessageBox.Show("Server open returned a non success response, Trace window may have more information.");
       }
     }
 
@@ -267,6 +290,15 @@ namespace FlowEngineDesigner
     private void lvFiles_MouseDoubleClick(object sender, MouseEventArgs e)
     {
       btnAction.PerformClick();
+    }
+
+
+    private void txtFileName_KeyDown(object sender, KeyEventArgs e)
+    {
+      if (e.KeyCode == Keys.Enter)
+      {
+        btnAction.PerformClick();
+      }
     }
   }
 }

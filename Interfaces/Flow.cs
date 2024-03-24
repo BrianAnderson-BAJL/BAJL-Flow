@@ -33,8 +33,6 @@ namespace Core
     public List<Comment> Comments = new List<Comment>(4);
 
     public FlowRequest.START_TYPE DebugStartType;
-    public TcpClientBase? DebugTcpClient;
-    public Packet? DebugPacket;
     public TimeElapsed DebugFlowStartTime = new TimeElapsed();
     public TimeElapsed DebugStepTime = new TimeElapsed();
 
@@ -49,18 +47,19 @@ namespace Core
     public Flow Clone()
     {
       Flow flow = new Flow();
-      flow.FileName = FileName; //Don't need to clone, it is only read, not writen to
-      flow.FileVersion = FileVersion; //Don't need to clone, it is only read, not writen to
+      flow.FileName = FileName; 
+      flow.FileVersion = FileVersion; 
       flow.StartPlugin = StartPlugin; //Don't need to clone, it is only read, not writen to
       flow.StartCommands = StartCommands; //Don't need to clone, it is only read, not writen to
-      
+      flow.mCreatedDateTime = mCreatedDateTime;
+      flow.mModifiedLastDateTime = mModifiedLastDateTime;
       if (functionSteps.Count > flow.functionSteps.Capacity) //If the default size isn't big enough for the steps, lets allocate a big enough list only once.
       {
-        flow.functionSteps = new List<FunctionStep>(functionSteps.Count);
+        flow.functionSteps = new List<FunctionStep>(this.functionSteps.Count);
       }
-      for (int x = 0; x < functionSteps.Count; x++) 
+      for (int x = 0; x < this.functionSteps.Count; x++) 
       {
-        flow.functionSteps.Add(functionSteps[x].Clone(this));
+        flow.functionSteps.Add(this.functionSteps[x].Clone(this));
       }
 
       return flow;
@@ -115,31 +114,36 @@ namespace Core
     /// Will insert Trace steps between each normal step to allow debug results to be sent to the designer.
     /// Will only be called if the Options.ServerType == Development
     /// </summary>
-    private void PrepareFlowForTracing()
+    public void PrepareFlowForTracing()
     {
-      if (start is null)
+      if (Options.ServerType != Options.SERVER_TYPE.Development)
         return;
 
+        if (start is null)
+      {
+        start = FindStepByName("flowcore", "start");
+        if (start is null)
+          return;
+      }
       //Find all the links between steps, we need to insert a trace step between each of these links
       List<Link> links = new List<Link>(functionSteps.Count * 3); //About how many outbound links are in each step, good starting point
       for (int x = 0; x < functionSteps.Count; x++)
       {
-        //if (functionSteps[x] != start) //We don't want to trace the start step
-          links.AddRange(functionSteps[x].LinkOutputs);
+        links.AddRange(functionSteps[x].LinkOutputs);
       }
 
-      //Insert a FlowCore.Trace step inbetween each existing step link.
+      //Insert a FlowCore.Trace step in between each existing step link.
       for (int x = 0; x < links.Count; x++)
       {
         Link link = links[x];
-        FunctionStep? oldInput = link.Input.Step;
-        if (oldInput is null || oldInput.Function.Input is null)
+        FunctionStep? oldInputStep = link.Input.Step;
+        if (oldInputStep is null || oldInputStep.Function.Input is null)
           continue; //Not linked to another step, skip it
 
         FunctionStep stepTrace = new FunctionStep(this, getNextId(), "FlowCore.Trace", Vector2.Zero);
         link.Input.Step = stepTrace;
         Output outputNew = stepTrace.Function.Outputs[0].Clone(stepTrace);
-        Input inputNew = oldInput.Function.Input.Clone(oldInput);
+        Input inputNew = oldInputStep.Function.Input.Clone(oldInputStep);
         stepTrace.LinkOutputs.Add(new Link(getNextId(), outputNew, inputNew));
         stepTrace.ParmVars.Add(new PARM_VAR(stepTrace.Function.Parms[0], new VarRef(VAR_NAME_PREVIOUS_STEP)));
         this.functionSteps.Add(stepTrace);
@@ -155,27 +159,28 @@ namespace Core
         {
           return RESP.SetError(1, "Flow is missing Start step"); ;
         }
-        if (Options.ServerType == Options.SERVER_TYPE.Development)
-        {
-          PrepareFlowForTracing();
-        }
       }
 
       start.Execute(this);
       //start.RuntimeParms = start.parms.Clone();
       List<FunctionStep> nextSteps = GetNextSteps(start);
       List<FunctionStep> nextNextSteps = new List<FunctionStep>(16);
+      FunctionStep? lastStep = null;
       do
       {
+        if (nextSteps.Count > 0)
+          lastStep = nextSteps[0];
         nextNextSteps.AddRange(ExecuteSteps(nextSteps));
         nextSteps.Clear();
         nextSteps.AddRange(nextNextSteps);
         nextNextSteps.Clear();
       } while (nextSteps.Count > 0);
 
-      if (Options.ServerType == Options.SERVER_TYPE.Development)
-        SendFlowDebugResponse();
-
+      if (Options.ServerType == Options.SERVER_TYPE.Development && lastStep is not null)
+      {
+        
+        SendFlowDebugTraceStep(lastStep.resps, lastStep, new Variable("parms"), this.DebugFlowStartTime.End().Ticks);
+      }
       return this.resp;
     }
 
@@ -185,52 +190,106 @@ namespace Core
     /// </summary>
     private void SendFlowDebugResponse()
     {
-      if (Options.ServerType != Options.SERVER_TYPE.Development)
+      if (DebuggerManager.AttachedDebuggersCount <= 0)
+      {
+        Global.Write("SendFlowDebugResponse - Could not find debugger!");
         return;
+      }
 
-      if (this.DebugTcpClient is null || this.DebugPacket is null)
-        return;
+      long executionTicks = this.DebugFlowStartTime.End().Ticks;
+      bool success = true;
 
       Xml xml = new Xml();
       xml.WriteMemoryNew();
       xml.WriteTagStart("DebugResults");
-      for (int x = 0; x < this.functionSteps.Count; x++)
+
+      xml.WriteTagAndContents("FileName", Options.GetFlowFileNameRelativePath(this.FileName));
+      xml.WriteTagAndContents("FileVersion", this.FileVersion);
+      xml.WriteTagAndContents("CreatedDateTime", this.CreateDateTime);
+      xml.WriteTagAndContents("ModifiedLastDateTime", this.ModifiedLastDateTime);
+      xml.WriteTagAndContents("FlowExecutionTicks", executionTicks);
+      xml.WriteTagAndContents("FlowExecutionTimeFormated", Global.ConvertToString(executionTicks));
+
+      if (this.Resp != null)
       {
-        xml.WriteXml(this.functionSteps[x].DebugTraceXml);
+        success = this.Resp.Success;
+        xml.WriteTagAndContents("Success", this.Resp.Success);
+        xml.WriteTagAndContents("ErrorNumber", this.Resp.ErrorNumber);
+        xml.WriteTagAndContents("ErrorDescription", this.Resp.ErrorDescription);
+        xml.WriteTagAndContents("OutputType", this.Resp.OutputType);
+        if (this.Resp.Variable is not null)
+        {
+          xml.WriteTagAndContents("FlowResponseVariable", this.Resp.Variable.ToJson(), Xml.BAJL_ENCODE.Base64Encoding); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
+        }
       }
+
       xml.WriteTagEnd("DebugResults");
 
-      FlowDebugResponse flowDebugResponse = new FlowDebugResponse(this.DebugPacket.PacketId, BaseResponse.RESPONSE_CODE.Success, this.FileName, this.DebugFlowStartTime.End().Ticks, xml.ReadMemory());
-      this.DebugTcpClient.Send(flowDebugResponse.GetPacket());
+      TraceResponse flowDebugResponse = new TraceResponse(0, "FlowCore.Stop", xml.ReadMemory(), executionTicks, success);
+      DebuggerManager.SendToAllDebuggers(flowDebugResponse.GetPacket());
     }
 
-    public void SendFlowDebugTraceStep(RESP resp, FunctionStep previousStep, long ticks)
+    public void SendFlowDebugTraceStep(RESP resp, FunctionStep previousStep, Variable parms, long ticks)
     {
-      if (this.DebugTcpClient is null || this.DebugPacket is null)
+      if (DebuggerManager.AttachedDebuggersCount <= 0)
+      {
+        Global.Write("SendFlowDebugTraceStep - Could not find debugger!");
         return;
+      }
 
       Xml xml = new Xml();
       xml.WriteMemoryNew();
       xml.WriteTagStart("Trace");
+      xml.WriteTagAndContents("FileName", Options.GetFlowFileNameRelativePath(this.FileName));
+      xml.WriteTagAndContents("FileVersion", this.FileVersion);
+      xml.WriteTagAndContents("CreatedDateTime", this.CreateDateTime);
+      xml.WriteTagAndContents("ModifiedLastDateTime", this.ModifiedLastDateTime);
       xml.WriteTagAndContents("StepId", previousStep.Id);
       xml.WriteTagAndContents("StepName", previousStep.Name);
       xml.WriteTagAndContents("Success", resp.Success);
       xml.WriteTagAndContents("ErrorNumber", resp.ErrorNumber);
       xml.WriteTagAndContents("ErrorDescription", resp.ErrorDescription);
       xml.WriteTagAndContents("OutputType", resp.OutputType);
+      xml.WriteTagAndContents("FlowExecutionTicks", ticks);
+      xml.WriteTagAndContents("FlowExecutionTimeFormated", Global.ConvertToString(ticks));
+      if (this.Resp != null)
+      {
+        xml.WriteTagStart("FlowResponse");
+        xml.WriteTagAndContents("Success", this.Resp.Success);
+        xml.WriteTagAndContents("ErrorNumber", this.Resp.ErrorNumber);
+        xml.WriteTagAndContents("ErrorDescription", this.Resp.ErrorDescription);
+        xml.WriteTagAndContents("OutputType", this.Resp.OutputType);
+        if (this.Resp.Variable is not null)
+        {
+          xml.WriteTagAndContents("FlowResponseVariable", this.Resp.Variable.ToJson(), Xml.BAJL_ENCODE.Base64Encoding); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
+        }
+        xml.WriteTagEnd("FlowResponse");
+      }
+
+      for (int x = 0; x < parms.SubVariables.Count; x++)
+      {
+        if (parms.SubVariables[x] is null)
+        {
+          xml.WriteTagAndContents("parm" + x.ToString(), "[null]", Xml.BAJL_ENCODE.Base64Encoding); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
+        }
+        else
+        {
+          xml.WriteTagAndContents("parm" + x.ToString(), parms.SubVariables[x].ToJson(), Xml.BAJL_ENCODE.Base64Encoding); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
+        }
+      }
+      if (resp.Variable is not null)
+        xml.WriteTagAndContents("StepResponseVariables", resp.Variable.ToJson(), Xml.BAJL_ENCODE.Base64Encoding); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
       xml.WriteTagStart("FlowVariables");
       for (int x = 0; x < this.Variables.Values.Count; x++)
       {
-        xml.WriteTagAndContents("Variable", this.Variables.Values.ElementAt(x).ToJson(), Xml.BASE_64_ENCODE.Encoded);
+        xml.WriteTagAndContents("Variable", this.Variables.Values.ElementAt(x).ToJson(), Xml.BAJL_ENCODE.Base64Encoding); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
       }
       xml.WriteTagEnd("FlowVariables");
-      if (resp.Variable is not null)
-        xml.WriteTagAndContents("Variables", resp.Variable.ToJson(), Xml.BASE_64_ENCODE.Encoded); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
       xml.WriteTagEnd("Trace");
       string xmlStr = xml.ReadMemory();
       previousStep.DebugTraceXml = xmlStr;
-      Core.Administration.Messages.TraceResponse trace = new Core.Administration.Messages.TraceResponse(previousStep.Id, previousStep.Name, xmlStr, ticks);
-      this.DebugTcpClient.Send(trace.GetPacket());
+      Core.Administration.Messages.TraceResponse trace = new Core.Administration.Messages.TraceResponse(previousStep.Id, previousStep.Name, xmlStr, ticks, resp.Success);
+      DebuggerManager.SendToAllDebuggers(trace.GetPacket());
     }
 
     protected virtual List<FunctionStep> ExecuteSteps(List<FunctionStep> steps)
@@ -348,9 +407,10 @@ namespace Core
 
       if (varSplit.Length > 0)
       {
-        if (Variables.ContainsKey(varSplit[0]) == true)
+        string lower = varSplit[0].ToLower();
+        if (Variables.ContainsKey(lower) == true)
         {
-          baseVar = Variables[varSplit[0]];
+          baseVar = Variables[lower];
           if (varSplit.Length == 1)
             return baseVar;
         }
@@ -399,11 +459,11 @@ namespace Core
       {
         if (x == varNames.Length - 1)
         {
-          return varTemp.DeleteSubVariableByName(varNames[x]); //Increment before to get the next variable name to delete it.
+          return varTemp.SubVariableDeleteByName(varNames[x]); //Increment before to get the next variable name to delete it.
         }
         else
         {
-          varTemp = varTemp.FindSubVariableByName(varNames[x]);
+          varTemp = varTemp.SubVariableFindByName(varNames[x]);
         }
         if (varTemp is null)
           return false;
@@ -443,7 +503,7 @@ namespace Core
 
       while (x < varNames.Length)
       {
-        varTemp = varTemp.FindSubVariableByName(varNames[x]);
+        varTemp = varTemp.SubVariableFindByName(varNames[x]);
         if (varTemp is null)
           return null;
 
@@ -507,7 +567,7 @@ namespace Core
         SampleDataFormat = DATA_FORMAT.Json;
       else if (temp == "Xml")
         SampleDataFormat = DATA_FORMAT.Xml;
-      SampleData = Xml.GetXMLChunk(ref metaData, "SampleData", Xml.BASE_64_ENCODE.Encoded); //Could be JSON or XML data for testing the flow.
+      SampleData = Xml.GetXMLChunk(ref metaData, "SampleData", Xml.BAJL_ENCODE.Base64Encoding); //Could be JSON or XML data for testing the flow.
       string usersData = Xml.GetXMLChunk(ref metaData, "Users");
       string userXml = "";
       do
@@ -556,6 +616,7 @@ namespace Core
           string links = Xml.GetXMLChunk(ref step, "Links"); //Can't fully parse the links here since we haven't loaded all the steps yet
           string vars = Xml.GetXMLChunk(ref step, "Variables");
           FunctionStep fs = new FunctionStep(this, stepId, pluginName, functionName, stepPos, links); //Store the links XML with the step for now so we can link the steps together below
+          fs.SaveResponseVariable = saveRespVar;
           fs.RespNames.Name = saveRespVarName;
           string tempValidatorName = Xml.GetXMLChunk(ref step, "ValidatorName");
           fs.Validator = fs.Function.Validators.FindByName(tempValidatorName);
@@ -575,7 +636,7 @@ namespace Core
           if (c.Id >= currentId)
             currentId = c.Id + 1;
           c.Position = Xml.GetXMLChunkAsVector2(ref comment, "Position");
-          c.Size = Xml.GetXMLChunkAsSize(ref comment, "Size");
+          c.Size = Xml.GetXMLChunkAsSizeF(ref comment, "Size");
           c.Text = Xml.GetXMLChunk(ref comment, "Text");
           Comments.Add(c);
         }
@@ -586,6 +647,8 @@ namespace Core
         FunctionStep fs = functionSteps[x];
         ParseLinks(fs);
       }
+
+
     }
 
     private void ParseVariables(PARMS parms, PARM_VARS parmVars, ref string variables)
@@ -624,7 +687,7 @@ namespace Core
           }
           else if (dataType == "String" && (p.DataType == DATA_TYPE.String || p.DataType == DATA_TYPE.Various))
           {
-            string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
+            string value = Xml.GetXMLChunk(ref var, "Value", Xml.BAJL_ENCODE.Base64Encoding); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
             pv = new PARM_VAR(p, value);
           }
           else if (dataType == "Boolean" && (p.DataType == DATA_TYPE.Boolean || p.DataType == DATA_TYPE.Various))
@@ -634,7 +697,7 @@ namespace Core
           }
           else if (dataType == "Object" && p.DataType == DATA_TYPE.Object)
           {
-            string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
+            string value = Xml.GetXMLChunk(ref var, "Value", Xml.BAJL_ENCODE.Base64Encoding); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
             pv = new PARM_VAR(p, value);
           }
           else
@@ -644,7 +707,7 @@ namespace Core
         }
         else //Variable
         {
-          string value = Xml.GetXMLChunk(ref var, "Value", Xml.BASE_64_ENCODE.Encoded); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
+          string value = Xml.GetXMLChunk(ref var, "Value", Xml.BAJL_ENCODE.Base64Encoding); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
           pv = new PARM_VAR(p, new VarRef(value));
         }
         pv.ParmName = name;

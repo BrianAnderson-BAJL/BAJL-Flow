@@ -20,7 +20,7 @@ namespace Core
     /// </summary>
     public string DropDownGroupName = "";
     public string Key = "";
-    public object Value = "";
+    public dynamic? Value;
     public string Description = "";
     public DATA_TYPE DataType = DATA_TYPE.String;
     public STRING_SUB_TYPE StringSubType = STRING_SUB_TYPE._None;
@@ -121,6 +121,7 @@ namespace Core
    
     public Setting(string dataToBeParsed)
     {
+      Value = null;
       FromXml(dataToBeParsed);
     }
 
@@ -179,6 +180,8 @@ namespace Core
 
     public bool SubSettingActive(Setting subSetting)
     {
+      if (this.Value is null)
+        return false;
       if ((this.DropDownGroupName + this.Value.ToString()) == subSetting.DropDownGroupName)
       {
         return true;
@@ -192,7 +195,7 @@ namespace Core
       xml.WriteTagStart("Setting");
       xml.WriteTagAndContents("DataType", DataType);
       xml.WriteTagAndContents("Key", Key);
-      xml.WriteTagAndContents("Value", Value.ToString()!);
+      xml.WriteTagAndContents("Value", this.Value);
       if (this.SubSettings.Count > 0)
       {
         xml.WriteTagStart("SubSettings");
@@ -203,7 +206,7 @@ namespace Core
             xml.WriteTagStart("SubSetting");
             xml.WriteTagAndContents("DataType", this.SubSettings[x].DataType);
             xml.WriteTagAndContents("Key", this.SubSettings[x].Key);
-            xml.WriteTagAndContents("Value", this.SubSettings[x].Value.ToString()!);
+            xml.WriteTagAndContents("Value", this.SubSettings[x].Value);
             xml.WriteTagEnd("SubSetting");
           }
         }

@@ -49,6 +49,18 @@ namespace FlowEngineDesigner
       ExecutingCurrentStep = new Bitmap(cOptions.GetFullPath(cOptions.PluginStaticGraphicsPath) + "ExecutingCurrentStep.png");
     }
 
+    public static Form? FindOpenFormByTitleText(string titleText)
+    {
+      for (int x = 0; x < Application.OpenForms.Count; x++)
+      {
+        if (Application.OpenForms[x].Text == titleText)
+        {
+          return Application.OpenForms[x];
+        }
+      }
+      return null;
+    }
+
     public static DateTime CurrentDateTime //TODO: Need to get time from server and convert it to local time
     {
       get {return DateTime.UtcNow;} 
@@ -80,31 +92,6 @@ namespace FlowEngineDesigner
       return null;
     }
 
-    public static string ConvertToString(long ticks)
-    {
-      return ConvertToString(TimeSpan.FromTicks(ticks));
-    }
-
-    public static string ConvertToString(TimeSpan ts)
-    {
-      if (ts.TotalSeconds < 1)
-      {
-        return ts.TotalMilliseconds.ToString() + "ms";
-      }
-      else if (ts.TotalMinutes < 1)
-      {
-        return ts.Seconds.ToString("00") + "s " + ts.Milliseconds + "ms";
-      }
-      else if (ts.TotalHours < 1)
-      {
-        return ts.Minutes.ToString() + "m " + ts.Seconds.ToString() + "s ";
-      }
-      else if (ts.TotalDays >= 1)
-      {
-        return ts.Days.ToString() + "d " + ts.Hours.ToString() + "h " + ts.Minutes.ToString() + "m";
-      }
-      return ts.ToString();
-    }
 
     /// <summary>
     /// There are no built in functions for math with points, had to create soime

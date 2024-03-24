@@ -12,7 +12,7 @@
 	<Setting>
 		<DataType>String</DataType>
 		<Key>Url</Key>
-		<Value>192.168.0.75</Value>
+		<Value>192.168.0.84</Value>
 	</Setting>
 	<Setting>
 		<DataType>Integer</DataType>
@@ -50,18 +50,23 @@
 		<Value>True</Value>
 	</Setting>
 	<Setting>
+		<DataType>String</DataType>
+		<Key>DateFormat</Key>
+		<Value>yyyy-MM-dd HH:mm:ss zzz</Value>
+	</Setting>
+	<Setting>
 		<DataType>Color</DataType>
 		<Key>BackgroundColor</Key>
-		<Value>Color [Transparent]</Value>
+		<Value>{R:255 G:255 B:255 A:0}</Value>
 	</Setting>
 	<Setting>
 		<DataType>Color</DataType>
 		<Key>BorderColor</Key>
-		<Value>Color [Blue]</Value>
+		<Value>{R:0 G:0 B:255 A:255}</Value>
 	</Setting>
 	<Setting>
 		<DataType>Color</DataType>
 		<Key>FontColor</Key>
-		<Value>Color [White]</Value>
+		<Value>{R:255 G:255 B:255 A:255}</Value>
 	</Setting>
 </Settings>

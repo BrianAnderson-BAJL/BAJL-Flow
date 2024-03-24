@@ -65,7 +65,8 @@ namespace FlowCore
 
       function = new Function("Variables Exists", this, VariablesExists);
       function.UpdateErrorOutputLabel("Var Missing");
-      function.Parms.Add("Variable Name", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple);
+      
+      function.Parms.Add("Variable Name", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple, PARM.PARM_RESOLVE_VARIABLES.No);
       Functions.Add(function);
 
       function = new Function("Variables Delete", this, VariablesDelete);
@@ -119,8 +120,8 @@ namespace FlowCore
       {
         Variable root = new Variable(Flow.VAR_NAME_FLOW_START, DATA_FORMAT_SUB_VARIABLES.Block);
         Variable data = new Variable(Flow.VAR_DATA, "");
-        data.Add(new Variable("YOUR_SAMPLE_DATA", "GOES_HERE"));
-        root.Add(data);
+        data.SubVariableAdd(new Variable("YOUR_SAMPLE_DATA", "GOES_HERE"));
+        root.SubVariableAdd(data);
         SampleStartData = root;
         //Variable v = new Variable(Flow.VAR_NAME_FLOW_START);
         //Variable request = new Variable(Flow.VAR_REQUEST);
@@ -133,6 +134,7 @@ namespace FlowCore
 
     public override void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
+      base.StartPlugin(GlobalPluginValues);
       List<Flow> flows = FindFlows(EVENT_START);
       for (int i = 0; i < flows.Count; i++)
       {
@@ -210,23 +212,26 @@ namespace FlowCore
 
     private static RESP Start(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.Start");
+      Global.Write("FlowCore.Start");
       return RESP.SetSuccess();
     }
     private static RESP Stop(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.Stop");
+      Global.Write("FlowCore.Stop");
       return RESP.SetSuccess();
     }
 
     private static RESP Trace(Core.Flow flow, Variable[] vars)
     {
       Variable varPreviousStepResp = vars[0];
-      Variable? varResp = varPreviousStepResp.FindSubVariableByName("resp") as Variable;
+      Variable? varResp = varPreviousStepResp.SubVariableFindByName("resp") as Variable;
       if (varResp is null)
         return RESP.SetSuccess();
-      Variable? varStep = varPreviousStepResp.FindSubVariableByName("step") as Variable;
+      Variable? varStep = varPreviousStepResp.SubVariableFindByName("step") as Variable;
       if (varStep is null)
+        return RESP.SetSuccess();
+      Variable? varParms = varPreviousStepResp.SubVariableFindByName("parms") as Variable;
+      if (varParms is null)
         return RESP.SetSuccess();
 
       RESP? resp = varResp.Value as RESP;
@@ -239,7 +244,7 @@ namespace FlowCore
       long elapsedTicks = flow.DebugStepTime.End().Ticks;
       flow.DebugStepTime = new TimeElapsed();
 
-      flow.SendFlowDebugTraceStep(resp, step, elapsedTicks);
+      flow.SendFlowDebugTraceStep(resp, step, varParms, elapsedTicks);
       Global.Write($"Previous Step [{step.Name}] Success [{resp.Success}], error number [{resp.ErrorNumber}], error message [{resp.ErrorDescription}]");
 
       return RESP.SetSuccess();
@@ -247,7 +252,7 @@ namespace FlowCore
 
     private static RESP VariableSplit(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.VariableSplit");
+      Global.Write("FlowCore.VariableSplit");
       vars[0].GetValue(out string source);
       vars[1].GetValue(out string splitOn);
 
@@ -261,7 +266,7 @@ namespace FlowCore
       Variable var = new Variable();
       for (int x = 0; x < splitStr.Length; x++)
       {
-        var.Add(new Variable(x.ToString(), splitStr[x]));
+        var.SubVariableAdd(new Variable(x.ToString(), splitStr[x]));
       }
       return RESP.SetSuccess(var);
     }
@@ -269,7 +274,7 @@ namespace FlowCore
 
     private static RESP VariableContains(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.VariableContains");
+      Global.Write("FlowCore.VariableContains");
       vars[0].GetValue(out string source);
       vars[1].GetValue(out string seekVal);
       vars[2].GetValue(out bool caseSensitive);
@@ -293,16 +298,20 @@ namespace FlowCore
 
     private static RESP VariablesExists(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.VariableExists");
+      Global.Write("FlowCore.VariableExists");
 
-      //If we got into this function, then all the variables exist (FunctionStep.Execute validates all the variables before calling the function), just return success. Easist function ever!
-
+      for (int x = 0; x < vars.Length; x++) 
+      {
+        Variable? v = flow.FindVariable(vars[x].Value);
+        if (v is null)
+          return RESP.SetError(1, $"Variable missing [{vars[x].Value}]");
+      }
       return RESP.SetSuccess();
     }
 
     private static RESP VariablesDelete(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.VariablesDelete");
+      Global.Write("FlowCore.VariablesDelete");
 
       for (int x = 0; x < vars.Length; x++)
       {
@@ -317,7 +326,7 @@ namespace FlowCore
 
     private static RESP Sleep(Core.Flow flow, Variable[] vars)  
     {
-      Global.Write("Flow.Sleep");
+      Global.Write("FlowCore.Sleep");
       if (vars.Length == 0)
         return RESP.SetSuccess();
 
@@ -336,14 +345,14 @@ namespace FlowCore
     /// <returns></returns>
     private static RESP FlowRun(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.FlowRun");
+      Global.Write("FlowCore.FlowRun");
       RESP? resp = null;
       vars[0].GetValue(out string flowName);
       Variable? var = vars[1];
       if (flowName == "")
         return RESP.SetError(10, "No flow name specified to start");
 
-      Global.Write($"Flow.FlowRun - flowName [{flowName}]");
+      Global.Write($"FlowCore.FlowRun - flowName [{flowName}]");
       Flow? flowToRun = FlowCore.Plugin!.FindFlowByName(flowName);
       if (flowToRun is null)
         return RESP.SetError(0, $"Could not find flow to run [{flowName}]");
@@ -369,7 +378,7 @@ namespace FlowCore
     /// <returns></returns>
     public static RESP FlowRunAsync(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.FlowRunAsync");
+      Global.Write("FlowCore.FlowRunAsync");
       RESP? resp = null;
       vars[0].GetValue(out string flowName); //Just found that you can declare the variable in the out statement, I love it!!
       Variable? var = vars[1];
@@ -377,7 +386,7 @@ namespace FlowCore
       if (flowName == "")
         return RESP.SetError(10, "No flow name specified to start");
 
-      Global.Write("Flow.FlowRun - flowName = " + flowName);
+      Global.Write("FlowCore.FlowRun - flowName = " + flowName);
       Flow? flowToRun = FlowCore.Plugin!.FindFlowByName(flowName);
       if (flowToRun is null)
         return RESP.SetError(0, $"Could not find flow to run [{flowName}]");
@@ -412,13 +421,13 @@ namespace FlowCore
 
     public static RESP If(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.If");
+      Global.Write("FlowCore.If");
       return RESP.SetSuccess();
     }
 
     public static RESP Switch(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Flow.Switch");
+      Global.Write("FlowCore.Switch");
       return RESP.SetSuccess();
     }
   }

@@ -34,7 +34,7 @@ namespace Core
       } 
       catch 
       {
-        Global.Write($"Failed to FindFunctionByName({pluginName}, {functionName})", DEBUG_TYPE.Error);
+        Global.Write($"Failed to FindFunctionByName({pluginName}, {functionName})", LOG_TYPE.ERR);
       }
       if (f is null)
       {
@@ -95,14 +95,14 @@ namespace Core
     /// <returns></returns>
     public virtual RESP Execute(Core.Flow flow)
     {
-      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP, "");
+      Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
+      Variable[] vars = new Variable[ParmVars.Count];
 
       if (ParmVars.Count < Function.Parms.Count) //ParmVars could have more parameters than Function.Parms if one of them is multiple
       {
         resps = RESP.SetError(1, "Not enough parameters to execute step");
         goto GotoResults;
       }
-      Variable[] vars = new Variable[ParmVars.Count];
       for (int x = 0; x < ParmVars.Count; x++)
       {
         PARM_VAR pv = ParmVars[x];
@@ -134,13 +134,28 @@ namespace Core
       }
 
     GotoResults:
+      if (this.Name == "FlowCore.Trace") //Don't overwrite the previous step variables with the trace
+        return resps;
+
       if (resps.Success == false) //If there was an error, lets create the error number & description to be used in the flow, while the resp object contains the same info, it isn't accessible in the flow
       {
-        var.Add(new Variable("ErrorNumber", resps.ErrorNumber));
-        var.Add(new Variable("ErrorDescription", resps.ErrorDescription));
       }
-      var.SubVariables.Add(new Variable("resp", resps));
-      var.SubVariables.Add(new Variable("step", this));
+      var.SubVariableAdd(new Variable("ErrorNumber", resps.ErrorNumber));
+      var.SubVariableAdd(new Variable("ErrorDescription", resps.ErrorDescription));
+      var.SubVariableAdd(new Variable("resp", resps));
+      var.SubVariableAdd(new Variable("step", this));
+
+      // If this is a development server then add the steps parameters for the trace information
+      if (Options.ServerType == Options.SERVER_TYPE.Development)
+      {
+        Variable parameters = new Variable("parms");
+        for (int x = 0; x < vars.Length; x++)
+        {
+          parameters.SubVariables.Add(vars[x]);
+        }
+        var.SubVariables.Add(parameters);
+      }
+      
       flow.VariableAdd(Flow.VAR_NAME_PREVIOUS_STEP, var);  //Previous step variable always contains the last steps values
       if (this.SaveResponseVariable == true)
       {
@@ -150,7 +165,7 @@ namespace Core
       //Execute the Validator to double check that the response is correct, Validators can turn a SUCCESS to ERROR or Change and ERROR to SUCCESS.
       if (this.Validator is not null)
       {
-        this.Validator.Validate(resps);
+        this.Validator.Validate(ref resps);
       }
       return resps;
     }
@@ -159,14 +174,20 @@ namespace Core
     public FunctionStep Clone(Flow flow)
     {
       FunctionStep f = new FunctionStep(flow, this.Id, Name, Position);
-      f.Name = Name;
-      f.Function = Function;
-      f.RespNames.Name = RespNames.Name;
-      f.SaveResponseVariable = SaveResponseVariable;
-      f.LinkOutputs = this.LinkOutputs; //We don't need a deep copy of the links, they aren't modified
+      f.Id = this.Id;
+      f.Name = this.Name;
+      f.Function = this.Function;
+      f.RespNames.Name = this.RespNames.Name;
+      f.SaveResponseVariable = this.SaveResponseVariable;
+      f.LinkOutputs = LinkOutputs; //Don't need to clone the LinkOutputs there isn't any volitile data in them
       f.Validator = this.Validator;
       f.ParmVars = this.ParmVars.Clone();
       return f;
+    }
+
+    public override string ToString()
+    {
+      return Name;
     }
   }
 }

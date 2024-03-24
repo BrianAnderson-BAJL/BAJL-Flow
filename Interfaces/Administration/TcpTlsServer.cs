@@ -99,6 +99,8 @@ namespace Core.Administration
 
     private void ListenThread()
     {
+      Global.Write("Initializing...Starting Administration TCP server");
+
       try
       {
         TcpListener Listener = new TcpListener(IPAddress.Any, mPort);
@@ -133,7 +135,7 @@ namespace Core.Administration
       }
       catch (Exception ex)
       {
-        Global.Write($"TcpTlsServer ERROR - [{ex.Message}]", DEBUG_TYPE.Error);
+        Global.Write($"TcpTlsServer ERROR - [{ex.Message}]", LOG_TYPE.ERR);
       }
     }
 

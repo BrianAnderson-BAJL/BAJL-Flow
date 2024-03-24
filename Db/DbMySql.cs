@@ -25,7 +25,7 @@ namespace Db
         }
         catch (Exception ex)
         {
-          Global.Write("Failed to connect to DB with connection string:  " + ConnectionString + "\n" + ex.Message, DEBUG_TYPE.Error);
+          Global.Write("Failed to connect to DB with connection string:  " + ConnectionString + "\n" + ex.Message, LOG_TYPE.WAR);
         }
       }
     }
@@ -33,7 +33,7 @@ namespace Db
     private void PopulateParameters(MySqlCommand cmd, params Variable[] vars)
     {
       //Skip the 0 (zero) entry, that is the actual SQL, get all the paramenters after that
-      for (int x = 1; x < vars.Length; x++)
+      for (int x = 0; x < vars.Length; x++)
       {
         vars[x].GetValue(out dynamic val);
 
@@ -75,7 +75,8 @@ namespace Db
 
     public Variable Select(string SQL, params Variable[] vars)
     {
-      Variable root = new Variable("Recordset", "");
+      Variable root = new Variable("Recordset");
+      root.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
       using (MySqlConnection connection = new MySqlConnection(ConnectionString))
       {
         connection.Open();
@@ -86,9 +87,11 @@ namespace Db
           using (MySqlDataReader reader = command.ExecuteReader())
           {
             bool tinyAsBool = mDb.SettingGetAsBoolean(Db.Database.DB_TREAT_TINYINT_AS_BOOLEAN);
+            string dataFormat = mDb.SettingGetAsString(Db.Database.DB_DATE_FORMAT);
             while (reader.Read())
             {
-              Variable row = new Variable("record", "");
+              Variable row = new Variable("record");
+              row.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
               Variable column;
               for (int x = 0; x < reader.FieldCount; x++) 
               {
@@ -129,7 +132,7 @@ namespace Db
                 }
                 else if (type == typeof(DateTime))
                 {
-                  column = new Variable(columnName, reader.GetDateTime(x).ToString());
+                  column = new Variable(columnName, reader.GetDateTime(x).ToString(dataFormat));
                 }
                 else if (type == typeof(byte) && tinyAsBool == false)
                 {
@@ -149,12 +152,13 @@ namespace Db
                 }
                 else
                 {
-                  Global.Write($"Unknown column type [{type.Name}]", DEBUG_TYPE.Warning);
+                  Global.Write($"Unknown column type [{type.Name}]", LOG_TYPE.WAR);
                   column = new Variable(columnName, $"Unknown column type [{type.Name}]");
                 }
                 row.SubVariables.Add(column);
               }
               root.SubVariables.Add(row);
+
             }
           }
         }

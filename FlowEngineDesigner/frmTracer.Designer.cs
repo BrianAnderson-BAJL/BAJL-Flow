@@ -50,6 +50,7 @@
       lvTracer.TabIndex = 0;
       lvTracer.UseCompatibleStateImageBehavior = false;
       lvTracer.View = View.Details;
+      lvTracer.MouseDoubleClick += lvTracer_MouseDoubleClick;
       // 
       // chItem
       // 

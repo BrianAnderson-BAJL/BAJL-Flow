@@ -26,6 +26,8 @@ namespace FlowEngineDesigner
       this.Text = "Setting [" + mSetting.Key + "]";
       lblName.Text = mSetting.Key;
       txtDescription.Text = mSetting.Description;
+      if (mSetting.Value is null)
+        return;
       txtValue.Text = mSetting.Value.ToString();
     }
 

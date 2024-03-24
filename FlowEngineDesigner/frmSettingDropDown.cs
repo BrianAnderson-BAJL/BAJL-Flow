@@ -19,7 +19,7 @@ namespace FlowEngineDesigner
       InitializeComponent();
       mSetting = setting;
       lblLabel.Text = setting.Key;
-      if (setting.Options is null)
+      if (setting is null || setting.Options is null || setting.Value is null)
         return;
 
 

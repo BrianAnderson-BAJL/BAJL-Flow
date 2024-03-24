@@ -1,0 +1,17 @@
+﻿<Settings>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>BackgroundColor</Key>
+		<Value>{R:255 G:255 B:255 A:0}</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>BorderColor</Key>
+		<Value>{R:220 G:20 B:60 A:255}</Value>
+	</Setting>
+	<Setting>
+		<DataType>Color</DataType>
+		<Key>FontColor</Key>
+		<Value>{R:0 G:0 B:0 A:255}</Value>
+	</Setting>
+</Settings>

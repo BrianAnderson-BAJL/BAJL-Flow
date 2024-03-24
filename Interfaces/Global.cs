@@ -51,11 +51,12 @@ namespace Core
     Duplicate,
   }
 
-  public enum DEBUG_TYPE
+  public enum LOG_TYPE
   {
-    Information,
-    Warning,
-    Error,
+    DBG,  // Debug
+    INF,  // Information
+    WAR,  // Warning
+    ERR,  // Error
   }
 
   public enum STEP_ERROR_NUMBERS
@@ -85,17 +86,17 @@ namespace Core
     public static int XmlDepthMax = 100;
     public static int JsonDepthMax = 100;
 
-    public static void WriteAllways(string val, DEBUG_TYPE debug = DEBUG_TYPE.Information)
+    public static void WriteAllways(string val, LOG_TYPE debug = LOG_TYPE.INF)
     {
       Console.WriteLine(val);
     }
 
     [Conditional("DEBUG")]
-    public static void Write(string val, DEBUG_TYPE debug = DEBUG_TYPE.Information)
+    public static void Write(string val, LOG_TYPE debug = LOG_TYPE.INF)
     {
-      if (debug == DEBUG_TYPE.Information)
+      if (debug == LOG_TYPE.INF)
         Console.ForegroundColor = ConsoleColor.White;
-      else if (debug == DEBUG_TYPE.Warning)
+      else if (debug == LOG_TYPE.WAR)
         Console.ForegroundColor = ConsoleColor.Yellow;
       else
         Console.ForegroundColor = ConsoleColor.Red;
@@ -110,6 +111,33 @@ namespace Core
     public static string StripOff(string rootPath, string path)
     {
       return path.Substring(rootPath.Length + 1);
+    }
+
+
+    public static string ConvertToString(long ticks)
+    {
+      return ConvertToString(TimeSpan.FromTicks(ticks));
+    }
+
+    public static string ConvertToString(TimeSpan ts)
+    {
+      if (ts.TotalSeconds < 1)
+      {
+        return ts.TotalMilliseconds.ToString() + "ms";
+      }
+      else if (ts.TotalMinutes < 1)
+      {
+        return ts.Seconds.ToString("00") + "s " + ts.Milliseconds + "ms";
+      }
+      else if (ts.TotalHours < 1)
+      {
+        return ts.Minutes.ToString() + "m " + ts.Seconds.ToString() + "s ";
+      }
+      else if (ts.TotalDays >= 1)
+      {
+        return ts.Days.ToString() + "d " + ts.Hours.ToString() + "h " + ts.Minutes.ToString() + "m";
+      }
+      return ts.ToString();
     }
   }
 

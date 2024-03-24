@@ -114,6 +114,7 @@
       txtFileName.Name = "txtFileName";
       txtFileName.Size = new Size(706, 23);
       txtFileName.TabIndex = 3;
+      txtFileName.KeyDown += txtFileName_KeyDown;
       // 
       // label1
       // 

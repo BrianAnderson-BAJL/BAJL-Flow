@@ -31,7 +31,7 @@ namespace Core
 
     public void Init(string[] args)
     {
-      Global.Write("Initializing...");
+      Global.Write($"Initializing... Current working directory [{Directory.GetCurrentDirectory()}]");
       Instance = this;
       Packet.ReversePacketId = true;
       Console.CancelKeyPress += Console_CancelKeyPress;
@@ -40,34 +40,33 @@ namespace Core
       Options.LoadSettings();
       Options.ParseArgs(args); //Command line arguments always override the settings.xml file
       Global.Write("Initializing...Loading users");
-      SecurityProfileManager.FileLoad();
-      UserManager.FileLoad();
+      SecurityProfileManager.Load();
+      UserManager.Load();
       MessageProcessor.Init();
-      Global.Write("Initializing...Starting TCP server");
       try
       {
-        tcpServer = new Administration.TcpTlsServer(5000, Options.TlsCertFileNamePath, Options.TlsCertPassword);
+        tcpServer = new Administration.TcpTlsServer(Options.AdministrationReadPacketTimeoutInMs, Options.TlsCertFileNamePath, Options.TlsCertPassword);
         tcpServer.NewConnection += Administration_TcpServer_NewConnection;
         tcpServer.ConnectionClosed += Administration_TcpServer_ConnectionClosed;
         tcpServer.NewPacket += Administration_TcpServer_NewPacket;
-        tcpServer.Start(7000);
+        tcpServer.Start(Options.AdministrationPortNumber);
       }
       catch (FileNotFoundException ex)
       {
-        Global.Write(ex.Message + $" - [{Options.TlsCertFileNamePath}]", DEBUG_TYPE.Error);
+        Global.Write(ex.Message + $" - [{Options.TlsCertFileNamePath}]", LOG_TYPE.ERR);
         Environment.Exit(0);
       }
       catch (Exception ex1)
       {
-        Global.Write(ex1.Message, DEBUG_TYPE.Error);
+        Global.Write(ex1.Message, LOG_TYPE.ERR);
         Environment.Exit(0);
       }
 
-      Global.Write("Initializing...Loading plugins");
-      PluginManager.LoadPlugins(Options.GetFullPath(Options.PluginPath)); //Open all the *.dlls and load them
-      Global.Write("Initializing...Loading flows");
-      FlowManager.LoadFlows(Options.GetFullPath(Options.FlowPath));  //Parse all the flows in the path and attach them to the plugins
-      Global.Write("Initializing...Starting plugins");
+      Global.Write($"Initializing...Loading plugins from [{Options.GetFullPath(Options.PluginPath)}]");
+      PluginManager.Load(Options.GetFullPath(Options.PluginPath)); //Open all the *.dlls and load them
+      Global.Write($"Initializing...Loading flows from [{Options.GetFullPath(Options.FlowPath)}]");
+      FlowManager.Load(Options.GetFullPath(Options.FlowPath));  //Parse all the flows in the path and attach them to the plugins
+      Global.Write("Initializing...Starting all plugins");
       PluginManager.StartPlugins();
       ThreadPool.GetMaxThreads(out int threads, out int compThreads);
       Global.Write($"Threads in Pool, worker [{threads}], I/O threads [{compThreads}]");

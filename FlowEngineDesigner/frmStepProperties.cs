@@ -28,6 +28,7 @@ namespace FlowEngineDesigner
       mStep = step;
       mFlow = flow;
       userControls = new List<UserControl>(mStep.ParmVars.Count);
+      lblPosition.Text = step.Position.ToString();
     }
 
     private void frmStepProperties_Load(object sender, EventArgs e)

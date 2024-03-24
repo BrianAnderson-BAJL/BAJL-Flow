@@ -1,6 +1,7 @@
 ﻿using Core;
 using Core.Interfaces;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Drawing;
 using System.Net;
 using System.Net.Http.Headers;
@@ -95,8 +96,8 @@ namespace Http
         parm.ValidatorAdd(PARM.PARM_VALIDATION.NumberMin, 0);
         function.DefaultSaveResponseVariable = true;
         function.RespNames = new Variable(Flow.VAR_REQUEST);
-        function.RespNames.Add(new Variable(VAR_HEADERS));
-        function.RespNames.Add(new Variable(Flow.VAR_DATA));
+        function.RespNames.SubVariableAdd(new Variable(VAR_HEADERS));
+        function.RespNames.SubVariableAdd(new Variable(Flow.VAR_DATA));
         Functions.Add(function); //Receive
 
 
@@ -124,8 +125,8 @@ namespace Http
 
         function.DefaultSaveResponseVariable = true;
         function.RespNames = new Variable(Flow.VAR_REQUEST);
-        function.RespNames.Add(new Variable(VAR_HEADERS));
-        function.RespNames.Add(new Variable(Flow.VAR_DATA));
+        function.RespNames.SubVariableAdd(new Variable(VAR_HEADERS));
+        function.RespNames.SubVariableAdd(new Variable(Flow.VAR_DATA));
         Functions.Add(function); //ConnectSendReceiveDisconnect
       }
       //FUNCTIONS
@@ -151,20 +152,41 @@ namespace Http
 
         Variable root = new Variable(Flow.VAR_NAME_FLOW_START, DATA_FORMAT_SUB_VARIABLES.Block);
         //Variable request = new Variable(Flow.VAR_REQUEST);
-        root.Add(new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object));
+        root.SubVariableAdd(new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object));
         Variable headers = new Variable(VAR_HEADERS, DATA_FORMAT_SUB_VARIABLES.Block);
-        root.Add(headers);
+        root.SubVariableAdd(headers);
         Variable data = new Variable(Flow.VAR_DATA);
-        data.Add(new Variable("YOUR_SAMPLE_DATA", "GOES_HERE"));
-        root.Add(data);
+        data.SubVariableAdd(new Variable("YOUR_SAMPLE_DATA", "GOES_HERE"));
+        root.SubVariableAdd(data);
         SampleStartData = root;
       }
       //SAMPLE VARIABLES FOR DESIGNER
     }
 
+    private void AddAddressToHttpConfig(string address)
+    {
+      AddAddressToHttpConfig(address, Environment.UserDomainName, Environment.UserName);
+    }
+
+    private void AddAddressToHttpConfig(string address, string domain, string user)
+    {
+      string args = $"http add urlacl url={address} user={domain}\\{user}";
+
+      ProcessStartInfo psi = new ProcessStartInfo("netsh", args);
+      psi.Verb = "runas";
+      psi.CreateNoWindow = true;
+      psi.WindowStyle = ProcessWindowStyle.Hidden;
+      psi.UseShellExecute = true;
+
+      Process? p = Process.Start(psi);
+      if (p is not null)
+      {
+        p.WaitForExit();
+      }
+    }
+
     private void ListenerThreadRuntime()
     {
-      Listener = new HttpListener();
       Setting? uris = SettingFind("Uri");
       if (uris is null)
       {
@@ -174,27 +196,35 @@ namespace Http
       int index = -1;
       string[] urisString = { };
       if (uris.Value is null)
+      {
+        Global.Write("Uri Value is null");
         return;
-
+      }
       if (uris.Value.ToString() == "")
+      {
+        Global.Write("Uri Value is blank");
         return;
+      }
 
+      Listener = new HttpListener();
       urisString = uris.Value.ToString()!.Split(',');
       for (index = 0; index < urisString.Length; index++) 
       {
         if (urisString[index].Right(1) != "/") //Listener needs to have a '/' (forward slash) at the end for some reason 
           urisString[index] += "/";
         Listener.Prefixes.Add(urisString[index]);
+        Global.Write($"HTTP plugin will be Listening on [{urisString[index]}]", LOG_TYPE.INF);
       }
 
       try
       {
         Listener.Start();
+        Global.Write($"HTTP plugin Listener started", LOG_TYPE.INF);
       }
       catch (HttpListenerException e)
       {
-        Global.Write($"unable to start listening, HttpListenerException [{e.Message}]", DEBUG_TYPE.Error);
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) 
+        Global.Write($"unable to start listening, HttpListenerException [{e.Message}]", LOG_TYPE.ERR);
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
           Global.Write("May need to run this command to allow the Http plugin to start correctly and to run in non-admin mode: netsh http add urlacl url=[URL HERE] user=Everyone");
           for (index = 0; index < urisString.Length; index++)
@@ -203,60 +233,65 @@ namespace Http
           }
         }
       }
-      catch (Exception e) 
+      catch (Exception e)
       {
         Global.Write("unable to start listening, " + e.Message);
       }
+      
+
       while (Listener.IsListening == true)
       {
         try
         {
           HttpListenerContext context = Listener.GetContext();
           HttpListenerRequest request = context.Request;
-
-          if (request.ContentLength64 > 0)
+          string data = "";
+          if (request.ContentLength64 > 0) //Has a body
           {
             Stream body = request.InputStream;
             StreamReader reader = new StreamReader(body, request.ContentEncoding);
-            string data = reader.ReadToEnd();
-            try
+            data = reader.ReadToEnd();
+            Global.Write($"HTTP received a request [{data}]");
+          }
+          try
+          {
+            List<Flow> flows = FindFlows(request.Url, request.HttpMethod, request.UserHostName);
+            if (flows.Count == 0) //No flow found, return error
             {
-              List<Flow> flows = FindFlows(request.Url, request.HttpMethod, request.UserHostName);
-              if (flows.Count == 0)
-              {
-                HttpListenerResponse response = context.Response;
-                response.Headers.Clear();
-                response.StatusCode = (int)HttpStatusCode.BadRequest;
-                byte[] outputData = System.Text.Encoding.UTF8.GetBytes("No flow capable of handling request.");
-                response.ContentLength64 = outputData.Length;
-                response.OutputStream.Write(outputData, 0, outputData.Length);
-                response.Close();
-                continue;
-              }
-
-              Variable baseVar = new Variable(Flow.VAR_NAME_FLOW_START);
-              Variable requestVar = new Variable(Flow.VAR_REQUEST);
-              baseVar.Add(requestVar);
-              requestVar.Add(new Variable(PARM_CONNECTION_HANDLE, context));
-              requestVar.Add(GetHeaders(request));
-              if (request.ContentType == "application/json" && data is not null && data.Length > 0)
-              {
-                Variable? v = Variable.JsonParse(ref data);
-                requestVar.Add(v);
-                //string junk = v.SubVariables[0].JsonCreate();
-              }
-              for (int i = 0; i < flows.Count; i++)
-              {
-                FlowEngine.StartFlow(new FlowRequest(baseVar, this, flows[i]));
-              }
+              HttpListenerResponse response = context.Response;
+              response.Headers.Clear();
+              response.StatusCode = (int)HttpStatusCode.BadRequest;
+              byte[] outputData = System.Text.Encoding.UTF8.GetBytes("No flow capable of handling request.");
+              response.ContentLength64 = outputData.Length;
+              response.OutputStream.Write(outputData, 0, outputData.Length);
+              response.Close();
+              continue;
             }
-            catch
+
+            Variable baseVar = new Variable(Flow.VAR_NAME_FLOW_START);
+            //Variable requestVar = new Variable(Flow.VAR_REQUEST);
+            baseVar.SubVariableAdd(new Variable(PARM_CONNECTION_HANDLE, context));
+            //requestVar.Add();
+            baseVar.SubVariableAdd(GetHeaders(request));
+            if (request.ContentType == "application/json" && data is not null && data.Length > 0)
             {
+              Variable? v = Variable.JsonParse(ref data, "data");
+              baseVar.SubVariableAdd(v);
+              //string junk = v.SubVariables[0].JsonCreate();
+            }
+            for (int i = 0; i < flows.Count; i++)
+            {
+              FlowEngine.StartFlow(new FlowRequest(baseVar, this, flows[i]));
             }
           }
+          catch
+          {
+          }
+          
         }
-        catch (HttpListenerException)
+        catch (HttpListenerException exHttp)
         {
+          Global.Write(exHttp.Message);
           //Do nothing, it was killed by the flow engine, probably stopping.
         }
         catch (Exception ex)
@@ -271,19 +306,15 @@ namespace Http
       Variable headers = new Variable(VAR_HEADERS);
       for (int x = 0; x < request.Headers.AllKeys.Length; x++)
       {
-        string? k = request.Headers.AllKeys[x];
-        if (k is not null)
+        string? headerName = request.Headers.AllKeys[x];
+        if (headerName is not null)
         {
-          Variable headerVar = new Variable(k, "");
-          string[]? v = request.Headers.GetValues(k);
-          if (v is not null)
+          string[]? headerValues = request.Headers.GetValues(headerName);
+          if (headerValues is not null && headerValues.Length > 0)
           {
-            for (int y = 0; y < v.Length; y++)
-            {
-              headerVar.Add(new Variable(k, v[y]));
-            }
+            //TODO: For now only adding the first header value, should add all at some point.
+            headers.SubVariableAdd(new Variable(headerName, headerValues[0]));
           }
-          headers.Add(headerVar);
         }
       }
       return headers;
@@ -351,6 +382,7 @@ namespace Http
 
     public override void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
+      base.StartPlugin(GlobalPluginValues);
       ListenerThread = new Thread(ListenerThreadRuntime);
       ListenerThread.Start();
     }
@@ -406,11 +438,11 @@ namespace Http
 
       string rawData = "";
       if (dataformat == PARM_DATA_FORMAT_JSON)
-        rawData = data.ToJson(JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock);
+        rawData = data.ToJson(JSON_ROOT_BLOCK_OPTIONS.AddRootBlock);
       else if (dataformat == PARM_DATA_FORMAT_XML)
         throw new NotImplementedException(PARM_DATA_FORMAT_XML + " is not implemented yet");
       else if (dataformat == PARM_DATA_FORMAT_RAW)
-        throw new NotImplementedException(PARM_DATA_FORMAT_RAW + " is not implemented yet");
+        rawData = data.Value;
 
       HttpListenerResponse response = context.Response;
       response.Headers.Clear();

@@ -16,6 +16,7 @@ namespace FlowEngineDesigner
     cFlowWrapper Flow;
     PARM_VAR ParmVar;
     FunctionStep? Step;
+
     public frmVariableSelection(PARM_VAR parmVar, FunctionStep? step, cFlowWrapper flow)
     {
       Flow = flow;
@@ -86,6 +87,10 @@ namespace FlowEngineDesigner
           LoadVariableSubNodes(tn, vars[x]);
           tn.Expand();
         }
+      }
+      if (tvVariables.GetNodeCount(true) < 50)
+      {
+        tvVariables.ExpandAll();
       }
     }
 

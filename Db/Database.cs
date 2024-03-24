@@ -19,6 +19,7 @@ namespace Db
     private const string DB_CONN_POOL_MIN = "ConnPoolSizeMin";
     private const string DB_SHARE_WITH_PLUGINS = "ShareDatabaseConnWithOtherPlugins";
     public const string DB_TREAT_TINYINT_AS_BOOLEAN = "TreatTinyintAsBoolean";
+    public const string DB_DATE_FORMAT = "DateFormat";
     private const int DB_ERROR = (int)STEP_ERROR_NUMBERS.DatabaseErrorMin;
     public override void Init()
     {
@@ -44,7 +45,7 @@ namespace Db
       func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
       parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
       func.Parms.Add(parm);
-      func.RespNames.Add(new Variable("recordsInserted"));
+      func.RespNames.SubVariableAdd(new Variable("recordsInserted"));
       Functions.Add(func);
 
 
@@ -71,6 +72,7 @@ namespace Db
       SettingAdd(new Setting(DB_CONN_POOL_MIN, 3));
       SettingAdd(new Setting(DB_SHARE_WITH_PLUGINS, true));
       SettingAdd(new Setting(DB_TREAT_TINYINT_AS_BOOLEAN, true));
+      SettingAdd(new Setting(DB_DATE_FORMAT, "yyyy-MM-dd HH:mm:ss zzz"));
       SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
       SettingAdd(new Setting("", "Designer", "BorderColor", Color.Blue));
       SettingAdd(new Setting("", "Designer", "FontColor", Color.White));
@@ -87,6 +89,7 @@ namespace Db
 
     public override void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
+      base.StartPlugin(GlobalPluginValues);
       //Open database connection
       string dbType = SettingGetAsString(DB_TYPE);
       mDatabase = null;
@@ -114,7 +117,7 @@ namespace Db
       }
       else
       {
-        Global.Write($"Invalid DatabaseType [{dbType}]", DEBUG_TYPE.Error);
+        Global.Write($"Invalid DatabaseType [{dbType}]", LOG_TYPE.ERR);
       }
     }
 

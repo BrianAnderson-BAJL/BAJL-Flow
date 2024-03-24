@@ -99,6 +99,7 @@ namespace FlowEngineDesigner
     private void btnSelectVariable_Click(object sender, EventArgs e)
     {
       frmVariableSelection f = new frmVariableSelection(mParmVar, mStep, mFlow);
+      f.SetDesktopLocation(Cursor.Position.X, Cursor.Position.Y);
       if (f.ShowDialog() == DialogResult.OK)
       {
         mParmVar.GetValue(out string val);

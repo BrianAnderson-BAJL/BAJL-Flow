@@ -51,9 +51,10 @@ namespace Core.Administration
       FlowOpenResponse,
       FlowsGet,
       FlowsGetResponse,
-      FlowDebug,
+      FlowDebug,         // debug a specific flow and register for events
       FlowDebugResponse,
-
+      FlowDebugAlways,   // register for all debug events even if not debugging a specific flow
+      FlowDebugAlwaysResponse,
     }
     private static int NextPacketId = 0;
     public PACKET_TYPE PacketType = PACKET_TYPE._Unknown;

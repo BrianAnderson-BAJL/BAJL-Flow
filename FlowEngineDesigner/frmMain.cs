@@ -1,4 +1,5 @@
 ﻿using Core;
+using Core.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -81,6 +82,7 @@ namespace FlowEngineDesigner
         frmServerConnect f = new frmServerConnect();
         f.Show(); //The form load event will auto login if AdministrationAutoConnect is true.
       }
+
     }
 
     private void newToolStripMenuItem_Click(object sender, EventArgs e)
@@ -224,6 +226,25 @@ namespace FlowEngineDesigner
     private void exitToolStripMenuItem_Click(object sender, EventArgs e)
     {
       this.Close();
+    }
+
+    private void debugAlwaysToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
+    {
+      if (cOptions.AdministrationDebugAlways == true && cServer.IsConnectedToServer == true)
+      {
+        FlowDebugAlways flowDebugAlways = new FlowDebugAlways(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
+        cServer.SendAndResponse(flowDebugAlways.GetPacket(), Callback_FlowDebugAlways);
+      }
+    }
+
+
+    private void Callback_FlowDebugAlways(Core.Administration.EventArgsPacket e)
+    {
+    }
+
+    private void debugAlwaysToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+
     }
   }
 }

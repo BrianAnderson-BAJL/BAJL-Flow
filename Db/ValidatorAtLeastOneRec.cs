@@ -16,7 +16,7 @@ namespace Database
       Descriptoin = "If the recordset contains at least one record then this is a success. If the recordset doesn't contain any records then it is a failure/error.";
     }
 
-    public override void Validate(RESP resp)
+    public override void Validate(ref RESP resp)
     {
       if (resp.Success == false)
         return; //It already failed for another reason, no need to check more

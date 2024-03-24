@@ -145,12 +145,21 @@ namespace Core
     public virtual string SettingGetAsString(string key)
     {
       Setting? setting = SettingFind(key);
-      if (setting is null)
+      if (setting is null || setting.Value is null)
         return "";
 
       return setting.Value.ToString()!;
     }
-    
+
+    public virtual int SettingGetAsInt(string key)
+    {
+      Setting? setting = SettingFind(key);
+      if (setting is null || setting.Value is null || setting.Value is not int)
+        return 0;
+
+      return setting.Value;
+    }
+
     public virtual void SaveSettings()
     {
       Type t = this.GetType();
@@ -188,8 +197,10 @@ namespace Core
         } while (data.Length > 0);
 
       }
-      catch
-      { }
+      catch (Exception e)
+      {
+        Global.Write($"Error loading settings for plugin [{t.Name}], Exception [{e.Message}]", LOG_TYPE.ERR);
+      }
     }
 
     #endregion

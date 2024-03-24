@@ -19,7 +19,7 @@ namespace Core
       Label = label;
       Offset = offset;
     }
-    public Input(string label, Vector2 offset, FunctionStep fs)
+    public Input(string label, Vector2 offset, FunctionStep? fs)
     {
       Label = label;
       Offset = offset;
@@ -29,6 +29,10 @@ namespace Core
     public Input Clone(FunctionStep fs)
     {
       return new Input(this.Label, this.Offset, fs);
+    }
+    public Input Clone()
+    {
+      return new Input(this.Label, this.Offset, this.Step);
     }
 
     public new Vector2 Position

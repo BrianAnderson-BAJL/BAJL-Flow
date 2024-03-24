@@ -76,6 +76,7 @@
       Controls.Add(btnOk);
       Controls.Add(tvVariables);
       Name = "frmVariableSelection";
+      StartPosition = FormStartPosition.Manual;
       Text = "VariableSelection";
       Load += VariableSelection_Load;
       ResumeLayout(false);

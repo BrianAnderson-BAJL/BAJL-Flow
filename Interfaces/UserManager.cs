@@ -46,6 +46,22 @@ namespace Core
       return null;
     }
 
+    public static User? FindByTcpConnection(Administration.TcpClientBase client)
+    {
+
+      lock (mCriticalSection)
+      {
+        for (int x = 0; x < Users.Count; x++)
+        {
+          if (Users[x].TcpClientConnection == client)
+          {
+            return Users[x];
+          }
+        }
+      }
+      return null;
+    }
+
     public static User? FindByLoginId(string loginId)
     {
       loginId = loginId.ToLower();
@@ -83,7 +99,7 @@ namespace Core
       }
     }
 
-    public static void FileWrite()
+    public static void Save()
     {
       Xml xml = new Xml();
       xml.WriteFileNew(Options.UserPath);
@@ -100,7 +116,7 @@ namespace Core
       xml.WriteFileClose();
     }
 
-    public static void FileLoad()
+    public static void Load()
     {
       Core.Xml xml = new Core.Xml();
       string users = xml.FileRead(Options.UserPath);
@@ -137,7 +153,7 @@ namespace Core
       user.NameFirst = userMessage.NameFirst;
       user.NameSur = userMessage.NameSur;
       user.ModifiedDateTime = DateTime.UtcNow;
-      user.SecurityProfile = userMessage.SecurityProfile;
+      user.SecurityProfile = SecurityProfileManager.FindByName(userMessage.SecurityProfile);
       user.NeedToChangePassword = true;
       lock (mCriticalSection)
       {
@@ -145,7 +161,7 @@ namespace Core
           return RECORD_RESULT.Duplicate;
 
         Users.Add(user);
-        FileWrite();
+        Save();
       }
       return RECORD_RESULT.Success;
     }
@@ -159,7 +175,7 @@ namespace Core
       user.NameFirst = firstName;
       user.NameSur = surName;
       user.ModifiedDateTime = DateTime.UtcNow;
-      user.SecurityProfile = securityProfile;
+      user.SecurityProfile = SecurityProfileManager.FindByName(securityProfile);
       user.NeedToChangePassword = true;
       lock (mCriticalSection)
       {
@@ -167,7 +183,7 @@ namespace Core
           return RECORD_RESULT.Duplicate;
 
         Users.Add(user);
-        FileWrite();
+        Save();
       }
       return RECORD_RESULT.Success;
     }
@@ -182,7 +198,7 @@ namespace Core
           if (Users[x].LoginId.ToLower() == loginId)
           {
             Users.RemoveAt(x);
-            UserManager.FileWrite();
+            UserManager.Save();
             return true;
           }
         }

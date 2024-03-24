@@ -20,7 +20,7 @@ namespace FlowEngineDesigner
 
     public static void LoadPlugins(string FullPath)
     {
-      Core.PluginManager.LoadPlugins(FullPath);
+      Core.PluginManager.Load(FullPath);
       Core.PluginManager.StartPluginsDesigner();
 
       PluginsLoaded = true;

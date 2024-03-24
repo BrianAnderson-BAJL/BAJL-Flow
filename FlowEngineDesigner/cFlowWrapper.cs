@@ -24,6 +24,7 @@ namespace FlowEngineDesigner
   {
     private bool mNeedToSave = false;
     internal Size HighlightSize = new Size(30, 30);
+    private bool mIncludeStart = true;
 
     internal static Vector2 HighlightCenterOffset = new Vector2(15, 15);
     private List<FunctionStep> mCurrentlyExecutingStep = new List<FunctionStep>(8);
@@ -36,9 +37,17 @@ namespace FlowEngineDesigner
 
     public void Init()
     {
-      StepAdd("FlowCore.Start", Vector2.Zero);
+      if (mIncludeStart == true)
+      {
+        StepAdd("FlowCore.Start", Vector2.Zero);
+      }
       mCreatedDateTime = Global.CurrentDateTime;
       mModifiedLastDateTime = Global.CurrentDateTime;
+    }
+
+    public cFlowWrapper(bool includeStart = true)
+    {
+      mIncludeStart = includeStart;
     }
 
     new public cFlowWrapper Clone()
@@ -97,6 +106,7 @@ namespace FlowEngineDesigner
     }
     public List<Variable> GetVariablesFromPreviousSteps(Core.FunctionStep step)
     {
+      bool previousStepAdded = false;
       int depth = 0;
       List<Variable> variables = new List<Variable>(32);
       List<PREV_STEP> allPreviousSteps = new List<PREV_STEP>(32);
@@ -121,7 +131,7 @@ namespace FlowEngineDesigner
       for (int x = 0; x < allPreviousSteps.Count; x++)
       {
         PREV_STEP prevStep = allPreviousSteps[x];
-        if (prevStep.Step.Function.RespNames.Name != "" && prevStep.OutputType == Output.TYPE.Success)
+        if (prevStep.Step.RespNames.Name != "" && prevStep.OutputType == Output.TYPE.Success && prevStep.Step.SaveResponseVariable == true)
         {
           if (prevStep.Step.Name == "Database.Select")
           {
@@ -134,12 +144,13 @@ namespace FlowEngineDesigner
             variables.Add(prevStep.Step.RespNames);
           }
         }
-        else if (prevStep.OutputType != Output.TYPE.Success && prevStep.Depth == 0)
+        else if (prevStep.OutputType != Output.TYPE.Success && prevStep.Depth == 0 && previousStepAdded == false)
         {
           Variable err = new Variable(Flow.VAR_NAME_PREVIOUS_STEP, "");
-          err.Add(new Variable("ErrorNumber", 0));
-          err.Add(new Variable("ErrorDescription", ""));
+          err.SubVariableAdd(new Variable("ErrorNumber", 0));
+          err.SubVariableAdd(new Variable("ErrorDescription", ""));
           variables.Add(err);
+          previousStepAdded = true;
         }
       }
       //variables.Reverse();
@@ -160,11 +171,11 @@ namespace FlowEngineDesigner
 
         SqlParser sqlParser = new SqlParser();
         sqlParser.ParseSql(vs.Value);
-        List<string> fields = sqlParser.GetListOf(SqlParser.ParsedUnit.UNIT_TYPE.Field);
+        List<string> fields = sqlParser.GetListOf(SqlParser.ParsedUnit.UNIT_TYPE.FieldOrResult);
         var.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
         for (int x = 0; x < fields.Count; x++)
         {
-          var.Add(new Variable(fields[x], ""));
+          var.SubVariableAdd(new Variable(fields[x], ""));
         }
       }
     }
@@ -451,7 +462,7 @@ namespace FlowEngineDesigner
             Variable? varJsonData = Variable.JsonParse(ref tempJson);
             if (varJsonData is not null)
             {
-              Variables.Add(varJsonData.Name, varJsonData);
+              this.VariableAdd(varJsonData.Name, varJsonData);
             }
             //if (varJsonData is not null && data is not null && varJsonData.SubVariables.Count > 0)
             //{
@@ -683,12 +694,12 @@ namespace FlowEngineDesigner
       float MinY = float.MaxValue;
       float MaxY = float.MinValue;
 
-      FunctionStep? step = FindStepByName("FlowCore", "Start");
-      if (step is not null)
-      {
-        camera.Position = step.Position;
-        return;
-      }
+      //FunctionStep? step = FindStepByName("FlowCore", "Start");
+      //if (step is not null)
+      //{
+      //  camera.Position = step.Position;
+      //  return;
+      //}
       for (int x = 0; x < functionSteps.Count; x++)
       {
         Vector2 p = functionSteps[x].Position;
@@ -705,7 +716,10 @@ namespace FlowEngineDesigner
 
       float CenterX = ((MaxX - MinX) / 2) + MinX;
       float CenterY = ((MaxY - MinY) / 2) + MinY;
-      camera.Position = new Vector2(CenterX, CenterY);
+      Vector2 pos = new Vector2(-CenterX, -CenterY) * camera.ZoomLevel;
+      pos.X += (pb.Width / 2);
+      pos.Y += (pb.Height / 2);
+      camera.Position = pos;
     }
 
     public void XmlWriteFile(string fileName = "")
@@ -744,7 +758,7 @@ namespace FlowEngineDesigner
       xml.WriteTagAndContents("ModifiedLastDateTime", Global.CurrentDateTime);
       xml.WriteTagAndContents("FileVersion", ++FileVersion);
       xml.WriteTagAndContents("SampleDataFormat", SampleDataFormat);
-      xml.WriteTagAndContents("SampleData", SampleData, Xml.BASE_64_ENCODE.Encoded);
+      xml.WriteTagAndContents("SampleData", SampleData, Xml.BAJL_ENCODE.Base64Encoding);
       if (cOptions.FlowUserHistoryMax > 0)
       {
         xml.WriteTagStart("Users");
@@ -800,7 +814,7 @@ namespace FlowEngineDesigner
         if (pv.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Variable)
         {
           xml.WriteTagAndContents("DataType", pv.Parm.DataType);
-          xml.WriteTagAndContents("Value", pv.VariableName, Xml.BASE_64_ENCODE.Encoded); //Value will store the variable name if it a Variable
+          xml.WriteTagAndContents("Value", pv.VariableName, Xml.BAJL_ENCODE.Base64Encoding); //Value will store the variable name if it a Variable
         }
         else if (pv.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal)
         {
@@ -808,7 +822,7 @@ namespace FlowEngineDesigner
           {
             xml.WriteTagAndContents("DataType", pv.Parm.DataType);
             pv.GetValue(out string val);
-            xml.WriteTagAndContents("Value", val, Xml.BASE_64_ENCODE.Encoded);
+            xml.WriteTagAndContents("Value", val, Xml.BAJL_ENCODE.Base64Encoding);
           }
           else if (pv.Parm.DataType == DATA_TYPE.Integer)
           {
@@ -834,7 +848,7 @@ namespace FlowEngineDesigner
             if (pv.Var.DataType == DATA_TYPE.String)
             {
               pv.GetValue(out string val);
-              xml.WriteTagAndContents("Value", val, Xml.BASE_64_ENCODE.Encoded);
+              xml.WriteTagAndContents("Value", val, Xml.BAJL_ENCODE.Base64Encoding);
             }
             else if (pv.Var.DataType == DATA_TYPE.Integer)
             {

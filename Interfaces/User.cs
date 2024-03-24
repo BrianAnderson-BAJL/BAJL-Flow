@@ -18,12 +18,15 @@ namespace Core
     public string passwordHash = "";
     public string NameFirst = "";
     public string NameSur = "";
-    public string SecurityProfile = "";
+    public SecurityProfile SecurityProfile = Core.SecurityProfile.NoAccess;
+    public string SecurityProfileNameTemp = ""; //Used in the designer until the security profiles are loaded from the server.
     public string ServerKey = "";
     public string SessionKey = "";
+    public Tenant Tenant = Core.Tenant.None;
     public int LoginAttempts = 0;
     public DateTime LockOutUntil = DateTime.UtcNow;
     public bool NeedToChangePassword = false;
+    public Administration.TcpClientBase? TcpClientConnection = null;
 
     public DateTime SessionKeyExpiration = DateTime.MinValue;
     public DateTime ModifiedDateTime = DateTime.MinValue;
@@ -34,7 +37,8 @@ namespace Core
       passwordHash = Xml.GetXMLChunk(ref userBlockXml, "PasswordHash");
       NameFirst = Xml.GetXMLChunk(ref userBlockXml, "FirstName");
       NameSur = Xml.GetXMLChunk(ref userBlockXml, "SurName");
-      SecurityProfile = Xml.GetXMLChunk(ref userBlockXml, "SecurityProfile");
+      string tempSecurityProfile = Xml.GetXMLChunk(ref userBlockXml, "SecurityProfile");
+      SecurityProfile = SecurityProfileManager.FindByName(tempSecurityProfile);
       ModifiedDateTime = Xml.GetXMLChunkAsDateTime(ref userBlockXml, "ModifiedDateTime");
       NeedToChangePassword = Xml.GetXMLChunkAsBool(ref userBlockXml, "NeedToChangePassword");
     }
@@ -51,7 +55,7 @@ namespace Core
       if (Minimal == TO_XML.UserFile) //We only want the security profile in the user.xml file, other things might be wrapped with this in the future.
       {
         xml.WriteTagAndContents("PasswordHash", passwordHash);
-        xml.WriteTagAndContents("SecurityProfile", SecurityProfile);
+        xml.WriteTagAndContents("SecurityProfile", SecurityProfile.Name);
       }
       if (ModifiedDateTime == DateTime.MinValue)
       {

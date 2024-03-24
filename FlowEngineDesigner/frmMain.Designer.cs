@@ -49,6 +49,7 @@
       securityProfilesToolStripMenuItem = new ToolStripMenuItem();
       changePasswordToolStripMenuItem = new ToolStripMenuItem();
       flowOpenToolStripMenuItem = new ToolStripMenuItem();
+      debugAlwaysToolStripMenuItem = new ToolStripMenuItem();
       statusStrip1 = new StatusStrip();
       tsServer = new ToolStripStatusLabel();
       toolStripStatusLabel1 = new ToolStripStatusLabel();
@@ -77,21 +78,21 @@
       // newToolStripMenuItem
       // 
       newToolStripMenuItem.Name = "newToolStripMenuItem";
-      newToolStripMenuItem.Size = new Size(180, 22);
+      newToolStripMenuItem.Size = new Size(103, 22);
       newToolStripMenuItem.Text = "&New";
       newToolStripMenuItem.Click += newToolStripMenuItem_Click;
       // 
       // openToolStripMenuItem
       // 
       openToolStripMenuItem.Name = "openToolStripMenuItem";
-      openToolStripMenuItem.Size = new Size(180, 22);
+      openToolStripMenuItem.Size = new Size(103, 22);
       openToolStripMenuItem.Text = "&Open";
       openToolStripMenuItem.Click += openToolStripMenuItem_Click;
       // 
       // exitToolStripMenuItem
       // 
       exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-      exitToolStripMenuItem.Size = new Size(180, 22);
+      exitToolStripMenuItem.Size = new Size(103, 22);
       exitToolStripMenuItem.Text = "E&xit";
       exitToolStripMenuItem.Click += exitToolStripMenuItem_Click;
       // 
@@ -140,7 +141,7 @@
       // optionsToolStripMenuItem
       // 
       optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-      optionsToolStripMenuItem.Size = new Size(180, 22);
+      optionsToolStripMenuItem.Size = new Size(116, 22);
       optionsToolStripMenuItem.Text = "&Options";
       optionsToolStripMenuItem.Click += optionsToolStripMenuItem_Click;
       // 
@@ -156,57 +157,65 @@
       // connectToolStripMenuItem
       // 
       connectToolStripMenuItem.Name = "connectToolStripMenuItem";
-      connectToolStripMenuItem.Size = new Size(167, 22);
+      connectToolStripMenuItem.Size = new Size(180, 22);
       connectToolStripMenuItem.Text = "&Connect";
       connectToolStripMenuItem.Click += connectToolStripMenuItem_Click;
       // 
       // disconnectToolStripMenuItem
       // 
       disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
-      disconnectToolStripMenuItem.Size = new Size(167, 22);
+      disconnectToolStripMenuItem.Size = new Size(180, 22);
       disconnectToolStripMenuItem.Text = "Disconnect";
       disconnectToolStripMenuItem.Click += disconnectToolStripMenuItem_Click;
       // 
       // connectRecentToolStripMenuItem
       // 
       connectRecentToolStripMenuItem.Name = "connectRecentToolStripMenuItem";
-      connectRecentToolStripMenuItem.Size = new Size(167, 22);
+      connectRecentToolStripMenuItem.Size = new Size(180, 22);
       connectRecentToolStripMenuItem.Text = "Connect &Recent...";
       // 
       // administrationToolStripMenuItem
       // 
-      administrationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem1, securityProfilesToolStripMenuItem, changePasswordToolStripMenuItem, flowOpenToolStripMenuItem });
+      administrationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem1, securityProfilesToolStripMenuItem, changePasswordToolStripMenuItem, flowOpenToolStripMenuItem, debugAlwaysToolStripMenuItem });
       administrationToolStripMenuItem.Name = "administrationToolStripMenuItem";
-      administrationToolStripMenuItem.Size = new Size(167, 22);
+      administrationToolStripMenuItem.Size = new Size(180, 22);
       administrationToolStripMenuItem.Text = "&Administration";
       // 
       // usersToolStripMenuItem1
       // 
       usersToolStripMenuItem1.Name = "usersToolStripMenuItem1";
-      usersToolStripMenuItem1.Size = new Size(168, 22);
+      usersToolStripMenuItem1.Size = new Size(180, 22);
       usersToolStripMenuItem1.Text = "&Users...";
       usersToolStripMenuItem1.Click += usersToolStripMenuItem1_Click;
       // 
       // securityProfilesToolStripMenuItem
       // 
       securityProfilesToolStripMenuItem.Name = "securityProfilesToolStripMenuItem";
-      securityProfilesToolStripMenuItem.Size = new Size(168, 22);
+      securityProfilesToolStripMenuItem.Size = new Size(180, 22);
       securityProfilesToolStripMenuItem.Text = "Security Profiles...";
       securityProfilesToolStripMenuItem.Click += securityProfilesToolStripMenuItem_Click;
       // 
       // changePasswordToolStripMenuItem
       // 
       changePasswordToolStripMenuItem.Name = "changePasswordToolStripMenuItem";
-      changePasswordToolStripMenuItem.Size = new Size(168, 22);
+      changePasswordToolStripMenuItem.Size = new Size(180, 22);
       changePasswordToolStripMenuItem.Text = "Change &Password";
       changePasswordToolStripMenuItem.Click += changePasswordToolStripMenuItem_Click;
       // 
       // flowOpenToolStripMenuItem
       // 
       flowOpenToolStripMenuItem.Name = "flowOpenToolStripMenuItem";
-      flowOpenToolStripMenuItem.Size = new Size(168, 22);
+      flowOpenToolStripMenuItem.Size = new Size(180, 22);
       flowOpenToolStripMenuItem.Text = "Flow Open...";
       flowOpenToolStripMenuItem.Click += flowOpenToolStripMenuItem_Click;
+      // 
+      // debugAlwaysToolStripMenuItem
+      // 
+      debugAlwaysToolStripMenuItem.Name = "debugAlwaysToolStripMenuItem";
+      debugAlwaysToolStripMenuItem.Size = new Size(180, 22);
+      debugAlwaysToolStripMenuItem.Text = "Debug Always";
+      debugAlwaysToolStripMenuItem.CheckStateChanged += debugAlwaysToolStripMenuItem_CheckStateChanged;
+      debugAlwaysToolStripMenuItem.Click += debugAlwaysToolStripMenuItem_Click;
       // 
       // statusStrip1
       // 
@@ -290,5 +299,6 @@
     public ToolStripStatusLabel tsLoggedInAs;
     private ToolStripMenuItem flowOpenToolStripMenuItem;
     private OpenFileDialog openFileDialog1;
+    public ToolStripMenuItem debugAlwaysToolStripMenuItem;
   }
 }

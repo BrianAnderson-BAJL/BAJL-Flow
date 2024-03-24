@@ -32,7 +32,7 @@ namespace Core.Administration.Messages
         user.LoginId = loginId;
         user.NameFirst = nameFirst;
         user.NameSur = nameSur;
-        user.SecurityProfile = securityProfile;
+        user.SecurityProfileNameTemp = securityProfile;
         Users.Add(user);
       }
     }
@@ -50,7 +50,7 @@ namespace Core.Administration.Messages
         packet.AddData(Users[x].LoginId);
         packet.AddData(Users[x].NameFirst);
         packet.AddData(Users[x].NameSur);
-        packet.AddData(Users[x].SecurityProfile);
+        packet.AddData(Users[x].SecurityProfile.Name);
       }
       return packet;
     }

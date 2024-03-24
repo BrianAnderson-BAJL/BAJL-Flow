@@ -57,7 +57,7 @@ namespace Core
     /// <returns>Is supported?</returns>
     public static bool IsHashSupported(string hashString)
     {
-      return hashString.Contains(HASH_HEADER);
+      return hashString.StartsWith(HASH_HEADER);
     }
 
     /// <summary>

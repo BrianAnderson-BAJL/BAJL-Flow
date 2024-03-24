@@ -22,6 +22,7 @@ namespace FlowEngineDesigner
       {
         Flow = flowWrapper;
       }
+      TitleText();
     }
 
     private void pictureBox1_Paint(object sender, PaintEventArgs e)
@@ -53,6 +54,7 @@ namespace FlowEngineDesigner
         Flow.DrawSelection(SelectedItem, e.Graphics, Camera);
       }
       Flow.DrawExecutingCurrent(e.Graphics, Camera);
+      tslCameraPosition.Text = Camera.Position.ToString();
     }
 
     private void frmFlow_Load(object sender, EventArgs e)
@@ -115,7 +117,7 @@ namespace FlowEngineDesigner
             SelectedItem.Type = HIT_RESULT.HIT_TYPE.Comment;
             SelectedItem.HitItem = SelectedItem.ParentItem;
             SelectedItem.ParentItem = null;
-            
+
           }
           else if (SelectedItem.Type == HIT_RESULT.HIT_TYPE.Comment)
           {
@@ -191,7 +193,7 @@ namespace FlowEngineDesigner
         return Cursors.SizeNS;
       else if (rh.Location == ResizeHandle.RESIZE_LOCATION.TopRight || rh.Location == ResizeHandle.RESIZE_LOCATION.BottomLeft)
         return Cursors.SizeNESW;
-      else if (rh.Location == ResizeHandle.RESIZE_LOCATION.MiddleLeft|| rh.Location == ResizeHandle.RESIZE_LOCATION.MiddleRight)
+      else if (rh.Location == ResizeHandle.RESIZE_LOCATION.MiddleLeft || rh.Location == ResizeHandle.RESIZE_LOCATION.MiddleRight)
         return Cursors.SizeWE;
 
       return Cursors.Default;
@@ -207,7 +209,7 @@ namespace FlowEngineDesigner
       {
         if (cMouse.OverallState == cMouse.OVERALL_STATE.DrawComment)
         {
-          CreateComment();          
+          CreateComment();
         }
         else
         {
@@ -375,9 +377,33 @@ namespace FlowEngineDesigner
 
     }
 
-    private void TitleText()
+    public void HighlightStep(int stepId)
     {
-      this.Text = $"Flow - [{Flow.FileName}]";
+      FunctionStep? step = Flow.FindStepById(stepId);
+      if (step is null)
+        return;
+
+      SelectedItem.Hit = true;
+      SelectedItem.HitItem = step;
+      SelectedItem.Position = step.Position;
+      SelectedItem.Type = HIT_RESULT.HIT_TYPE.Function;
+      Vector2 pos = (-step.Position - new Vector2(100,100)) * Camera.ZoomLevel;
+      pos.X += pictureBox1.Width / 2;
+      pos.Y += pictureBox1.Height / 2;
+      Camera.Position = pos;
+      pictureBox1.Refresh();
+    }
+
+    public void TitleText()
+    {
+      if (Flow.FileName.Length > 0)
+      {
+        this.Text = $"Flow - [{Flow.FileName}]";
+      }
+      else
+      {
+        this.Text = "Flow - [New]";
+      }
     }
 
     private void saveToolStripMenuItem_Click(object sender, EventArgs e)
@@ -507,7 +533,7 @@ namespace FlowEngineDesigner
 
     private void frmFlow_Activated(object sender, EventArgs e)
     {
-      serverToolStripMenuItem.Enabled = cServer.IsConnectedToServer();
+      serverToolStripMenuItem.Enabled = cServer.IsConnectedToServer;
     }
 
     /// <summary>
@@ -541,6 +567,7 @@ namespace FlowEngineDesigner
     {
       Flow = flowWrapper;
       Flow.PopulateSampleVariablesFromPlugin();
+      TitleText();
       pictureBox1.Refresh();
 
     }
@@ -552,6 +579,11 @@ namespace FlowEngineDesigner
     }
 
     private void pictureBox1_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    private void tslCameraPosition_Click(object sender, EventArgs e)
     {
 
     }

@@ -60,11 +60,14 @@ namespace FlowEngineDesigner
       }
     }
 
-    public static bool IsConnectedToServer()
+    public static bool IsConnectedToServer
     {
-      if (Client is null)
-        return false;
-      return Client.Connected;
+      get
+      {
+        if (Client is null)
+          return false;
+        return Client.Connected;
+      }
     }
 
     public static void RefreshSecurityProfiles(ResponseDelegate? callback = null)
@@ -84,7 +87,7 @@ namespace FlowEngineDesigner
         cServer.SecurityProfiles = response.Profiles;
         if (UserLoggedIn is null)
           return;
-        
+        UserLoggedIn.SecurityProfile = FindSecurityProfileByName(UserLoggedIn.SecurityProfileNameTemp);
       }
     }
 
@@ -92,17 +95,16 @@ namespace FlowEngineDesigner
     {
       if (UserLoggedIn is null)
         return SecurityProfile.SECURITY_ACCESS_LEVEL.None;
-      SecurityProfile? sp = FindSecurityProfileByName(UserLoggedIn.SecurityProfile);
-      if (sp is null)
+      if (UserLoggedIn.SecurityProfile is null)
         return SecurityProfile.SECURITY_ACCESS_LEVEL.None;
 
-      return sp.AccessLevelClient(secArea);
+      return UserLoggedIn.SecurityProfile.AccessLevelClient(secArea);
     }
 
-    public static SecurityProfile? FindSecurityProfileByName(string name)
+    public static SecurityProfile FindSecurityProfileByName(string name)
     {
       if (SecurityProfiles is null)
-        return null;
+        return SecurityProfile.NoAccess;
 
       for (int x = 0; x < SecurityProfiles.Count; x++)
       {
@@ -111,7 +113,8 @@ namespace FlowEngineDesigner
           return SecurityProfiles[x];
         }
       }
-      return null;
+
+      return SecurityProfile.NoAccess;
     }
 
     private static void CheckSecurityAccess(Core.SecurityProfile sp)

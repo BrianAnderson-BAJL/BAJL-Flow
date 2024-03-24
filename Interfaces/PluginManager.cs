@@ -24,7 +24,7 @@ namespace Core
 
     public static ReadOnlyCollection<Plugin> Plugins => mPlugins.AsReadOnly();
 
-    public static void LoadPlugins(string FullPath)
+    public static void Load(string FullPath)
     {
       string[] Files = Directory.GetFiles(FullPath, "*.dll");
       mPlugins = new List<Plugin>(Files.Length);

@@ -8,14 +8,8 @@ using static Core.PARM;
 
 namespace Logger
 {
-  public class Log : Core.Plugin
+  public class Log : Core.Plugin, Core.Interfaces.ILog
   {
-    public enum LOG_TYPE
-    {
-      INF,
-      WAR,
-      ERR,
-    }
     private class LogEntry
     {
       public LOG_TYPE LogType;
@@ -38,6 +32,8 @@ namespace Logger
     private const string SETTING_TIME_STYLE = "TimeStyle";
     private const string SETTING_TIME_STYLE_LOCAL = "Local";
     private const string SETTING_TIME_STYLE_UTC = "UTC";
+    private const string LOG_SHARE_WITH_PLUGINS = "ShareLogWithOtherPlugins";
+
     public override void Init()
     {
       base.Init();
@@ -58,7 +54,7 @@ namespace Logger
       function.Parms.Add(new PARM("Log Values", DATA_TYPE.Various));
 
 
-
+      SettingAdd(new Setting(LOG_SHARE_WITH_PLUGINS, true));
       SettingAdd(new Setting("LogPath", ""));
 
       Setting setting = SettingAdd(new Setting(SETTING_TIME_STYLE, SETTING_TIME_STYLE_LOCAL, STRING_SUB_TYPE.DropDownList));
@@ -133,6 +129,8 @@ namespace Logger
 
     public override void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
+      base.StartPlugin(GlobalPluginValues);
+
       //Set the function pointer to the time style I want.
       string timeStyle = this.SettingGetAsString(SETTING_TIME_STYLE);
       if (timeStyle == SETTING_TIME_STYLE_LOCAL)
@@ -145,6 +143,10 @@ namespace Logger
       LogThread = new Thread(LogThreadRuntime);
       LogThread.Start();
 
+      if (this.SettingGetAsBoolean(LOG_SHARE_WITH_PLUGINS) == true)
+      {
+        GlobalPluginValues.Add("log", this);
+      }
 
       base.StartPlugin(GlobalPluginValues);
     }
@@ -161,7 +163,7 @@ namespace Logger
       //Nothing to dispose of yet!
     }
 
-    private void AddLogEntry(string logTypeStr, string value)
+    private void AddLogEntry(string value, string logTypeStr)
     {
       LogEntry logEntry = new LogEntry();
       logEntry.LogType = Enum.Parse<LOG_TYPE>(logTypeStr);
@@ -187,7 +189,9 @@ namespace Logger
         
         for (int x = 0; x < localLogs.Count; x++)
         {
-          File.AppendAllText(LogFileName, localLogs[x].Format());
+          string temp = localLogs[x].Format();
+          Global.Write(temp);
+          File.AppendAllText(LogFileName, temp);
         }
         localLogs.Clear();
 
@@ -217,11 +221,14 @@ namespace Logger
         value = var.ToJson();
       }
 
-      AddLogEntry(logTypeStr, value);
+      AddLogEntry(value, logTypeStr);
 
       return RESP.SetSuccess();
     }
 
-
+    public void Write(string val, LOG_TYPE debug = LOG_TYPE.INF)
+    {
+      AddLogEntry(val, debug.ToString());
+    }
   }
 }

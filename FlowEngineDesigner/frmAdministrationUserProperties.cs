@@ -59,7 +59,7 @@ namespace FlowEngineDesigner
         txtPassword.Text = "";
         txtNameFirst.Text = User.NameFirst;
         txtNameSur.Text = User.NameSur;
-        Global.ComboBoxSetIndex(cmbSecurityProfile, User.SecurityProfile);
+        Global.ComboBoxSetIndex(cmbSecurityProfile, User.SecurityProfile.Name);
       }
 
       Tim.Interval = 1000;

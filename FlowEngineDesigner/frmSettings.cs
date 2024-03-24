@@ -47,6 +47,8 @@ namespace FlowEngineDesigner
         {
           for (int y = 0; y < s.SubSettings.Count; y++)
           {
+            if (s.Value is null)
+              continue;
             if ((s.DropDownGroupName + s.Value.ToString()) == s.SubSettings[y].DropDownGroupName)
             {
               AddSettingToListView(s.SubSettings[y]);
@@ -62,6 +64,8 @@ namespace FlowEngineDesigner
       ListViewItem lvi = lstSettings.Items.Add(s.Key);
       lvi.Tag = s;
       lvi.SubItems.Add(s.DataType.ToString());
+      if (s.Value is null)
+        return;
       lvi.SubItems.Add(s.Value.ToString());
       if (s.DataType == Core.DATA_TYPE.Color)
       {

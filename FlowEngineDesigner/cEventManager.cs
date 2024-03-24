@@ -28,7 +28,7 @@ namespace FlowEngineDesigner
     public static void RaiseEventTracer(SENDER sender, string data, BaseResponse.RESPONSE_CODE response, long ticks = 0)
     {
       TRACER_TYPE tracer = TRACER_TYPE.Information;
-      if (response == BaseResponse.RESPONSE_CODE.AccessDenied)
+      if (response == BaseResponse.RESPONSE_CODE.AccessDenied || response == BaseResponse.RESPONSE_CODE.BadRequest)
         tracer = TRACER_TYPE.Warning;
       else if (response == BaseResponse.RESPONSE_CODE.Error)
         tracer = TRACER_TYPE.Error;
@@ -49,7 +49,10 @@ namespace FlowEngineDesigner
         return;
 
       Core.Administration.Messages.TraceResponse trace = new TraceResponse(packet);
-      RaiseEventTracer(SENDER.FlowDebug, trace.PreviousStepName, TRACER_TYPE.Information, trace.ExecutionTicks, trace.ResponseXml);
+      TRACER_TYPE type = TRACER_TYPE.Information;
+      if (trace.Success == false)
+        type = TRACER_TYPE.Error;
+      RaiseEventTracer(SENDER.FlowDebug, trace.PreviousStepName, type, trace.ExecutionTicks, trace.ResponseXml);
     }
   }
 

@@ -27,7 +27,7 @@ namespace Validation
       Functions.Add(function);
 
       function = new Function("VariableHasValue", this, VariableHasValue);
-      function.Parms.Add("Variable", DATA_TYPE.Various, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple);
+      function.Parms.Add("Variable", DATA_TYPE.Various, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple, PARM.PARM_RESOLVE_VARIABLES.No); //Don't resolve the variables so that we can report which variable had the error.
       Functions.Add(function);
 
       //SETTINGS
@@ -42,6 +42,8 @@ namespace Validation
 
     public override void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
+      base.StartPlugin(GlobalPluginValues);
+
     }
 
     public override void StopPlugin()
@@ -58,36 +60,38 @@ namespace Validation
         return RESP.SetError(1, "email is null");
 
       if (email.Contains('@') == false)
-        return RESP.SetError(1, "No @ symbol");
+        return RESP.SetError(1, $"No @ symbol [{email}]");
 
       string[] emailSplit = email.Split('@');
       if (emailSplit.Length != 2)
-        return RESP.SetError(1, "Wrong number of @ symbols");
+        return RESP.SetError(1, $"Wrong number of @ symbols [{email}]");
 
       if (format == "a@a")
       {
         if (emailSplit[0].Length < 1)
-          return RESP.SetError(1, "Value before @ symbol is not valid");
+          return RESP.SetError(1, $"Value before @ symbol is not valid [{email}]");
 
         if (emailSplit[1].Length < 1)
-          return RESP.SetError(1, "Value after @ symbol is not valid");
+          return RESP.SetError(1, $"Value after @ symbol is not valid [{email}]");
       }
       else if (format == "a@a.a")
       {
         if (emailSplit[0].Length < 1)
-          return RESP.SetError(1, "Value before @ symbol is not valid");
+          return RESP.SetError(1, $"Value before @ symbol is not valid [{email}]");
 
         if (emailSplit[1].Length < 3) // must be at least a.a (3 characters)
-          return RESP.SetError(1, "Value after @ symbol is not valid");
+          return RESP.SetError(1, $"Value after @ symbol is not valid [{email}]");
 
         if (emailSplit[1].Contains("..") == true)
-          return RESP.SetError(1, "Invalid double dot detected '..'");
+          return RESP.SetError(1, $"Invalid double dot detected '..' [{email}]");
 
         string[] afterAt = emailSplit[1].Split('.');
+        if (afterAt.Length < 2)
+          return RESP.SetError(1, $"Value after @ symbol is not valid, invalid domain name [{email}]");
         for (int x = 0; x < afterAt.Length; x++)
         {
           if (afterAt[x].Length < 1)
-            return RESP.SetError(1, "Value after @ symbol is not valid");
+            return RESP.SetError(1, $"Value after @ symbol is not valid [{email}]");
         }
       }
 
@@ -107,9 +111,10 @@ namespace Validation
 
       for (int x = 0; x < vars.Length; x++)
       {
-        vars[x].GetValueAsString(out string var);
-        if (var.Length == 0)
-          return RESP.SetError(1, "Variable is empty");
+        Variable? var = flow.FindVariable(vars[x].Value);
+        var.GetValueAsString(out string temp);
+        if (temp.Length == 0)
+          return RESP.SetError(1, $"Variable is empty [{vars[x].Value}]");
       }
 
       return RESP.SetSuccess();

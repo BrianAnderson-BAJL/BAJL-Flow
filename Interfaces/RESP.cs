@@ -30,6 +30,7 @@ namespace Core
       r.OutputVar = output;
       return r;
     }
+
     public static RESP SetError(int errornumber, string errorDescription, uint outputIndex = 1)
     {
       RESP r = new RESP();
@@ -42,6 +43,7 @@ namespace Core
 
     public void SetError(STEP_ERROR_NUMBERS errorNumber, string errorDescription)
     {
+      mOutputType = Output.TYPE.Error;
       mErrorNumber = (int)errorNumber;
       mErrorDescription = errorDescription;
     }

@@ -18,5 +18,6 @@ namespace Core
       Output = output;
       Input = input;
     }
+
   }
 }

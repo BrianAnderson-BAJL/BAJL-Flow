@@ -35,6 +35,7 @@ namespace Core.Administration
       Processors.Add(Packet.PACKET_TYPE.FlowOpen, ProcessFlowOpen);
       Processors.Add(Packet.PACKET_TYPE.FlowDebug, ProcessFlowDebug);
       Processors.Add(Packet.PACKET_TYPE.CloseConnection, ProcessCloseConnection);
+      Processors.Add(Packet.PACKET_TYPE.FlowDebugAlways, ProcessFlowDebugAlways);
 
     }
 
@@ -141,21 +142,23 @@ namespace Core.Administration
         return false;
       }
 
-      SecurityProfile? sp = SecurityProfileManager.FindByName(user.SecurityProfile);
-      if (sp is null)
+      if (user.SecurityProfile is null)
       {
         Global.Write("SECURITY ERROR!  Missing Security profile for user");
         SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
         return false; //No security profile defined for this user, they don't have access
       }
-      if (sp.HasAccessServer(packet.PacketType) == false)
+      if (user.SecurityProfile.HasAccessServer(packet.PacketType) == false)
       {
         Global.Write("SECURITY ERROR!  User's Security profile does not allow this action");
         SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
         return false; //User's security profile doesn't allow them to perform this function
       }
-      
+
       //If we got through all the possible errors, the user has passed the security check
+
+      user.TcpClientConnection = client; //Assign this TCP connection to the user
+
       return true;
     }
 
@@ -192,8 +195,8 @@ namespace Core.Administration
         }
         user.NameFirst = userEdit.NameFirst;
         user.NameSur = userEdit.NameSur;
-        user.SecurityProfile = userEdit.SecurityProfile;
-        UserManager.FileWrite();
+        user.SecurityProfile = SecurityProfileManager.FindByName(userEdit.SecurityProfile);
+        UserManager.Save();
         response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserEditResponse);
       }
       else
@@ -234,7 +237,7 @@ namespace Core.Administration
         if (user is not null)
         {
           Global.Write($"ProcessUserLogin - response code [0], login id [{user.LoginId}]");
-          UserLoginResponse response = new UserLoginResponse(packet.PacketId, user.LoginId, user.SecurityProfile, user.NameFirst, user.NameSur, user.SessionKey, user.SessionKeyExpiration, user.NeedToChangePassword);
+          UserLoginResponse response = new UserLoginResponse(packet.PacketId, user.LoginId, user.SecurityProfile.Name, user.NameFirst, user.NameSur, user.SessionKey, user.SessionKeyExpiration, user.NeedToChangePassword);
           client.Send(response.GetPacket());
         }
       }
@@ -281,7 +284,7 @@ namespace Core.Administration
           Global.Write($"ProcessUserChangePassword - response code [0], login id [{user.LoginId}]");
           BaseResponse response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserChangePasswordResponse);
           client.Send(response.GetPacket());
-          UserManager.FileWrite();
+          UserManager.Save();
         }
       }
     }
@@ -334,7 +337,8 @@ namespace Core.Administration
     private static void WriteSubDirectory(string path, string relativePath, Xml xml, int depth)
     {
       xml.WriteTagStart("Directory" + depth.ToString()); //Adding depth to the Directory tag to make my XML parsing easier, cheap hack! //TODO: Fix the cheesy/cheap XML hack with a real XML parser
-      xml.WriteTagAndContents("Path", relativePath);
+      xml.WriteTagAndContents("Path", "/" + Path.GetFileNameWithoutExtension(relativePath)); //Not really getting the file name, but the last directory in the path, we don't want the full path
+      
       string[] files = Directory.GetFiles(path, "*.flow");
       for (int y = 0; y < files.Length; y++)
       {
@@ -443,12 +447,10 @@ namespace Core.Administration
       if (data.FileName.Contains(".") == true && data.FileName.ToLower().Contains(".flow") == false)
       {
         responseCode = RESPONSE_CODE.BadRequest;
-        return;
       }
       if (data.FileName.ToLower().EndsWith(".flow") == false)
       {
         responseCode = RESPONSE_CODE.BadRequest;
-        return;
       }
 
       string flowXml = "";
@@ -485,9 +487,12 @@ namespace Core.Administration
       try
       {
         Flow flow = new Flow();
-        flow.DebugTcpClient = client;
-        flow.DebugPacket = packet;
+        User? user = UserManager.FindByTcpConnection(client);
+        if (user is null)
+          return;
         flow.XmlRead(ref xmlData);
+        flow.FileName = Guid.NewGuid().ToString(); //Assign a random guid as the name, we will use this to map this flow back to the debugger when the flow completes
+        DebuggerManager.Add(user, packet.PacketId, flow.FileName);
         if (flow.StartPlugin is null && data.StartType == FlowRequest.START_TYPE.WaitForEvent)
         {
           BaseResponse response = new BaseResponse(packet.PacketId, RESPONSE_CODE.NoStartPluginDefined, Packet.PACKET_TYPE.FlowDebugResponse);
@@ -507,11 +512,36 @@ namespace Core.Administration
       }
       catch (Exception ex)
       {
-        Global.Write($"Flow Debug Execution error [{ex.Message}]", DEBUG_TYPE.Error);
+        Global.Write($"Flow Debug Execution error [{ex.Message}]", LOG_TYPE.ERR);
       }
 
     }
 
+
+    private static void ProcessFlowDebugAlways(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    {
+      FlowDebugAlways data = new FlowDebugAlways(packet);
+
+      if (Options.ServerType != Options.SERVER_TYPE.Development)
+      {
+        BaseResponse response = new BaseResponse(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, Packet.PACKET_TYPE.FlowDebugResponse);
+        client.Send(response.GetPacket());
+        return;
+      }
+
+      try
+      {
+        User? user = UserManager.FindByTcpConnection(client);
+        if (user is null)
+          return;
+        DebuggerManager.Add(user);
+      }
+      catch (Exception ex)
+      {
+        Global.Write($"ProcessFlowDebugAlways Execution error [{ex.Message}]", LOG_TYPE.ERR);
+      }
+
+    }
     private static void ProcessCloseConnection(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
     {
 #if DEBUG

@@ -33,7 +33,7 @@ namespace Core
       this.SubVariables = new List<Variable>(var.SubVariables.Count);
       for (int x = 0; x < var.SubVariables.Count; x++)
       {
-        this.Add(var.SubVariables[x].Clone());
+        this.SubVariableAdd(var.SubVariables[x].Clone());
       }
     }
 
@@ -97,7 +97,7 @@ namespace Core
     public void GetValue(out string val)
     {
       if (DataType != DATA_TYPE.String)
-        throw new Exception("Expected DATA_TYPE.String, actual DATA_TYPE == " + DataType.ToString());
+        throw new Exception($"[{Name}] Expected DATA_TYPE.String, actual DATA_TYPE == " + DataType.ToString());
 
       val = Value;
       return;
@@ -106,7 +106,7 @@ namespace Core
     public void GetValue(out bool val)
     {
       if (DataType != DATA_TYPE.Boolean)
-        throw new Exception("Expected DATA_TYPE.Boolean, actual DATA_TYPE == " + DataType.ToString());
+        throw new Exception($"[{Name}] Expected DATA_TYPE.Boolean, actual DATA_TYPE == " + DataType.ToString());
 
       val = (bool)Value;
       return;
@@ -114,7 +114,7 @@ namespace Core
     public void GetValue(out long val)
     {
       if (DataType != DATA_TYPE.Integer)
-        throw new Exception("Expected DATA_TYPE.Integer, actual DATA_TYPE == " + DataType.ToString());
+        throw new Exception($"[{Name}] Expected DATA_TYPE.Integer, actual DATA_TYPE == " + DataType.ToString());
 
       val = (long)Value;
       return;
@@ -122,13 +122,13 @@ namespace Core
     public void GetValue(out decimal val)
     {
       if (DataType != DATA_TYPE.Decimal)
-        throw new Exception("Expected DATA_TYPE.Decimal, actual DATA_TYPE == " + DataType.ToString());
+        throw new Exception($"[{Name}] Expected DATA_TYPE.Decimal, actual DATA_TYPE == " + DataType.ToString());
 
       val = (decimal)Value;
       return;
     }
 
-    public void Add(Variable? v)
+    public void SubVariableAdd(Variable? v)
     {
       if (v is null)
         return;
@@ -137,7 +137,7 @@ namespace Core
       SubVariables.Add(v);
     }
 
-    public void Remove(Variable v)
+    public void SubVariableRemove(Variable v)
     {
       SubVariables.Remove(v);
     }
@@ -145,6 +145,27 @@ namespace Core
     public Variable Clone()
     {
       return new Variable(this);
+    }
+
+    public Variable CloneWithNewName(string newName)
+    {
+      Variable v = new Variable(this);
+      v.Name = newName;
+      return v;
+    }
+
+    private string FormatValueAsJson()
+    {
+      if (this.DataType == DATA_TYPE.String)
+        return "\"" + this.Value + "\"";
+      else if (this.DataType == DATA_TYPE.Integer || this.DataType == DATA_TYPE.Decimal || this.DataType == DATA_TYPE.Boolean || this.DataType == DATA_TYPE.Color || this.DataType == DATA_TYPE.Various)
+        return this.Value.ToString();
+      else if (this.DataType == DATA_TYPE.Object && this.Value is not null)
+        return "\"[Object][" + this.Value.GetType() + "]\"";
+      else if (this.DataType == DATA_TYPE.Object && this.Value is null)
+        return "\"[Object][null]\"";
+      
+      return "";
     }
 
 
@@ -157,14 +178,28 @@ namespace Core
       {
         if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
           jsonStr += tabs + "\"" + this.Name + "\":";
+        if (this.SubVariables.Count == 0)
+        {
+          jsonStr += " " + FormatValueAsJson();
+          return jsonStr;
+        }
       }
-      if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block || options == JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock)
+      if (options == JSON_ROOT_BLOCK_OPTIONS.AddRootBlock)
+      {
+
+        jsonStr += "{";
+        jsonStr += Environment.NewLine;
+        tabs = new string('\t', TabIndents);
+        TabIndents++;
+        jsonStr += tabs + "\"" + this.Name + "\": " + FormatValueAsJson();
+      }
+      if ((this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block && this.DataType == DATA_TYPE._None)|| options == JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock)
       {
         jsonStr += "{";
         if (this.SubVariables.Count > 0)
           jsonStr += Environment.NewLine;
       }
-      else if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
+      else if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array && this.DataType == DATA_TYPE._None)
       {
         jsonStr += "[";
         if (this.SubVariables.Count > 0)
@@ -173,27 +208,41 @@ namespace Core
 
       for (int x = 0; x < this.SubVariables.Count; x++)
       {
-        jsonStr += this.SubVariables[x].ToJson(JSON_ROOT_BLOCK_OPTIONS.None, TabIndents);
+        if (this.SubVariables[x] is null)
+        {
+          jsonStr += "\"[null]\"";
+        }
+        else
+        {
+          jsonStr += this.SubVariables[x].ToJson(JSON_ROOT_BLOCK_OPTIONS.None, TabIndents);
+        }
         if (x < this.SubVariables.Count - 1)
           jsonStr += "," + Environment.NewLine;
       }
 
-      if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
+      if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array && this.DataType == DATA_TYPE._None)
       {
         if (this.SubVariables.Count > 0)
           jsonStr += Environment.NewLine + tabs;
         jsonStr += "]";
       }
-      else if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block || options == JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock)
+      else if ((this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block && this.DataType == DATA_TYPE._None) || options == JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock)
       {
         if (this.SubVariables.Count > 0)
           jsonStr += Environment.NewLine + tabs;
         jsonStr += "}";
       }
+      
+      if (options == JSON_ROOT_BLOCK_OPTIONS.AddRootBlock)
+      {
+        if (this.SubVariables.Count > 0 || this.Value is not null)
+          jsonStr += Environment.NewLine;
+        jsonStr += "}";
+      }
       return jsonStr;
     }
 
-    public static Variable? JsonParse(ref string jsonStr)
+    public static Variable? JsonParse(ref string jsonStr, string baseBlockNewName = "")
     {
       if (jsonStr is null)
         throw new ArgumentNullException(nameof(jsonStr));
@@ -207,13 +256,15 @@ namespace Core
       //var.Name = "data";
       ParserJson parser = new ParserJson();
       Variable? var = parser.ParseJsonBlock(ref jsonStr);
+      if (var is not null && baseBlockNewName != "")
+        var.Name = baseBlockNewName;
       if (var is not null && var.Name == "" && var.SubVariables.Count > 0)
         return var.SubVariables[0];
       return var;
     }
 
 
-    public Variable? FindSubVariableByName(string name)
+    public Variable? SubVariableFindByName(string name)
     {
       for (int x = 0; x < this.SubVariables.Count; x++)
       {
@@ -224,7 +275,7 @@ namespace Core
       return null;
     }
 
-    public bool DeleteSubVariableByName(string name)
+    public bool SubVariableDeleteByName(string name)
     {
       for (int x = 0; x < this.SubVariables.Count; x++)
       {

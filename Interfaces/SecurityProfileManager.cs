@@ -18,7 +18,7 @@ namespace Core
       get { return Profiles.AsReadOnly(); }
     }
 
-    public static SecurityProfile? FindByName(string name)
+    public static SecurityProfile FindByName(string name)
     {
       name = name.ToLower();
       lock (mCriticalSection)
@@ -29,10 +29,10 @@ namespace Core
             return Profiles[x];
         }
       }
-      return null;
+      return SecurityProfile.NoAccess;
     }
 
-    public static void FileWrite()
+    public static void Save()
     {
       Xml xml = new Xml();
       xml.WriteFileNew(Options.SecurityProfilesPath);
@@ -54,7 +54,7 @@ namespace Core
       xml.WriteFileClose();
     }
 
-    public static void FileLoad()
+    public static void Load()
     {
       Core.Xml xml = new Core.Xml();
       string profiles = xml.FileRead(Options.SecurityProfilesPath);
@@ -100,7 +100,7 @@ namespace Core
       lock (mCriticalSection)
       {
         Profiles.Add(sp);
-        FileWrite();
+        Save();
       }
       return RECORD_RESULT.Success;
     }
@@ -116,7 +116,7 @@ namespace Core
       sp.AdministrationSecurityProfiles = spe.AdministrationSecurityProfiles;
       sp.AdministrationFlows = spe.AdministrationFlows;
 
-      FileWrite();
+      Save();
       return RECORD_RESULT.Success;
     }
     public static RECORD_RESULT Delete(Core.Administration.Messages.SecurityProfileDelete spd)
@@ -128,7 +128,7 @@ namespace Core
           if (Profiles[x].Name.ToLower() == spd.Name.ToLower())
           {
             Profiles.RemoveAt(x);
-            FileWrite();
+            Save();
             return RECORD_RESULT.Success;
           }
         }

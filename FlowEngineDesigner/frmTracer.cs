@@ -31,7 +31,8 @@ namespace FlowEngineDesigner
       {
         ListViewItem lvi = lvTracer.Items.Add(sender.ToString());
         lvi.SubItems.Add(e.Trace);
-        lvi.SubItems.Add(Global.ConvertToString(e.Ticks));
+        lvi.SubItems.Add(Core.Global.ConvertToString(e.Ticks));
+        lvi.Tag = e.XmlData;
         if (e.TracerType == cEventManager.TRACER_TYPE.Error)
         {
           lvi.ForeColor = Color.Red;
@@ -64,6 +65,16 @@ namespace FlowEngineDesigner
         this.Activate();
       }
       base.WndProc(ref m);
+    }
+
+    private void lvTracer_MouseDoubleClick(object sender, MouseEventArgs e)
+    {
+      if (lvTracer.SelectedItems.Count > 0)
+      {
+        frmTraceDetails f = new frmTraceDetails();
+        f.txtXml.Text = lvTracer.SelectedItems[0].Tag.ToString();
+        f.Show();
+      }
     }
   }
 }

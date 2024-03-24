@@ -56,6 +56,7 @@
       tsbZoomOut = new ToolStripDropDownButton();
       tssCenterView = new ToolStripStatusLabel();
       toolTip1 = new ToolTip(components);
+      tslCameraPosition = new ToolStripStatusLabel();
       ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
       menuStrip1.SuspendLayout();
       toolStrip1.SuspendLayout();
@@ -207,7 +208,7 @@
       // 
       // statusStrip1
       // 
-      statusStrip1.Items.AddRange(new ToolStripItem[] { tslZoom, toolStripDropDownButton1, tsbZoomOut, tssCenterView });
+      statusStrip1.Items.AddRange(new ToolStripItem[] { tslZoom, toolStripDropDownButton1, tsbZoomOut, tssCenterView, tslCameraPosition });
       statusStrip1.Location = new Point(0, 440);
       statusStrip1.Name = "statusStrip1";
       statusStrip1.Size = new Size(800, 22);
@@ -251,6 +252,13 @@
       tssCenterView.Size = new Size(70, 17);
       tssCenterView.Text = "Center View";
       tssCenterView.Click += tssCenterView_Click;
+      // 
+      // tslCameraPosition
+      // 
+      tslCameraPosition.Name = "tslCameraPosition";
+      tslCameraPosition.Size = new Size(70, 17);
+      tslCameraPosition.Text = "Camera pos";
+      tslCameraPosition.Click += tslCameraPosition_Click;
       // 
       // frmFlow
       // 
@@ -312,5 +320,6 @@
     private ToolStripMenuItem saveToolStripMenuItem1;
     private ToolTip toolTip1;
     private ToolStripStatusLabel tssCenterView;
+    private ToolStripStatusLabel tslCameraPosition;
   }
 }

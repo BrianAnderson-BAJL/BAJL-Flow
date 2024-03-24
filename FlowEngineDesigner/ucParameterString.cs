@@ -1,4 +1,5 @@
 ﻿using Core;
+using Microsoft.VisualBasic.Devices;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -23,9 +24,6 @@ namespace FlowEngineDesigner
       mFlow = flow;
       mStep = step;
       txtKey.Text = mParmVar.Parm.Name;
-      mParmVar.GetValue(out string val);
-      txtValue.Text = val;
-
       if (mParmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal)
       {
         cmbDataType.SelectedIndex = DT_STRING;
@@ -34,6 +32,20 @@ namespace FlowEngineDesigner
       {
         cmbDataType.SelectedIndex = DT_VARIABLE;
       }
+
+
+      string val = "";
+      if (parmVar.Parm.DataType == DATA_TYPE.Object)
+      {
+        val = parmVar.VariableName;
+        cmbDataType.SelectedIndex = DT_VARIABLE;
+      }
+      else
+      {
+        mParmVar.GetValue(out val);
+      }
+      txtValue.Text = val;
+
     }
 
 
@@ -57,6 +69,7 @@ namespace FlowEngineDesigner
     private void btnSelectVariable_Click(object sender, EventArgs e)
     {
       frmVariableSelection f = new frmVariableSelection(mParmVar, mStep, mFlow);
+      f.SetDesktopLocation(Cursor.Position.X, Cursor.Position.Y);
       if (f.ShowDialog() == DialogResult.OK)
       {
         mParmVar.GetValue(out string val);

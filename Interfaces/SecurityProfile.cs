@@ -31,6 +31,22 @@ namespace Core
     public SECURITY_ACCESS_LEVEL AdministrationSecurityProfiles = SECURITY_ACCESS_LEVEL.None;
     public SECURITY_ACCESS_LEVEL AdministrationFlows = SECURITY_ACCESS_LEVEL.None;
 
+    /// <summary>
+    /// Returns a blank SecurityProfile with no access to anything.
+    /// </summary>
+    public static SecurityProfile NoAccess
+    {
+      get { return new SecurityProfile("NO ACCESS"); }
+    }
+
+    public SecurityProfile()
+    {
+    }
+
+    public SecurityProfile(string name)
+    {
+      Name = name;
+    }
 
     public bool HasAccessServer(Packet.PACKET_TYPE packetType)
     {
@@ -67,6 +83,7 @@ namespace Core
           rc = AdministrationFlows >= SECURITY_ACCESS_LEVEL.Readonly; break;
         case Packet.PACKET_TYPE.FlowSave:
         case Packet.PACKET_TYPE.FlowDebug:
+        case Packet.PACKET_TYPE.FlowDebugAlways:
           rc = AdministrationFlows >= SECURITY_ACCESS_LEVEL.Full; break;
 
         default:
