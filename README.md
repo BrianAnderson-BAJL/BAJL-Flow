@@ -50,7 +50,12 @@ Many of the below features are fleshed out in the code
 * Engine running type profiles (Production, QA, development, ...)
 * Upload flows to server and have them update / added in real time, no reboot required
 * Trace log of code performance and inspect variables before and after each step (function)
-* Jump points (a way to link to other areas of a flow)
 * Comments in flow
-* Compile flows, check flows for errors (missing connections, missing parameters, ...)
 * Designer Layouts. You can layout your desktop however you want and it will remember next time you start it.
+
+# Future features
+These are things that will be included sometime in the future
+* Statistics regarding flows (Counts, avg time to execute, longest flow runtime, shortest flow runtime, ...)
+* Support multiple database sources (currently only supports a single MySql/MariaDb Database)
+* Jump points (a way to link to other areas of a flow)
+* Compile flows, check flows for errors (missing connections, missing parameters, ...)
