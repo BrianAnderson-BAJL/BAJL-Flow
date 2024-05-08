@@ -1,5 +1,6 @@
 ﻿using Core.Administration.Messages;
 using Core.Administration.Packets;
+using Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -15,9 +16,9 @@ namespace Core.Administration
   {
     public delegate void ProcessMessageDelegate(Packet message, TcpClientBase client);
     private static Dictionary<Packet.PACKET_TYPE, ProcessMessageDelegate> Processors = new Dictionary<Packet.PACKET_TYPE, ProcessMessageDelegate>(128);
+    private static ILog? mLog = null;
 
-
-    public static void Init()
+    public static void Init(Dictionary<string, object> GlobalPluginValues)
     {
       Processors.Add(Packet.PACKET_TYPE.UserAdd, ProcessUserAdd);
       Processors.Add(Packet.PACKET_TYPE.UserEdit, ProcessUserEdit);
@@ -36,6 +37,11 @@ namespace Core.Administration
       Processors.Add(Packet.PACKET_TYPE.FlowDebug, ProcessFlowDebug);
       Processors.Add(Packet.PACKET_TYPE.CloseConnection, ProcessCloseConnection);
       Processors.Add(Packet.PACKET_TYPE.FlowDebugAlways, ProcessFlowDebugAlways);
+
+      if (GlobalPluginValues.ContainsKey("log") == true)
+      {
+        mLog = GlobalPluginValues["log"] as ILog;
+      }
 
     }
 
@@ -59,7 +65,7 @@ namespace Core.Administration
       }
       else
       {
-        Global.Write($"MessageProcessor - Can't process message, unknown packet type [{packet.PacketType}]");
+        mLog?.Write($"MessageProcessor - Can't process message, unknown packet type [{packet.PacketType}]");
         SendGenericError(packet, client, RESPONSE_CODE.Error);
       }
 
@@ -72,7 +78,7 @@ namespace Core.Administration
       //Does the private key match?
       if (message.ServerKey != Options.AdministrationPrivateKey)
       {
-        Global.Write("SECURITY ERROR!  Server Key mismatch");
+        mLog?.Write("SECURITY ERROR!  Server Key mismatch");
         SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
         return false;
       }
@@ -97,24 +103,24 @@ namespace Core.Administration
 
         if (user is null)
         {
-          Global.Write($"SECURITY ERROR!  User Login, User not found [{userLogin.LoginId}]");
+          mLog?.Write($"SECURITY ERROR!  User Login, User not found [{userLogin.LoginId}]");
           SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
           return false;
         }
         if (user.LockOutUntil > DateTime.UtcNow)
         {
-          Global.Write($"SECURITY ERROR!  User Login, User is locked out for another [{(user.LockOutUntil - DateTime.UtcNow).TotalMinutes}] minutes");
+          mLog?.Write($"SECURITY ERROR!  User Login, User is locked out for another [{(user.LockOutUntil - DateTime.UtcNow).TotalMinutes}] minutes");
           SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
           return false;
         }
         if (SecureHasherV1.Verify(userLogin.Password, user.passwordHash) == false)
         {
           user.LoginAttempts++;
-          Global.Write($"SECURITY ERROR!  User Login, User password does not match Attempt number [{user.LoginAttempts}]");
+          mLog?.Write($"SECURITY ERROR!  User Login, User password does not match Attempt number [{user.LoginAttempts}]");
           if (user.LoginAttempts >= Options.AdministrationUserMaxLoginAttempts && Options.AdministrationUserMaxLoginAttempts > 0)
           {
             user.LockOutUntil = DateTime.UtcNow.AddMinutes(Options.AdministrationUserLockOutMinutes);
-            Global.Write($"SECURITY ERROR!  User Login, User login attempts is [{Options.AdministrationUserMaxLoginAttempts}] User is being locked out for [{(user.LockOutUntil - DateTime.UtcNow).TotalMinutes}] minutes");
+            mLog?.Write($"SECURITY ERROR!  User Login, User login attempts is [{Options.AdministrationUserMaxLoginAttempts}] User is being locked out for [{(user.LockOutUntil - DateTime.UtcNow).TotalMinutes}] minutes");
           }
           return false;
         }
@@ -129,7 +135,7 @@ namespace Core.Administration
       user = UserManager.FindBySessionKey(message.SessionKey);
       if (user is null)
       {
-        Global.Write("SECURITY ERROR!  Missing Session Key");
+        mLog?.Write("SECURITY ERROR!  Missing Session Key");
         SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
         return false;
       }
@@ -137,20 +143,20 @@ namespace Core.Administration
       {
         user.SessionKey = "";
         user.SessionKeyExpiration = DateTime.MinValue;
-        Global.Write("SECURITY ERROR!  Session Key has expired");
+        mLog?.Write("SECURITY ERROR!  Session Key has expired");
         SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
         return false;
       }
 
       if (user.SecurityProfile is null)
       {
-        Global.Write("SECURITY ERROR!  Missing Security profile for user");
+        mLog?.Write("SECURITY ERROR!  Missing Security profile for user");
         SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
         return false; //No security profile defined for this user, they don't have access
       }
       if (user.SecurityProfile.HasAccessServer(packet.PacketType) == false)
       {
-        Global.Write("SECURITY ERROR!  User's Security profile does not allow this action");
+        mLog?.Write("SECURITY ERROR!  User's Security profile does not allow this action");
         SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
         return false; //User's security profile doesn't allow them to perform this function
       }
@@ -166,7 +172,7 @@ namespace Core.Administration
     private static void SendGenericError(Packet packet, TcpClientBase client, BaseResponse.RESPONSE_CODE responseCode)
     {
       Packet.PACKET_TYPE type = packet.PacketType + 1; //Response messages are allways one bigger in the enum
-      Global.Write($"SendGenericError - response code [{responseCode}], response PACKET_TYPE id [{type}]");
+      mLog?.Write($"SendGenericError - response code [{responseCode}], response PACKET_TYPE id [{type}]");
       BaseResponse response = new BaseResponse(packet.PacketId, type);
       response.ResponseCode = responseCode;
       client.Send(response.GetPacket());
@@ -176,7 +182,7 @@ namespace Core.Administration
     {
       UserAdd? userAdd = new UserAdd(packet);
       RECORD_RESULT results = UserManager.Add(userAdd);
-      Global.Write($"ProcessUserAdd - Record result [{results}], login id [{userAdd.LoginId}]");
+      mLog?.Write($"ProcessUserAdd - Record result [{results}], login id [{userAdd.LoginId}]");
       BaseResponse response = new BaseResponse(packet.PacketId, results, Packet.PACKET_TYPE.UserAddResponse);
       client.Send(response.GetPacket());
     }
@@ -202,7 +208,7 @@ namespace Core.Administration
       else
       {
         if (userEdit is not null)
-          Global.Write($"ProcessUserAdd - response code [1], login id [{userEdit.LoginId}]");
+          mLog?.Write($"ProcessUserAdd - response code [1], login id [{userEdit.LoginId}]");
         response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Error, Packet.PACKET_TYPE.UserEditResponse);
       }
       client.Send(response.GetPacket());
@@ -222,7 +228,7 @@ namespace Core.Administration
       {
         response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Error, Packet.PACKET_TYPE.UserDeleteResponse);
       }
-      Global.Write($"ProcessUserDelete - response code [{response.ResponseCode}], login id [{userDelete.LoginId}]");
+      mLog?.Write($"ProcessUserDelete - response code [{response.ResponseCode}], login id [{userDelete.LoginId}]");
       client.Send(response.GetPacket());
 
     }
@@ -236,7 +242,7 @@ namespace Core.Administration
         User? user = UserManager.FindByLoginId(userLogin.LoginId);
         if (user is not null)
         {
-          Global.Write($"ProcessUserLogin - response code [0], login id [{user.LoginId}]");
+          mLog?.Write($"ProcessUserLogin - response code [0], login id [{user.LoginId}]");
           UserLoginResponse response = new UserLoginResponse(packet.PacketId, user.LoginId, user.SecurityProfile.Name, user.NameFirst, user.NameSur, user.SessionKey, user.SessionKeyExpiration, user.NeedToChangePassword);
           client.Send(response.GetPacket());
         }
@@ -258,7 +264,7 @@ namespace Core.Administration
         {
           responseCode = BaseResponse.RESPONSE_CODE.Duplicate;
         }
-        Global.Write($"ProcessUserLoginIdCheck - response code [{responseCode}], suggested login id [{SuggestedLoginId}]");
+        mLog?.Write($"ProcessUserLoginIdCheck - response code [{responseCode}], suggested login id [{SuggestedLoginId}]");
         UserLoginIdCheckResponse response = new UserLoginIdCheckResponse(packet.PacketId, responseCode, SuggestedLoginId);
         client.Send(response.GetPacket());
       }
@@ -281,7 +287,7 @@ namespace Core.Administration
         if (user is not null)
         {
           user.passwordHash = SecureHasherV1.Hash(data.NewPassword);
-          Global.Write($"ProcessUserChangePassword - response code [0], login id [{user.LoginId}]");
+          mLog?.Write($"ProcessUserChangePassword - response code [0], login id [{user.LoginId}]");
           BaseResponse response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserChangePasswordResponse);
           client.Send(response.GetPacket());
           UserManager.Save();
@@ -512,7 +518,7 @@ namespace Core.Administration
       }
       catch (Exception ex)
       {
-        Global.Write($"Flow Debug Execution error [{ex.Message}]", LOG_TYPE.ERR);
+        mLog?.Write("Flow Debug Execution error", ex, LOG_TYPE.ERR);
       }
 
     }
@@ -538,7 +544,7 @@ namespace Core.Administration
       }
       catch (Exception ex)
       {
-        Global.Write($"ProcessFlowDebugAlways Execution error [{ex.Message}]", LOG_TYPE.ERR);
+        mLog?.Write("ProcessFlowDebugAlways Execution error", ex, LOG_TYPE.ERR);
       }
 
     }

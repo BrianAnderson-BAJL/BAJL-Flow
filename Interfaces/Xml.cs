@@ -387,10 +387,10 @@ namespace Core
       return Value;
     }
 
-    public static long GetXMLChunkAsLong(ref string XML, string Tag)
+    public static long GetXMLChunkAsLong(ref string XML, string Tag, long defaultValue = 0)
     {
       string Temp = GetXMLChunk(ref XML, Tag);
-      long Value = 0;
+      long Value = defaultValue;
       if (Temp.Length > 0)
       {
         try

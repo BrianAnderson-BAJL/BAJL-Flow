@@ -35,8 +35,6 @@ namespace Http
     public override void Init()
     {
       base.Init();
-      //AppDomain.CurrentDomain.GetAssemblies()
-      Assembly? a1 = Assembly.GetAssembly(typeof(System.Threading.Thread));
       
       //SETTINGS
       {
@@ -187,22 +185,23 @@ namespace Http
 
     private void ListenerThreadRuntime()
     {
+      Thread.CurrentThread.Name = "HTTP Plugin";
       Setting? uris = SettingFind("Uri");
       if (uris is null)
       {
-        Global.Write("Unable to start HTTP listening, no URIs to listen on");
+        mLog?.Write("Unable to start HTTP listening, no URIs to listen on", LOG_TYPE.WAR);
         return;
       }
       int index = -1;
       string[] urisString = { };
       if (uris.Value is null)
       {
-        Global.Write("Uri Value is null");
+        mLog?.Write("Uri Value is null", LOG_TYPE.WAR);
         return;
       }
       if (uris.Value.ToString() == "")
       {
-        Global.Write("Uri Value is blank");
+        mLog?.Write("Uri Value is blank", LOG_TYPE.WAR);
         return;
       }
 
@@ -213,29 +212,29 @@ namespace Http
         if (urisString[index].Right(1) != "/") //Listener needs to have a '/' (forward slash) at the end for some reason 
           urisString[index] += "/";
         Listener.Prefixes.Add(urisString[index]);
-        Global.Write($"HTTP plugin will be Listening on [{urisString[index]}]", LOG_TYPE.INF);
+        mLog?.Write($"HTTP plugin will be Listening on [{urisString[index]}]", LOG_TYPE.INF);
       }
 
       try
       {
         Listener.Start();
-        Global.Write($"HTTP plugin Listener started", LOG_TYPE.INF);
+        mLog?.Write($"HTTP plugin Listener started", LOG_TYPE.INF);
       }
       catch (HttpListenerException e)
       {
-        Global.Write($"unable to start listening, HttpListenerException [{e.Message}]", LOG_TYPE.ERR);
+        mLog?.Write($"unable to start listening, HttpListenerException [{e.Message}]", LOG_TYPE.ERR);
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-          Global.Write("May need to run this command to allow the Http plugin to start correctly and to run in non-admin mode: netsh http add urlacl url=[URL HERE] user=Everyone");
+          mLog?.Write("May need to run this command to allow the Http plugin to start correctly and to run in non-admin mode: netsh http add urlacl url=[URL HERE] user=Everyone");
           for (index = 0; index < urisString.Length; index++)
           {
-            Global.Write(urisString[index]);
+            mLog?.Write(urisString[index]);
           }
         }
       }
       catch (Exception e)
       {
-        Global.Write("unable to start listening, " + e.Message);
+        mLog?.Write("unable to start listening", e, LOG_TYPE.WAR);
       }
       
 
@@ -243,6 +242,7 @@ namespace Http
       {
         try
         {
+          
           HttpListenerContext context = Listener.GetContext();
           HttpListenerRequest request = context.Request;
           string data = "";
@@ -251,7 +251,7 @@ namespace Http
             Stream body = request.InputStream;
             StreamReader reader = new StreamReader(body, request.ContentEncoding);
             data = reader.ReadToEnd();
-            Global.Write($"HTTP received a request [{data}]");
+            //
           }
           try
           {
@@ -281,7 +281,9 @@ namespace Http
             }
             for (int i = 0; i < flows.Count; i++)
             {
-              FlowEngine.StartFlow(new FlowRequest(baseVar, this, flows[i]));
+              string? threadName = FlowEngine.GetNextThreadName();
+              mLog?.Write($"HTTP received a request [{data}]", LOG_TYPE.INF, threadName);
+              FlowEngine.StartFlow(new FlowRequest(baseVar, this, flows[i], FlowRequest.START_TYPE.WaitForEvent, FlowRequest.CLONE_FLOW.CloneFlow, threadName));
             }
           }
           catch
@@ -291,12 +293,12 @@ namespace Http
         }
         catch (HttpListenerException exHttp)
         {
-          Global.Write(exHttp.Message);
+          mLog?.Write(exHttp);
           //Do nothing, it was killed by the flow engine, probably stopping.
         }
         catch (Exception ex)
         {
-          Global.Write(ex.Message);
+          mLog?.Write(ex);
         }
       };
     }
@@ -332,7 +334,7 @@ namespace Http
         uri = new Uri("");
       string url = uri.LocalPath.ToString();
       url = Options.FixUrl(url);
-      Global.Write($"Http Looking for flow Url [{url}], method [{method}], host [{host}]");
+      mLog?.Write($"Http Looking for flow Url [{url}], method [{method}], host [{host}]", LOG_TYPE.DBG);
       lock (mFlowsCriticalSection)
       {
         for (int x = 0; x < Flows.Count; x++)
@@ -415,9 +417,9 @@ namespace Http
     /// <param name="vars 3">"data format"</param>
     /// <param name="Resps">Output Index 0 = SUCCESS</param>
     /// <param name="Resps">Output Index 1 = ERROR</param>
-    public static RESP Send(Core.Flow flow, Variable[] vars)
+    public RESP Send(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Http.Send");
+      mLog?.Write("Http.Send", LOG_TYPE.DBG);
 
       vars[0].GetValue(out object obj);
       vars[1].GetValue(out string tempStr);
@@ -438,7 +440,7 @@ namespace Http
 
       string rawData = "";
       if (dataformat == PARM_DATA_FORMAT_JSON)
-        rawData = data.ToJson(JSON_ROOT_BLOCK_OPTIONS.AddRootBlock);
+        rawData = data.ToJson();
       else if (dataformat == PARM_DATA_FORMAT_XML)
         throw new NotImplementedException(PARM_DATA_FORMAT_XML + " is not implemented yet");
       else if (dataformat == PARM_DATA_FORMAT_RAW)
@@ -451,34 +453,34 @@ namespace Http
       response.ContentLength64 = outputData.Length;
       response.OutputStream.Write(outputData, 0, outputData.Length);
       response.Close();
-      Global.Write($"Http.Send - Sent [{outputData.Length}] bytes of data to client");
+      mLog?.Write($"Http.Send - Sent [{outputData.Length}] bytes of data to client", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
 
-    public static RESP Disconnect(Core.Flow flow, Variable[] vars)
+    public RESP Disconnect(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Http.Disconnect");
-      return RESP.SetSuccess();
-    }
-
-
-    public static RESP ConnectSendReceiveDisconnect(Core.Flow flow, Variable[] vars)
-    {
-      Global.Write("Http.ConnectSendReceiveDisconnect");
+      mLog?.Write("Http.Disconnect", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
 
 
-    public static RESP Connect(Core.Flow flow, Variable[] vars)
+    public RESP ConnectSendReceiveDisconnect(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Http.Connect");
+      mLog?.Write("Http.ConnectSendReceiveDisconnect", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
 
 
-    public static RESP Receive(Core.Flow flow, Variable[] vars)
+    public RESP Connect(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Http.Receive");
+      mLog?.Write("Http.Connect", LOG_TYPE.DBG);
+      return RESP.SetSuccess();
+    }
+
+
+    public RESP Receive(Core.Flow flow, Variable[] vars)
+    {
+      mLog?.Write("Http.Receive", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
   }

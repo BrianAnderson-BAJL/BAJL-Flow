@@ -34,7 +34,7 @@ namespace Core
       } 
       catch 
       {
-        Global.Write($"Failed to FindFunctionByName({pluginName}, {functionName})", LOG_TYPE.ERR);
+        Global.WriteToConsoleDebug($"Failed to FindFunctionByName({pluginName}, {functionName})", LOG_TYPE.ERR);
       }
       if (f is null)
       {
@@ -128,9 +128,9 @@ namespace Core
       {
         resps = Function.Execute(flow, vars);
       }
-      catch (Exception e)
+      catch (Exception ex)
       {
-        resps = RESP.SetError(0, e.Message);
+        resps = RESP.SetError(0, Global.FullExceptionMessage(ex));
       }
 
     GotoResults:
@@ -157,8 +157,9 @@ namespace Core
       }
       
       flow.VariableAdd(Flow.VAR_NAME_PREVIOUS_STEP, var);  //Previous step variable always contains the last steps values
-      if (this.SaveResponseVariable == true)
+      if (this.SaveResponseVariable == true && resps.Variable is not null)
       {
+        resps.Variable.Name = this.RespNames.Name;
         flow.VariableAdd(this.RespNames.Name, resps.Variable);  //If the flow author wants/needs the response later, they can store it in a new flow variable
       }
 

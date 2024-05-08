@@ -60,6 +60,12 @@ namespace Core
       return hashString.StartsWith(HASH_HEADER);
     }
 
+    public static string SessionIdCreate()
+    {
+      byte[] randomBytes = RandomNumberGenerator.GetBytes(Options.AdministrationSessionSize);
+      return Convert.ToBase64String(randomBytes);
+    }
+
     /// <summary>
     /// Verifies a password against a hash.
     /// </summary>

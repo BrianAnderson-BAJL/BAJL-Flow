@@ -1,6 +1,7 @@
 ﻿using Core;
 using Core.Interfaces;
 using MySql.Data.MySqlClient;
+using System.Linq.Expressions;
 
 namespace Db
 {
@@ -8,10 +9,12 @@ namespace Db
   {
     private string ConnectionString = "";
     private Db.Database mDb;
+    private ILog? mLog;
 
-    public DbMySql(Db.Database db)
+    public DbMySql(Db.Database db, ILog? mLog)
     {
       this.mDb = db;
+      this.mLog = mLog;
     }
     public void Connect(string connectionString)
     {
@@ -21,11 +24,11 @@ namespace Db
         try
         {
           conn.Open();
-          Global.Write("Connected to database!");
+          mLog?.Write("Connected to database!");
         }
         catch (Exception ex)
         {
-          Global.Write("Failed to connect to DB with connection string:  " + ConnectionString + "\n" + ex.Message, LOG_TYPE.WAR);
+          mLog?.Write("Failed to connect to DB with connection string:  " + ConnectionString, ex, LOG_TYPE.WAR);
         }
       }
     }
@@ -55,20 +58,28 @@ namespace Db
 
     public Variable Execute(string SQL, params Variable[] vars)
     {
-      Variable root = new Variable("RecordsAffected", 0);
-      using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+      Variable root = new Variable("RecordsAffected", 0L);
+      try
       {
-        connection.Open();
-
-        using (MySqlCommand command = new MySqlCommand(SQL, connection))
+        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
-          PopulateParameters(command, vars);
-          long recordsAffected = command.ExecuteNonQuery();
-          if (SQL.StartsWith("INSERT", StringComparison.InvariantCultureIgnoreCase) == true)
-            root.SubVariables.Add(new Variable("LastInsertedId", command.LastInsertedId));
+          connection.Open();
 
-          root.Value = recordsAffected;
+          using (MySqlCommand command = new MySqlCommand(SQL, connection))
+          {
+            PopulateParameters(command, vars);
+            long recordsAffected = command.ExecuteNonQuery();
+            if (SQL.StartsWith("INSERT", StringComparison.InvariantCultureIgnoreCase) == true)
+              root.SubVariables.Add(new Variable("LastInsertedId", command.LastInsertedId));
+
+            root.Value = recordsAffected;
+          }
         }
+      }
+      catch (Exception ex)
+      {
+        mLog?.Write(ex, LOG_TYPE.WAR);
+        throw;
       }
       return root;
     }
@@ -76,94 +87,103 @@ namespace Db
     public Variable Select(string SQL, params Variable[] vars)
     {
       Variable root = new Variable("Recordset");
-      root.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
-      using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+      try
       {
-        connection.Open();
-
-        using (MySqlCommand command = new MySqlCommand(SQL, connection))
+        root.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
+        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
-          PopulateParameters(command, vars);
-          using (MySqlDataReader reader = command.ExecuteReader())
-          {
-            bool tinyAsBool = mDb.SettingGetAsBoolean(Db.Database.DB_TREAT_TINYINT_AS_BOOLEAN);
-            string dataFormat = mDb.SettingGetAsString(Db.Database.DB_DATE_FORMAT);
-            while (reader.Read())
-            {
-              Variable row = new Variable("record");
-              row.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
-              Variable column;
-              for (int x = 0; x < reader.FieldCount; x++) 
-              {
-                //Need to translate database fields to Flow Engine variables.
-                string columnName = reader.GetName(x);
-                Type type = reader.GetFieldType(x);
-                if (reader.IsDBNull(x) == true)
-                {
-                  column = new Variable(columnName, "");
-                }
-                else if (type == typeof(string))
-                {
-                  column = new Variable(columnName, reader.GetString(x));
-                }
-                else if (type == typeof(short))
-                {
-                  column = new Variable(columnName, (long)reader.GetInt16(x));
-                }
-                else if (type == typeof(int))
-                {
-                  column = new Variable(columnName, (long)reader.GetInt32(x));
-                }
-                else if (type == typeof(long))
-                {
-                  column = new Variable(columnName, reader.GetInt64(x));
-                }
-                else if (type == typeof(float))
-                {
-                  column = new Variable(columnName, (decimal)reader.GetFloat(x));
-                }
-                else if (type == typeof(double))
-                {
-                  column = new Variable(columnName, (decimal)reader.GetDouble(x));
-                }
-                else if (type == typeof(decimal))
-                {
-                  column = new Variable(columnName, reader.GetDecimal(x));
-                }
-                else if (type == typeof(DateTime))
-                {
-                  column = new Variable(columnName, reader.GetDateTime(x).ToString(dataFormat));
-                }
-                else if (type == typeof(byte) && tinyAsBool == false)
-                {
-                  column = new Variable(columnName, reader.GetByte(x));
-                }
-                else if (type == typeof(sbyte) && tinyAsBool == false)
-                {
-                  column = new Variable(columnName, reader.GetSByte(x));
-                }
-                else if ((type == typeof(sbyte) || type == typeof(byte)) && tinyAsBool == true)
-                {
-                  column = new Variable(columnName, reader.GetSByte(x) >= 1);
-                }
-                else if (type == typeof(byte) && tinyAsBool == true)
-                {
-                  column = new Variable(columnName, reader.GetByte(x) >= 1);
-                }
-                else
-                {
-                  Global.Write($"Unknown column type [{type.Name}]", LOG_TYPE.WAR);
-                  column = new Variable(columnName, $"Unknown column type [{type.Name}]");
-                }
-                row.SubVariables.Add(column);
-              }
-              root.SubVariables.Add(row);
+          connection.Open();
 
+          using (MySqlCommand command = new MySqlCommand(SQL, connection))
+          {
+            PopulateParameters(command, vars);
+            using (MySqlDataReader reader = command.ExecuteReader())
+            {
+              bool tinyAsBool = mDb.SettingGetAsBoolean(Db.Database.DB_TREAT_TINYINT_AS_BOOLEAN);
+              string dataFormat = mDb.SettingGetAsString(Db.Database.DB_DATE_FORMAT);
+              while (reader.Read())
+              {
+                Variable row = new Variable("record");
+                row.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
+                Variable column;
+                for (int x = 0; x < reader.FieldCount; x++)
+                {
+                  //Need to translate database fields to Flow Engine variables.
+                  string columnName = reader.GetName(x);
+                  Type type = reader.GetFieldType(x);
+                  if (reader.IsDBNull(x) == true)
+                  {
+                    column = new Variable(columnName, "");
+                  }
+                  else if (type == typeof(string))
+                  {
+                    column = new Variable(columnName, reader.GetString(x));
+                  }
+                  else if (type == typeof(short))
+                  {
+                    column = new Variable(columnName, (long)reader.GetInt16(x));
+                  }
+                  else if (type == typeof(int))
+                  {
+                    column = new Variable(columnName, (long)reader.GetInt32(x));
+                  }
+                  else if (type == typeof(long))
+                  {
+                    column = new Variable(columnName, reader.GetInt64(x));
+                  }
+                  else if (type == typeof(float))
+                  {
+                    column = new Variable(columnName, (decimal)reader.GetFloat(x));
+                  }
+                  else if (type == typeof(double))
+                  {
+                    column = new Variable(columnName, (decimal)reader.GetDouble(x));
+                  }
+                  else if (type == typeof(decimal))
+                  {
+                    column = new Variable(columnName, reader.GetDecimal(x));
+                  }
+                  else if (type == typeof(DateTime))
+                  {
+                    column = new Variable(columnName, reader.GetDateTime(x).ToString(dataFormat));
+                  }
+                  else if (type == typeof(byte) && tinyAsBool == false)
+                  {
+                    column = new Variable(columnName, reader.GetByte(x));
+                  }
+                  else if (type == typeof(sbyte) && tinyAsBool == false)
+                  {
+                    column = new Variable(columnName, reader.GetSByte(x));
+                  }
+                  else if ((type == typeof(sbyte) || type == typeof(byte)) && tinyAsBool == true)
+                  {
+                    column = new Variable(columnName, reader.GetSByte(x) >= 1);
+                  }
+                  else if (type == typeof(byte) && tinyAsBool == true)
+                  {
+                    column = new Variable(columnName, reader.GetByte(x) >= 1);
+                  }
+                  else
+                  {
+                    mLog?.Write($"Unknown column type [{type.Name}]", LOG_TYPE.WAR);
+                    column = new Variable(columnName, $"Unknown column type [{type.Name}]");
+                  }
+                  row.SubVariables.Add(column);
+                }
+                root.SubVariables.Add(row);
+
+              }
             }
           }
         }
-        return root;
       }
+      catch (Exception ex)
+      {
+        mLog?.Write(ex, LOG_TYPE.WAR);
+        throw;
+      }
+      return root;
+      
 
     }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
@@ -40,6 +41,7 @@ namespace Core
             if (p is not null)
             {
               p.Init();
+              p.LoadSettings(GlobalPluginValues);
               mPlugins.Add(p);
             }
           }
@@ -49,6 +51,11 @@ namespace Core
       if (OnPluginsChanged is not null)
       {
         OnPluginsChanged(mPlugins);
+      }
+
+      if (GlobalPluginValues.ContainsKey("log") == true)
+      {
+        RESP.Log = GlobalPluginValues["log"] as ILog;
       }
     }
 

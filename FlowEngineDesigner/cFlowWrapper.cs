@@ -147,7 +147,7 @@ namespace FlowEngineDesigner
         else if (prevStep.OutputType != Output.TYPE.Success && prevStep.Depth == 0 && previousStepAdded == false)
         {
           Variable err = new Variable(Flow.VAR_NAME_PREVIOUS_STEP, "");
-          err.SubVariableAdd(new Variable("ErrorNumber", 0));
+          err.SubVariableAdd(new Variable("ErrorNumber", 0L));
           err.SubVariableAdd(new Variable("ErrorDescription", ""));
           variables.Add(err);
           previousStepAdded = true;
@@ -818,11 +818,16 @@ namespace FlowEngineDesigner
         }
         else if (pv.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Literal)
         {
-          if (pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.Object)
+          if (pv.Parm.DataType == DATA_TYPE.String)
           {
             xml.WriteTagAndContents("DataType", pv.Parm.DataType);
             pv.GetValue(out string val);
             xml.WriteTagAndContents("Value", val, Xml.BAJL_ENCODE.Base64Encoding);
+          }
+          else if (pv.Parm.DataType == DATA_TYPE.Object)
+          {
+            xml.WriteTagAndContents("DataType", pv.Parm.DataType);
+            xml.WriteTagAndContents("Value", ""); //An object literal means the variable hasn't been set, we can't save the value...so just blank
           }
           else if (pv.Parm.DataType == DATA_TYPE.Integer)
           {

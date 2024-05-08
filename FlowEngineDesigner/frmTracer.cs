@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -29,7 +30,15 @@ namespace FlowEngineDesigner
       }
       else
       {
-        ListViewItem lvi = lvTracer.Items.Add(sender.ToString());
+        string name = sender.ToString()!;
+        cEventManager.SENDER senderType = (cEventManager.SENDER)sender;
+        if (senderType == cEventManager.SENDER.FlowDebug)
+        {
+          string tempXml = e.XmlData;
+          tempXml = Xml.GetXMLChunk(ref tempXml, "Trace");
+          name += " - " + Xml.GetXMLChunk(ref tempXml, "FileName");
+        }
+        ListViewItem lvi = lvTracer.Items.Add(name);
         lvi.SubItems.Add(e.Trace);
         lvi.SubItems.Add(Core.Global.ConvertToString(e.Ticks));
         lvi.Tag = e.XmlData;

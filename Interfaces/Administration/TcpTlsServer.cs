@@ -99,13 +99,13 @@ namespace Core.Administration
 
     private void ListenThread()
     {
-      Global.Write("Initializing...Starting Administration TCP server");
+      Global.WriteToConsoleDebug("Initializing...Starting Administration TCP server");
 
       try
       {
         TcpListener Listener = new TcpListener(IPAddress.Any, mPort);
         Listener.Start();
-        Global.Write($"TcpTlsServer Listening on - [IpAddress.Any], [{mPort}]");
+        Global.WriteToConsoleDebug($"TcpTlsServer Listening on - [IpAddress.Any], [{mPort}]");
 
         while (mContinue == true)
         {
@@ -113,9 +113,9 @@ namespace Core.Administration
           {
             if (Listener.Pending() == true)
             {
-              Global.Write($"TcpTlsServer Waiting to accept connections");
+              Global.WriteToConsoleDebug($"TcpTlsServer Waiting to accept connections");
               System.Net.Sockets.TcpClient Client = Listener.AcceptTcpClient();
-              Global.Write($"TcpTlsServer accepted connection");
+              Global.WriteToConsoleDebug($"TcpTlsServer accepted connection");
               Client.NoDelay = true;
               Client.LingerState = new LingerOption(false, 0);
               TcpTlsClient C = ClientAdd(Client);
@@ -135,7 +135,7 @@ namespace Core.Administration
       }
       catch (Exception ex)
       {
-        Global.Write($"TcpTlsServer ERROR - [{ex.Message}]", LOG_TYPE.ERR);
+        Global.WriteToConsoleDebug($"TcpTlsServer ERROR - [{ex.Message}]", LOG_TYPE.ERR);
       }
     }
 

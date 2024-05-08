@@ -9,15 +9,14 @@ namespace Session
     public class Session : Core.Plugin
   {
     private IDatabase? Database;
-    private ILog? Log;
-    private uint USER_REGISTER_DUPLICATE_OUTPUT = 1;
-    private uint USER_REGISTER_GENERIC_ERROR_OUTPUT = 2;
+    private const uint USER_REGISTER_DUPLICATE_OUTPUT = 1;
+    private const uint USER_REGISTER_GENERIC_ERROR_OUTPUT = 2;
 
     private const int ERROR_INSERT_DB = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 1;
-    private const int ERROR_DUPLICATE_LOGIN_ID = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 2;
+    //private const int ERROR_DUPLICATE_LOGIN_ID = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 2;
     private const int ERROR_INVALID_SESSION = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 3;
-    private const int ERROR_BAD_LOGIN_ID = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 4;
-    private const int ERROR_BAD_PASSWORD = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 5;
+    private const int ERROR_BAD_CREDENTIALS = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 4;
+    //private const int ERROR_BAD_PASSWORD = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 5;
     private const int ERROR_DB = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 6;
     private const int ERROR_ACCOUNT_LOCKED_OUT = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 7;
 
@@ -26,7 +25,7 @@ namespace Session
     {
       base.Init();
 
-      Function function = new Function("User Register", this, UserRegister);
+      Function function = new("User Register", this, UserRegister);
       function.Parms.Add("LoginId", DATA_TYPE.String);
       function.Parms.Add("Password", DATA_TYPE.String);
       function.OutputAddSuccess();
@@ -37,6 +36,9 @@ namespace Session
       function = new Function("User Login", this, UserLogin);
       function.Parms.Add("LoginId", DATA_TYPE.String);
       function.Parms.Add("Password", DATA_TYPE.String);
+      function.DefaultSaveResponseVariable = true;
+      function.RespNames.Name = "sessionInfo";
+      function.RespNames.SubVariableAdd(new Variable("session", ""));
       Functions.Add(function);
 
       function = new Function("User Logout", this, UserLogout);
@@ -90,16 +92,7 @@ namespace Session
       }
       else
       {
-        Global.Write("No shared database connection pool found. Session plugin will not work!", LOG_TYPE.ERR);
-      }
-      //Let's grab the log from the log plugin
-      if (GlobalPluginValues.ContainsKey("log") == true)
-      {
-        Log = GlobalPluginValues["log"] as ILog;
-      }
-      else
-      {
-        Global.Write("No shared Log found. Session plugin will not Log errors.", LOG_TYPE.ERR);
+        mLog?.Write("No shared database connection pool found. Session plugin will not work!", LOG_TYPE.ERR);
       }
     }
 
@@ -115,7 +108,7 @@ namespace Session
     /// <returns></returns>
     public RESP UserRegister(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Session.UserRegister");
+      mLog?.Write("Session.UserRegister", LOG_TYPE.DBG);
       if (Database is null)
         return RESP.SetError(1, "No active database connection", USER_REGISTER_GENERIC_ERROR_OUTPUT);
 
@@ -123,11 +116,11 @@ namespace Session
       vars[1].GetValue(out string password);
 
       //Check if the LoginId already exists in the database
-      Variable varLoginId = new Variable("@LoginId", loginId); //Need to name the varialbe '@LoginId' to be used in the SQL
+      Variable varLoginId = new("@LoginId", loginId); //Need to name the varialbe '@LoginId' to be used in the SQL
       Variable records = Database.Select("SELECT UserId FROM Users Where LoginId = @LoginId", varLoginId);
       if (records.SubVariables.Count > 0) //Has a record, means it found a user with the same LoginId
       {
-        Global.Write("Session.UserRegister - Duplicate login Id", LOG_TYPE.WAR);
+        mLog?.Write("Session.UserRegister - Duplicate login Id", LOG_TYPE.WAR);
         return RESP.SetError((int)USER_REGISTER_DUPLICATE_OUTPUT, $"Duplicate LoginId [{loginId}]", USER_REGISTER_DUPLICATE_OUTPUT); //User already exists in the database, return error.
       }
 
@@ -137,8 +130,14 @@ namespace Session
       if (recordsAffected.Value > 0 && recordsAffected.SubVariables.Count > 0)
       {
         int NEW_DB_ID_INDEX = 0;
-        recordsAffected.SubVariables[NEW_DB_ID_INDEX].GetValue(out long newDbId); //The only sub variable will be the new Id of the record that was inserted
-        return RESP.SetSuccess(Database.Select("SELECT * FROM Users WHERE UserId = @UserId", new Variable("@UserId", newDbId)));
+        recordsAffected[NEW_DB_ID_INDEX].GetValue(out long newDbId); //The only sub variable will be the new Id of the record that was inserted
+        Variable userDb = Database.Select("SELECT * FROM Users WHERE UserId = @UserId", new Variable("@UserId", newDbId));
+        if (userDb.SubVariables.Count > 0)
+        {
+          userDb = userDb.SubVariables[0]; //We just want to return the user data, not an array of a single user
+          return RESP.SetSuccess(userDb);
+        }
+        return RESP.SetError(ERROR_DB, "Failed to retrieve user from database");
       }
       else
         return RESP.SetError(ERROR_INSERT_DB, "Failed to insert user into database");
@@ -152,67 +151,67 @@ namespace Session
     /// <returns></returns>
     public RESP UserLogin(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Session.UserLogin");
+      mLog?.Write("Session.UserLogin", LOG_TYPE.DBG);
 
       if (Database is null)
         return RESP.SetError(1, "No active database connection", USER_REGISTER_GENERIC_ERROR_OUTPUT);
 
       vars[0].GetValue(out string loginId);
       vars[1].GetValue(out string password);
-      Variable varLoginId = new Variable("@LoginId", loginId); //Need to name the varialbe '@LoginId' to be used in the SQL
+      Variable varLoginId = new("@LoginId", loginId); //Need to name the varialbe '@LoginId' to be used in the SQL
       Variable records = Database.Select("SELECT UserId, Password, LoginAttempts, LockedUntil, NOW() AS CurrentTime FROM Users Where LoginId = @LoginId", varLoginId);
       if (records.SubVariables.Count == 0) //No record found
       {
-        Log?.Write("Session.UserLogin - login Id does not exist", LOG_TYPE.INF);
-        return RESP.SetError(ERROR_BAD_LOGIN_ID, $"Bad LoginId [{loginId}]", (int)Output.TYPE.Error);
+        mLog?.Write("Session.UserLogin - login Id does not exist", LOG_TYPE.INF);
+        return RESP.SetError(ERROR_BAD_CREDENTIALS, $"Bad credentials", (int)Output.TYPE.Error); //Don't want to return what is wrong, either user id or password (make life more difficult for hackers)
       }
-      if (records.SubVariables[0].SubVariables.Count < 5)
+      if (records[0].Count < 5)
       {
-        Log?.Write("Session.UserLogin - DB returned the wrong number of fields", LOG_TYPE.INF);
+        mLog?.Write("Session.UserLogin - DB returned the wrong number of fields", LOG_TYPE.INF);
         return RESP.SetError(ERROR_DB, $"DB returned the wrong number of fields [{loginId}]", (int)Output.TYPE.Error);
       }
-      records.SubVariables[0].SubVariables[2].GetValue(out long loginAttempts);
-      records.SubVariables[0].SubVariables[3].GetValue(out string accountLockedUntilStr);
-      records.SubVariables[0].SubVariables[4].GetValue(out string currentDbTimeStr);
-      if (accountLockedUntilStr is not null)
+      Variable varUserId = records[0]["UserId"];
+      records[0]["LoginAttempts"].GetValue(out long loginAttempts);
+      records[0]["LockedUntil"].GetValue(out string accountLockedUntilStr);
+      records[0]["CurrentTime"].GetValue(out string currentDbTimeStr);
+      if (accountLockedUntilStr is not null && accountLockedUntilStr != "")
       {
         bool lockedBool = DateTime.TryParse(accountLockedUntilStr, out DateTime lockedUntil);
         bool currentTimeBool = DateTime.TryParse(currentDbTimeStr, out DateTime currentDbTime);
         if (lockedBool == false || currentTimeBool == false)
         {
-          Log?.Write("Session.UserLogin - Unable to parse DateTime from Db", LOG_TYPE.INF);
+          mLog?.Write("Session.UserLogin - Unable to parse DateTime from Db", LOG_TYPE.INF);
           return RESP.SetError(ERROR_DB, $"Unable to parse DateTime from Db [{loginId}]", (int)Output.TYPE.Error);
         }
         if (lockedUntil > currentDbTime)
         {
-          Log?.Write($"Session.UserLogin - Account locked out until [{lockedUntil}]", LOG_TYPE.INF);
+          mLog?.Write($"Session.UserLogin - Account locked out until [{lockedUntil}]", LOG_TYPE.INF);
           return RESP.SetError(ERROR_ACCOUNT_LOCKED_OUT, $"Account locked out until [{lockedUntil}]", (int)Output.TYPE.Error);
         }
       }
 
-      records.SubVariables[0].SubVariables[1].GetValue(out string passwordDb);
-      string passwordHashed = SecureHasherV1.Hash(password);
-      if (passwordHashed != passwordDb)
+      records[0]["Password"].GetValue(out string passwordDb);
+      if (SecureHasherV1.Verify(password, passwordDb) == false) //Check if the password matches the database
       {
         if (loginAttempts < SettingGetAsInt("LoginAttemptsBeforeLock"))
         {
-          Database.Execute("UPDATE Users SET LoginAttempts = @LoginAttempts WHERE LoginId = @LoginId", new Variable("@LoginAttempts", loginAttempts + 1), varLoginId);
+          Database.Execute("UPDATE Users SET LoginAttempts = LoginAttempts + 1 WHERE UserId = @UserId", varUserId);
         }
         else
         {
-          Variable varLoginAttempts = new Variable("@LoginAttempts", SettingGetAsInt("LoginAttemptsBeforeLock"));
-          Variable varMinutesToLock = new Variable("@LockAccountMinutes", SettingGetAsInt("LockAccountMinutes"));
-          Database.Execute("UPDATE Users SET LoginAttempts = @LoginAttempts, LockedUntil = Now() + interval @LockAccountMinutes MINUTE WHERE LoginId = @LoginId", varLoginAttempts, varMinutesToLock, varLoginId);
+          Variable varLoginAttempts = new("@LoginAttempts", SettingGetAsInt("LoginAttemptsBeforeLock"));
+          Variable varMinutesToLock = new("@LockAccountMinutes", SettingGetAsInt("LockAccountMinutes"));
+          Database.Execute("UPDATE Users SET LoginAttempts = @LoginAttempts, LockedUntil = Now() + interval @LockAccountMinutes MINUTE WHERE UserId = @UserId", varLoginAttempts, varMinutesToLock, varUserId);
         }
-        Log?.Write("Session.UserLogin - Bad Password", LOG_TYPE.INF);
-        return RESP.SetError(ERROR_BAD_PASSWORD, $"Bad password for loginId [{loginId}]", (int)Output.TYPE.Error);
+        mLog?.Write("Session.UserLogin - Bad Password", LOG_TYPE.INF);
+        return RESP.SetError(ERROR_BAD_CREDENTIALS, $"Bad credentials", (int)Output.TYPE.Error); //Don't want to return what is wrong, either user id or password (make life more difficult for hackers)
       }
 
       //We got this far, the loginId is good, and the password is good, lets reset the locks
-      Database.Execute("UPDATE Users SET LoginAttempts = 0, LockedUntil = NULL WHERE LoginId = @LoginId", varLoginId);
+      Database.Execute("UPDATE Users SET LoginAttempts = 0, LockedUntil = NULL WHERE UserId = @UserId", varUserId);
 
-
-      return RESP.SetSuccess();
+      //Database.Execute("INSERT INTO UserSessions (UserId, DeviceId, SessionToken) VALUES (@UserId, @DeviceId, @SessionToken)", varUserId);
+      return RESP.SetSuccess(varUserId);
     }
 
     /// <summary>
@@ -223,6 +222,7 @@ namespace Session
     /// <returns></returns>
     public RESP UserLogout(Core.Flow flow, Variable[] vars)
     {
+      mLog?.Write("Session.UserLogout", LOG_TYPE.DBG);
       return RESP.SetError(2, "User failed to log out");
     }
 
@@ -234,6 +234,7 @@ namespace Session
     /// <returns></returns>
     public RESP UserLogoutAll(Core.Flow flow, Variable[] vars)
     {
+      mLog?.Write("Session.UserLogoutAll", LOG_TYPE.DBG);
       return RESP.SetError(2, "User failed to log out all");
     }
 
@@ -245,7 +246,7 @@ namespace Session
     /// <returns></returns>
     public RESP DeviceRegister(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Session.DeviceRegister");
+      mLog?.Write("Session.DeviceRegister", LOG_TYPE.DBG);
       if (Database is null)
         return RESP.SetError(1, "No active database connection");
 
@@ -260,23 +261,44 @@ namespace Session
 
       if (varDeviceToken.Value is null || varDeviceToken.Value == "")
       {
-        varDeviceToken.Value = SecureHasherV1.Hash(Guid.NewGuid().ToString() + Guid.NewGuid().ToString()); //TWICE AS RANDOM!!!!  :)
+        mLog?.Write($"Session.DeviceRegister - Existing device token is blank, creating a new one", LOG_TYPE.DBG);
+        varDeviceToken.Value = SecureHasherV1.SessionIdCreate();
         
         Variable recordsAffected = Database.Execute("INSERT INTO UserDevices (DeviceToken, AppVersion, OsFamily, OsVersion, Model, MaxTextureSize, PixelsMaxX, PixelsMaxY) VALUES (@DeviceToken, @AppVersion, @OsFamily, @OsVersion, @Model, @MaxTextureSize, @PixelsMaxX, @PixelsMaxY)", varDeviceToken, varAppVersion, varOsFamily, varOsVersion, varModel, varMaxTextureSize, varPixelsMaxX, varPixelsMaxY);
+        if (recordsAffected.Value > 0)
+        {
+          mLog?.Write($"Session.DeviceRegister - Created a new token [{varDeviceToken.Value}]", LOG_TYPE.INF);
+          return RESP.SetSuccess(varDeviceToken.CloneWithNewName("DeviceToken"));
+        }
+        else
+        {
+          mLog?.Write($"Session.DeviceRegister - Failed inserting a new record into the DB", LOG_TYPE.ERR);
+          return RESP.SetError(ERROR_DB, "Failed inserting a new record into the DB");
+        }
       }
       else
       {
         Variable records = Database.Select("SELECT UserDeviceId, UserId FROM UserDevices WHERE deviceToken = @DeviceToken", varDeviceToken);
         if (records.SubVariables.Count <= 0) //No record, means deviceToken was not found in the database
         {
-          varDeviceToken.Value = SecureHasherV1.Hash(Guid.NewGuid().ToString() + Guid.NewGuid().ToString()); //TWICE AS RANDOM!!!!  :)
+          mLog?.Write($"Session.DeviceRegister - Existing token wasn't found [{vars[0].Value}]", LOG_TYPE.DBG);
+
+          varDeviceToken.Value = SecureHasherV1.SessionIdCreate();
 
           Variable recordsAffected = Database.Execute("INSERT INTO UserDevices (DeviceToken, AppVersion, OsFamily, OsVersion, Model, MaxTextureSize, PixelsMaxX, PixelsMaxY) VALUES (@DeviceToken, @AppVersion, @OsFamily, @OsVersion, @Model, @MaxTextureSize, @PixelsMaxX, @PixelsMaxY)", varDeviceToken, varAppVersion, varOsFamily, varOsVersion, varModel, varMaxTextureSize, varPixelsMaxX, varPixelsMaxY);
 
-          Log?.Write($"Session.DeviceRegister - found token [{varDeviceToken.Value}]", LOG_TYPE.INF);
-          return RESP.SetSuccess(varDeviceToken.CloneWithNewName("DeviceToken"));
+          if (recordsAffected.Value > 0)
+          {
+            mLog?.Write($"Session.DeviceRegister - Existing token wasn't found [{vars[0].Value}], created a new token [{varDeviceToken.Value}]", LOG_TYPE.INF);
+            return RESP.SetSuccess(varDeviceToken.CloneWithNewName("DeviceToken"));
+          }
+          else
+          {
+            mLog?.Write($"Session.DeviceRegister - Existing token wasn't found [{vars[0].Value}], Failed inserting a new record into the DB", LOG_TYPE.ERR);
+            return RESP.SetError(ERROR_DB, "Failed inserting a new record into the DB");
+          }
         }
-        Log?.Write($"Session.DeviceRegister - Valid session [{varDeviceToken.Value}]", LOG_TYPE.INF);
+        mLog?.Write($"Session.DeviceRegister - Valid device token [{varDeviceToken.Value}]", LOG_TYPE.INF);
       }
 
 
@@ -291,6 +313,7 @@ namespace Session
     /// <returns></returns>
     public RESP CheckDevice(Core.Flow flow, Variable[] vars)
     {
+      mLog?.Write("Session.UserLogout", LOG_TYPE.DBG);
       return RESP.SetError(2, "Device register failed");
     }
 
@@ -303,21 +326,21 @@ namespace Session
     /// <returns></returns>
     public RESP CheckSession(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Session.CheckSession");
+      mLog?.Write("Session.CheckSession", LOG_TYPE.DBG);
       if (Database is null)
         return RESP.SetError(1, "No active database connection");
 
       vars[0].GetValue(out string sessionToken);
 
       //Check if the LoginId already exists in the database
-      Variable varSessionToken = new Variable("@SessToken", sessionToken); //Need to name the varialbe '@LoginId' to be used in the SQL
+      Variable varSessionToken = new("@SessToken", sessionToken); //Need to name the varialbe '@LoginId' to be used in the SQL
       Variable records = Database.Select("SELECT UserId, Expiration FROM UserSessions WHERE SessionToken = @SessToken", varSessionToken);
       if (records.SubVariables.Count <= 0) //No record, means sessionToken was not found in the database
       {
-        Log?.Write($"Session.CheckSession - INVALID session [{sessionToken}]", LOG_TYPE.INF);
+        mLog?.Write($"Session.CheckSession - INVALID session [{sessionToken}]", LOG_TYPE.INF);
         return RESP.SetError(ERROR_INVALID_SESSION, $"Invalid session [{sessionToken}]");
       }
-      Log?.Write($"Session.CheckSession - Valid session [{sessionToken}]", LOG_TYPE.INF);
+      mLog?.Write($"Session.CheckSession - Valid session [{sessionToken}]", LOG_TYPE.INF);
 
       return RESP.SetSuccess(records);
     }

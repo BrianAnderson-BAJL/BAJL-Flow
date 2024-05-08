@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,9 +11,21 @@ namespace Core
 {
   public class FlowManager
   {
+    private static ILog? mLog = null;
     private Dictionary<string, List<Flow>> FlowsByPlugin = new Dictionary<string, List<Flow>>();
-    public static void Load(string fullPath)
+
+    /// <summary>
+    /// Loading flows must be performed after the plugins are loaded
+    /// </summary>
+    /// <param name="fullPath"></param>
+    public static void Load(string fullPath, Dictionary<string, object> GlobalPluginValues)
     {
+      if (GlobalPluginValues.ContainsKey("log") == true)
+      {
+        mLog = GlobalPluginValues["log"] as ILog;
+      }
+
+
       List<string> errorMessages = new List<string>(32);
       string[] files = Directory.GetFiles(fullPath, "*.flow");
       List<Flow> Flows = new List<Flow>(files.Length);
@@ -27,7 +40,7 @@ namespace Core
         }
         catch (Exception ex)
         {
-          Global.Write($"Failed to Load Flow [{files[x]}] - {ex.Message}", LOG_TYPE.WAR);
+          mLog?.Write($"Failed to Load Flow [{files[x]}] - {ex.Message}", LOG_TYPE.WAR);
         }
         if (flow.StartPlugin is not null) //If there is no StartPlugin assigned to the flow, then the flow isn't kept in memory, it gets dropped, Flow engine doesn't want flows with no plugin, if you can't start it, no point to keep it
         {
@@ -44,12 +57,12 @@ namespace Core
         string[] dirs = Directory.GetDirectories(fullPath);
         for (int x = 0; x < dirs.Length; x++)
         {
-          Load(dirs[x]);
+          Load(dirs[x], GlobalPluginValues);
         }
       }
       for (int x = 0; x < errorMessages.Count; x++)
       {
-        Global.Write(errorMessages[x], LOG_TYPE.WAR);
+        mLog?.Write(errorMessages[x], LOG_TYPE.WAR);
       }
     }
 
@@ -61,11 +74,11 @@ namespace Core
       {
         flow.PrepareFlowForTracing(); //If it isn't development, it will just return
         flow.StartPlugin.FlowAdd(flow);
-        Global.Write("Loaded Flow - " + flow.ToString());
+        mLog?.Write("Loaded Flow - " + flow.ToString());
       }
       else
       {
-        Global.Write("Unable to load Flow, no start plugin defined - " + flow.ToString(), LOG_TYPE.WAR);
+        mLog?.Write("Unable to load Flow, no start plugin defined - " + flow.ToString(), LOG_TYPE.WAR);
       }
     }
 

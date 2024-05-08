@@ -16,6 +16,6 @@ namespace Core.Interfaces
 
   internal interface IToJson
   {
-    string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0);
+    string ToJson(); //JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0
   }
 }

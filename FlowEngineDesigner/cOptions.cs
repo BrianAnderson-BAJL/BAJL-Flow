@@ -21,7 +21,7 @@ namespace FlowEngineDesigner
     public static string AdministrationLastFilePath = "/Http";
     public static bool AdministrationDebugAlways = true;
 
-    public static string AdministrationPrivateKey = "BAJL_HASH~V1~20000~E13iVFBdofhxSbrk2jUGoTRGVvs/APQBsJZkDjfBj4sMj1PMwfbUjg/gmAR4faaLyKGtZ6MYBKxe/hcY3jVh+A==";
+    public static string AdministrationPrivateKey = "HJQrOHUOn0q/vkQTbzGcL9U/cGW4rTDFH/JF9Mtg477R+1a9ev/I/RybinIAFlr7eYM/ilQtgDMEth8H0CnroQ==";
 
     public static string GetFullPath(string path)
     {

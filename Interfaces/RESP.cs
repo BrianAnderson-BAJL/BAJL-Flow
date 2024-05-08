@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Core.Interfaces;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,13 @@ namespace Core
     private string mErrorDescription = "";
     private Output.TYPE mOutputType = Output.TYPE.Success;
     private Variable? OutputVar = null;
+    private static ILog? mLog = null;
 
+    public static ILog? Log
+    {
+      get { return mLog; }
+      set { mLog = value; }
+    }
 
     public Variable? Variable
     {
@@ -37,7 +44,7 @@ namespace Core
       r.mErrorNumber = errornumber;
       r.mOutputType = Output.TYPE.Error;
       r.mErrorDescription = errorDescription;
-      Global.Write(errorDescription);
+      mLog?.Write(errorDescription, LOG_TYPE.DBG);
       return r;
     }
 

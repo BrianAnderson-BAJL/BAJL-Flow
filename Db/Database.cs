@@ -93,6 +93,8 @@ namespace Db
       //Open database connection
       string dbType = SettingGetAsString(DB_TYPE);
       mDatabase = null;
+
+
       if (dbType == DB_TYPE_MY_SQL)
       {
         string dbName = SettingGetAsString("Database");
@@ -102,7 +104,7 @@ namespace Db
         string dbPassword = SettingGetAsString("Password");
         string dbPoolMin = SettingGetAsString(DB_CONN_POOL_MIN);
         string dbPoolMax = SettingGetAsString(DB_CONN_POOL_MAX);
-        mDatabase = new DbMySql(this);
+        mDatabase = new DbMySql(this, mLog);
         string connectionString = $"Server={dbUrl};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPassword};Pooling=true;MinimumPoolSize={dbPoolMin};MaximumPoolSize={dbPoolMax};Connection Lifetime=0;";
         mDatabase.Connect(connectionString);
         if (this.SettingGetAsBoolean(DB_SHARE_WITH_PLUGINS) == true)
@@ -117,7 +119,7 @@ namespace Db
       }
       else
       {
-        Global.Write($"Invalid DatabaseType [{dbType}]", LOG_TYPE.ERR);
+       mLog?.Write($"Invalid DatabaseType [{dbType}]", LOG_TYPE.ERR);
       }
     }
 
@@ -145,7 +147,7 @@ namespace Db
 
     public RESP Select(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Db.Select");
+      mLog?.Write("Db.Select", LOG_TYPE.DBG);
       if (mDatabase is null)
         return RESP.SetError(2000, "No active database connection");
 
@@ -165,7 +167,7 @@ namespace Db
 
     public RESP Execute(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Db.Execute" );
+      mLog?.Write("Db.Execute", LOG_TYPE.DBG);
       if (mDatabase is null)
         return RESP.SetError(2002, "No active database connection");
 
@@ -184,7 +186,7 @@ namespace Db
 
     public RESP InsertMany(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Db.InsertMany");
+      mLog?.Write("Db.InsertMany", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
 

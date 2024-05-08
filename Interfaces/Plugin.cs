@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using Core.Interfaces;
+using System.Drawing;
 using System.Reflection;
 using System.Web;
 
@@ -16,6 +17,8 @@ namespace Core
 
   public abstract class Plugin
   {
+    protected ILog? mLog = null;
+
     /// <summary>
     /// A List of functions, the functions all have a dictionary of parameters, and a dictionary of results
     /// </summary>
@@ -76,7 +79,7 @@ namespace Core
         FlowRemove(flow.FileName); //If a flow with the same file name is loaded, remove it so we can add the new one.
 
         Flows.Add(flow);
-        Global.Write("Flow Added - " + flow.FileName);
+        Global.WriteToConsoleDebug("Flow Added - " + flow.FileName);
       }
     }
 
@@ -88,7 +91,7 @@ namespace Core
         {
           if (Flows[x].FileName == fileName)
           {
-            Global.Write("Flow Removed - " + fileName);
+            Global.WriteToConsoleDebug("Flow Removed - " + fileName);
             Flows.RemoveAt(x);
             break;
           }
@@ -177,7 +180,7 @@ namespace Core
       xml.WriteFileClose();
     }
 
-    public virtual void LoadSettings()
+    public virtual void LoadSettings(Dictionary<string, object> GlobalPluginValues)
     {
       
       Type t = this.GetType();
@@ -199,7 +202,7 @@ namespace Core
       }
       catch (Exception e)
       {
-        Global.Write($"Error loading settings for plugin [{t.Name}], Exception [{e.Message}]", LOG_TYPE.ERR);
+        Global.WriteToConsoleDebug($"Error loading settings for plugin [{t.Name}], Exception [{e.Message}]", LOG_TYPE.ERR);
       }
     }
 
@@ -218,7 +221,10 @@ namespace Core
     /// </summary>
     public virtual void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
-      LoadSettings();
+      if (GlobalPluginValues.ContainsKey("log") == true)
+      {
+        mLog = GlobalPluginValues["log"] as ILog;
+      }
     }
 
     /// <summary>
@@ -228,7 +234,6 @@ namespace Core
     /// <param name="GlobalPluginValues"></param>
     public virtual void StartPluginDesigner(Dictionary<string, object> GlobalPluginValues)
     {
-      LoadSettings();
     }
 
     public virtual void StopPlugin()

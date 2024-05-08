@@ -71,6 +71,7 @@ namespace FlowEngineDesigner
         string valXml = Xml.GetXMLChunk(ref flowVarsXmlString, "Variable", Xml.BAJL_ENCODE.Base64Encoding);
         if (valXml == "")
           break;
+        string junk = valXml;
         Variable? var = Variable.JsonParse(ref valXml);
         if (var is null)
           continue;
@@ -196,7 +197,7 @@ namespace FlowEngineDesigner
           }
           else
           {
-            var.SubVariables[x].GetValueAsString(out string tempValue);
+            string tempValue = var.SubVariables[x].GetValueAsString();
             lvi.SubItems.Add(tempValue);
           }
         }
@@ -205,7 +206,7 @@ namespace FlowEngineDesigner
       {
         ListViewItem lvi = lvVariables.Items.Add(var.Name);
         lvi.Tag = node;
-        lvi.SubItems.Add(var.Value);
+        lvi.SubItems.Add(var.Value.ToString());
       }
     }
 

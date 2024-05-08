@@ -1,5 +1,6 @@
 ﻿using Core;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Net;
 using System.Numerics;
@@ -14,12 +15,13 @@ namespace Logger
     {
       public LOG_TYPE LogType;
       public string Value = "";
+      public string ThreadName = "";
       public DateTime LogDateTime = DateTime.MinValue;
 
       public string Format()
       {
 
-        return $"[{LogType}] {LogDateTime} - {Value}{Environment.NewLine}";
+        return $"[{LogType}] {LogDateTime} [{ThreadName}] - {Value}";
       }
     }
 
@@ -115,6 +117,35 @@ namespace Logger
       SettingAdd(new Setting("", "Designer", "BorderColor", Color.Yellow));
       SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
 
+      this.StartPriority = 9000; //Log should start before other plugins, put at least a 1000 between other plugins to give room to manipulate the start up priority
+
+    }
+
+    public override void LoadSettings(Dictionary<string, object> GlobalPluginValues)
+    {
+      base.LoadSettings(GlobalPluginValues);
+
+      if (this.SettingGetAsBoolean(LOG_SHARE_WITH_PLUGINS) == true)
+      {
+        GlobalPluginValues.Add("log", this);
+      }
+
+    }
+
+    [Conditional("DEBUG")]
+    public static void WriteToConsole(string val, LOG_TYPE debug = LOG_TYPE.INF)
+    {
+      if (debug == LOG_TYPE.INF || debug == LOG_TYPE.DBG)
+        Console.ForegroundColor = ConsoleColor.White;
+      else if (debug == LOG_TYPE.WAR)
+        Console.ForegroundColor = ConsoleColor.Yellow;
+      else
+        Console.ForegroundColor = ConsoleColor.Red;
+
+      Console.Write(val);
+
+      Console.ForegroundColor = ConsoleColor.White;  //Change the color back to white when done, otherwise the console will stay the color if it exits after an error.
+      Console.WriteLine("");
     }
 
     private static DateTime LocalTime()
@@ -143,10 +174,6 @@ namespace Logger
       LogThread = new Thread(LogThreadRuntime);
       LogThread.Start();
 
-      if (this.SettingGetAsBoolean(LOG_SHARE_WITH_PLUGINS) == true)
-      {
-        GlobalPluginValues.Add("log", this);
-      }
 
       base.StartPlugin(GlobalPluginValues);
     }
@@ -163,12 +190,16 @@ namespace Logger
       //Nothing to dispose of yet!
     }
 
-    private void AddLogEntry(string value, string logTypeStr)
+    private void AddLogEntry(string value, string logTypeStr, string? overrideThreadName = null)
     {
       LogEntry logEntry = new LogEntry();
       logEntry.LogType = Enum.Parse<LOG_TYPE>(logTypeStr);
       logEntry.Value = value;
       logEntry.LogDateTime = GetDateTime(); //Get local or UTC time
+      if (overrideThreadName is null)
+        logEntry.ThreadName = Thread.CurrentThread.Name!;
+      else
+        logEntry.ThreadName = overrideThreadName;
 
       lock (CriticalSection)
       {
@@ -190,8 +221,8 @@ namespace Logger
         for (int x = 0; x < localLogs.Count; x++)
         {
           string temp = localLogs[x].Format();
-          Global.Write(temp);
-          File.AppendAllText(LogFileName, temp);
+          Log.WriteToConsole(temp, localLogs[x].LogType);
+          File.AppendAllText(LogFileName, temp + Environment.NewLine);
         }
         localLogs.Clear();
 
@@ -201,20 +232,19 @@ namespace Logger
 
     public RESP Create(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Log.Create");
+      Log.WriteToConsole("Log.Create");
       return RESP.SetSuccess();
     }
 
     public RESP Write(Core.Flow flow, Variable[] vars)
     {
-      Global.Write("Log.Write");
       vars[0].GetValue(out string logTypeStr);
       Variable? var = null;
       string value = "";
       if (vars.Length > 1)
       {
         var = vars[1];
-        var.GetValueAsString(out value);
+        value = var.GetValueAsString();
       }
       if (var is not null && var.SubVariables.Count > 0)
       {
@@ -226,9 +256,19 @@ namespace Logger
       return RESP.SetSuccess();
     }
 
-    public void Write(string val, LOG_TYPE debug = LOG_TYPE.INF)
+    public void Write(string val, LOG_TYPE debug = LOG_TYPE.INF, string? overrideThreadName = null)
     {
-      AddLogEntry(val, debug.ToString());
+      AddLogEntry(val, debug.ToString(), overrideThreadName);
+    }
+
+    public void Write(Exception ex, LOG_TYPE debug = LOG_TYPE.INF)
+    {
+      Write(Global.FullExceptionMessage(ex), debug);
+    }
+
+    public void Write(string customErrorMessage, Exception ex, LOG_TYPE debug = LOG_TYPE.INF)
+    {
+      Write(customErrorMessage + Environment.NewLine + Global.FullExceptionMessage(ex), debug);
     }
   }
 }

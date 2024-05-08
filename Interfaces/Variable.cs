@@ -1,5 +1,6 @@
 ﻿using Core.Interfaces;
 using Core.Parsers;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,40 @@ namespace Core
     public DATA_FORMAT_SUB_VARIABLES SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Block;
     public Variable? Parent = null;
     public dynamic Value { get; set; }
+    
+    //public List<Variable> sv
+    //{
+    //  get { return SubVariables; }
+    //}
+
+    public Variable this[int x]
+    {
+      get { return SubVariables[x]; }
+      set { SubVariables[x] = value; }
+    }
+
+    public Variable this[string subVarName]
+    {
+      get 
+      {
+        Variable? var = SubVariableFindByName(subVarName);
+        if (var is null)
+          throw new ArgumentException($"Could not find SubVariable by name [{subVarName}]");
+
+        return var; }
+      set 
+      {
+        Variable? var = SubVariableFindByName(subVarName);
+        if (var is null)
+          throw new ArgumentException($"Could not find SubVariable by name [{subVarName}]");
+        var = value; 
+      }
+    }
+
+    public int Count
+    {
+      get {return SubVariables.Count; }
+    }
 
     /// <summary>
     /// Perform a deep copy of a variable and all subvariables
@@ -37,6 +72,14 @@ namespace Core
       }
     }
 
+    public Variable(DATA_FORMAT_SUB_VARIABLES dataFormat)
+    {
+      SubVariablesFormat = dataFormat;
+      DataType = DATA_TYPE._None;
+      Name = "";
+      Value = "";
+      SubVariables = new List<Variable>();
+    }
 
     public Variable()
     {
@@ -87,6 +130,13 @@ namespace Core
       Value = val;
       SubVariables = new List<Variable>();
     }
+    //public Variable(string name, DATA_TYPE dataType)
+    //{
+    //  DataType = dataType;
+    //  Name = name;
+    //  Value = 0L; //long, won't be expensive if the type changes later
+    //  SubVariables = new List<Variable>();
+    //}
 
     public void GetValue(out dynamic val)
     {
@@ -147,6 +197,11 @@ namespace Core
       return new Variable(this);
     }
 
+    /// <summary>
+    /// This is handy when using a variable in a paramaterized SQL statement, you can get the Variable with the new name that is needed for the parameter (i.e. 'phone' --> '@PhoneNumber')
+    /// </summary>
+    /// <param name="newName"></param>
+    /// <returns></returns>
     public Variable CloneWithNewName(string newName)
     {
       Variable v = new Variable(this);
@@ -154,92 +209,95 @@ namespace Core
       return v;
     }
 
-    private string FormatValueAsJson()
+
+
+
+    public virtual string ToJson()
     {
-      if (this.DataType == DATA_TYPE.String)
-        return "\"" + this.Value + "\"";
-      else if (this.DataType == DATA_TYPE.Integer || this.DataType == DATA_TYPE.Decimal || this.DataType == DATA_TYPE.Boolean || this.DataType == DATA_TYPE.Color || this.DataType == DATA_TYPE.Various)
-        return this.Value.ToString();
-      else if (this.DataType == DATA_TYPE.Object && this.Value is not null)
-        return "\"[Object][" + this.Value.GetType() + "]\"";
-      else if (this.DataType == DATA_TYPE.Object && this.Value is null)
-        return "\"[Object][null]\"";
-      
-      return "";
+      JObject baseObject = new JObject();
+
+      if (this.DataType == DATA_TYPE._None && this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
+      {
+        baseObject.Add(this.Name, this.ToJsonObject(this));
+      }
+      else if (this.DataType == DATA_TYPE._None && this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
+      {
+        baseObject.Add(this.Name, ToJsonArray(this));
+      }
+      else
+      {
+        if (this.DataType == DATA_TYPE.Object)
+          baseObject.Add(this.Name, this.Value.ToString() + $" [{this.Value.GetHashCode()}]");
+        else
+          baseObject.Add(this.Name, this.Value);
+      }
+      return baseObject.ToString();
     }
 
 
-    public virtual string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
+
+    private JObject ToJsonObject(Variable var, JObject? parentJObject = null)
     {
-      string tabs = new string('\t', TabIndents);
-      TabIndents++;
-      string jsonStr = "";
-      if (this.Name != "" && options == JSON_ROOT_BLOCK_OPTIONS.None)
+      JObject jo;
+      if (parentJObject is null)
+        jo = new JObject();
+      else
+        jo = parentJObject;
+
+      if (var.DataType != DATA_TYPE._None)
       {
-        if (this.Parent is null || this.Parent.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
-          jsonStr += tabs + "\"" + this.Name + "\":";
-        if (this.SubVariables.Count == 0)
+        if (var.DataType == DATA_TYPE.Object)
+          jo.Add(var.Name, var.Value.ToString());
+        else
+          jo.Add(var.Name, var.Value);
+      }
+
+      for (int x = 0; x < var.SubVariables.Count; x++)
+      {
+        Variable varSub = var.SubVariables[x];
+        if (varSub.DataType == DATA_TYPE._None && varSub.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
         {
-          jsonStr += " " + FormatValueAsJson();
-          return jsonStr;
+          jo.Add(new JProperty(varSub.Name, ToJsonObject(varSub)));
         }
-      }
-      if (options == JSON_ROOT_BLOCK_OPTIONS.AddRootBlock)
-      {
-
-        jsonStr += "{";
-        jsonStr += Environment.NewLine;
-        tabs = new string('\t', TabIndents);
-        TabIndents++;
-        jsonStr += tabs + "\"" + this.Name + "\": " + FormatValueAsJson();
-      }
-      if ((this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block && this.DataType == DATA_TYPE._None)|| options == JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock)
-      {
-        jsonStr += "{";
-        if (this.SubVariables.Count > 0)
-          jsonStr += Environment.NewLine;
-      }
-      else if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array && this.DataType == DATA_TYPE._None)
-      {
-        jsonStr += "[";
-        if (this.SubVariables.Count > 0)
-          jsonStr += Environment.NewLine;
-      }
-
-      for (int x = 0; x < this.SubVariables.Count; x++)
-      {
-        if (this.SubVariables[x] is null)
+        else if (varSub.DataType == DATA_TYPE._None && varSub.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
         {
-          jsonStr += "\"[null]\"";
+          jo.Add(new JProperty(varSub.Name, ToJsonArray(varSub)));
         }
         else
         {
-          jsonStr += this.SubVariables[x].ToJson(JSON_ROOT_BLOCK_OPTIONS.None, TabIndents);
+          if (varSub.DataType == DATA_TYPE.Object)
+            jo.Add(varSub.Name, varSub.Value.ToString() + $" [{varSub.Value.GetHashCode()}]");
+          else
+            jo.Add(varSub.Name, varSub.Value);
         }
-        if (x < this.SubVariables.Count - 1)
-          jsonStr += "," + Environment.NewLine;
+      }
+      return jo;
+    }
+
+    private JArray ToJsonArray(Variable var)
+    {
+      JArray ja = new JArray();
+      for (int x = 0; x < var.SubVariables.Count; x++)
+      {
+        Variable varSub = var.SubVariables[x];
+        if (varSub.DataType == DATA_TYPE._None && varSub.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
+        {
+          ja.Add(ToJsonObject(varSub));
+        }
+        else if (varSub.DataType == DATA_TYPE._None && varSub.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
+        {
+          ja.Add(ToJsonArray(varSub));
+        }
+        else
+        {
+          if (varSub.DataType == DATA_TYPE.Object)
+            ja.Add(varSub.Value.ToString() + $" [{varSub.Value.GetHashCode()}]");
+          else
+            ja.Add(varSub.Value);
+        }
       }
 
-      if (this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array && this.DataType == DATA_TYPE._None)
-      {
-        if (this.SubVariables.Count > 0)
-          jsonStr += Environment.NewLine + tabs;
-        jsonStr += "]";
-      }
-      else if ((this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block && this.DataType == DATA_TYPE._None) || options == JSON_ROOT_BLOCK_OPTIONS.StripNameFromRootAndAddBlock)
-      {
-        if (this.SubVariables.Count > 0)
-          jsonStr += Environment.NewLine + tabs;
-        jsonStr += "}";
-      }
-      
-      if (options == JSON_ROOT_BLOCK_OPTIONS.AddRootBlock)
-      {
-        if (this.SubVariables.Count > 0 || this.Value is not null)
-          jsonStr += Environment.NewLine;
-        jsonStr += "}";
-      }
-      return jsonStr;
+      return ja;
     }
 
     public static Variable? JsonParse(ref string jsonStr, string baseBlockNewName = "")
@@ -254,8 +312,11 @@ namespace Core
 
       //Variable? var = new Variable();
       //var.Name = "data";
-      ParserJson parser = new ParserJson();
-      Variable? var = parser.ParseJsonBlock(ref jsonStr);
+      string temp = jsonStr;
+      ParserJson parser2 = new ParserJson();
+      Variable? var = parser2.Parse(temp);
+      //ParserJson parser = new ParserJson();
+      //Variable? var = parser.ParseJsonBlock(ref jsonStr);
       if (var is not null && baseBlockNewName != "")
         var.Name = baseBlockNewName;
       if (var is not null && var.Name == "" && var.SubVariables.Count > 0)
@@ -289,10 +350,15 @@ namespace Core
       return true; //Didn't find the variable, so it isn't there, it wasn't deleted, but it is gone, so still a success
     }
 
-    public void GetValueAsString(out string value)
+    public string GetValueAsString() //out string value
     {
-      value = Value.ToString();
-      return;
+      
+      return Value.ToString();
+    }
+
+    public override string ToString()
+    {
+      return Name + ":" + Value.ToString();
     }
   }
 }

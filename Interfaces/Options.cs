@@ -16,7 +16,7 @@ namespace Core
       Development,
       Production,
     }
-    public const int SettingsFileVersionExpected = 8; //Increment this when you make changes to the settings options, the settings.xml file will be recreated with the new values.
+    public const int SettingsFileVersionExpected = 10; //Increment this when you make changes to the settings options, the settings.xml file will be recreated with the new values.
     public static int SettingsFileVersion = 0;
     public static string SettingsPath = "./settings.xml";
     public static string PluginPath = @"C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Plugins";  //"./Plugins/";
@@ -33,6 +33,7 @@ namespace Core
     public static bool IgnoreEndingForwardSlash = true;
     public static SERVER_TYPE ServerType = SERVER_TYPE.Development;
     public static string TenantPath = "./tenants.xml";
+    public static long ThreadNameStartingNumber = 10000;
     /// <summary>
     /// The Private key every user must have to get access to this server instance, this value is global to all users, it is used in conjunction with the users LoginId and password
     /// This value provides more security over just a basic loginid and password.
@@ -51,6 +52,7 @@ namespace Core
     public static int AdministrationHashInterations = 20000;
     public static int AdministrationPortNumber = 7000;
     public static int AdministrationUserSessionKeyTimeoutInMinutes = 720; //12 hours default
+    public static int AdministrationSessionSize = 64;
 
     /// <summary>
     /// The settings.xml file path could be defined in the args, so need to preparse some values
@@ -58,23 +60,23 @@ namespace Core
     /// <param name="args"></param>
     public static void PreParseArgs(string[] args)
     {
-      Global.Write("PreParseArgs...");
+      Global.WriteToConsoleDebug("PreParseArgs...");
 
       for (int x = 0; x < args.Length; x++)
       {
-        Global.Write($"PreParseArgs arg[{x}] = [{args[x]}]");
+        Global.WriteToConsoleDebug($"PreParseArgs arg[{x}] = [{args[x]}]");
         if (args[x].StartsWith("settings=") == true)
         {
           string val = GetArgValue(args[x]);
           if (val.ToLower() == "create")
           {
             SaveSettings();
-            Global.Write($"Default settings file create!...Settings path = [{SettingsPath}]");
+            Global.WriteToConsoleDebug($"Default settings file create!...Settings path = [{SettingsPath}]");
           }
           else
           {
             SettingsPath = GetArgValue(args[x]);
-            Global.Write($"PreParseArgs...Settings path = [{SettingsPath}]");
+            Global.WriteToConsoleDebug($"PreParseArgs...Settings path = [{SettingsPath}]");
           }
         }
         else if (args[x].StartsWith("?") == true || args[x].StartsWith("-?") == true || args[x].StartsWith("/?") == true || args[x].StartsWith("help") == true)
@@ -111,19 +113,20 @@ namespace Core
 
     public static void ParseArgs(string[] args)
     {
-      Global.Write("ParseArgs...");
+      Global.WriteToConsoleDebug("ParseArgs...");
 
       for (int x = 0; x < args.Length; x++)
       {
-        Global.Write($"ParseArgs arg[{x}] = [{args[x]}]");
+        Global.WriteToConsoleDebug($"ParseArgs arg[{x}] = [{args[x]}]");
         if (args[x].StartsWith("privatekey=") == true)
         {
           string val = GetArgValue(args[x]);
           if (val.ToLower() == "create")
           {
-            AdministrationPrivateKey = SecureHasherV1.Hash(Guid.NewGuid().ToString());
+            AdministrationPrivateKey = SecureHasherV1.SessionIdCreate();
             SaveSettings();
-            Global.Write($"ParseArgs...private key created [{AdministrationPrivateKey}] and saved to [{SettingsPath}]");
+            Global.WriteToConsoleDebug($"ParseArgs...private key created [{AdministrationPrivateKey}] and saved to [{SettingsPath}]");
+            Environment.Exit(0); //We don't want to run the application, just get the private key and save it in the settings
           }
         }
       }
@@ -142,6 +145,7 @@ namespace Core
       ServerType = Xml.GetXmlChunkAsEnum<SERVER_TYPE>(ref settings, "ServerType", SERVER_TYPE.Production);
       TlsCertFileNamePath = Xml.GetXMLChunk(ref settings, "TlsCertFileNamePath");
       TlsCertPassword = Xml.GetXMLChunk(ref settings, "TlsCertPassword");
+      ThreadNameStartingNumber = Xml.GetXMLChunkAsLong(ref settings, "ThreadNameStartingNumber", ThreadNameStartingNumber);
 
       string adminXml = Xml.GetXMLChunk(ref settings, "Administration");
       AdministrationPrivateKey = Xml.GetXMLChunk(ref adminXml, "PrivateKey");
@@ -154,11 +158,12 @@ namespace Core
       AdministrationHashInterations = Xml.GetXMLChunkAsInt(ref adminXml, "HashInterations", AdministrationHashInterations);
       AdministrationPortNumber = Xml.GetXMLChunkAsInt(ref adminXml, "PortNumber", AdministrationPortNumber);
       AdministrationUserSessionKeyTimeoutInMinutes = Xml.GetXMLChunkAsInt(ref adminXml, "UserSessionKeyTimeoutInMinutes", AdministrationUserSessionKeyTimeoutInMinutes);
+      AdministrationSessionSize = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationSessionSize", AdministrationSessionSize);
 
-      Global.Write($"Flow Engine ServerType running as [{ServerType}]");
+      Global.WriteToConsoleDebug($"Flow Engine ServerType running as [{ServerType}]");
       if (SettingsFileVersion != SettingsFileVersionExpected)
       {
-        Global.Write($"SettingsFileVersion [{SettingsFileVersion}] has changed to [{SettingsFileVersionExpected}] Saving new settings.xml");
+        Global.WriteToConsoleDebug($"SettingsFileVersion [{SettingsFileVersion}] has changed to [{SettingsFileVersionExpected}] Saving new settings.xml");
         SaveSettings();
       }
     }
@@ -178,7 +183,9 @@ namespace Core
       xml.WriteTagAndContents("FlowUserHistoryMax", FlowUserHistoryMax);
       xml.WriteTagAndContents("UserPath", UserPath);
       xml.WriteTagAndContents("ServerType", ServerType);
-      
+      xml.WriteTagAndContents("ThreadNameStartingNumber", ThreadNameStartingNumber);
+
+
       xml.WriteTagStart("Administration");
       xml.WriteTagAndContents("PrivateKey", AdministrationPrivateKey);
       xml.WriteTagAndContents("AdministrationReadPacketTimeoutInMs", AdministrationReadPacketTimeoutInMs);
@@ -190,6 +197,7 @@ namespace Core
       xml.WriteTagAndContents("HashInterations", AdministrationHashInterations);
       xml.WriteTagAndContents("PortNumber", AdministrationPortNumber);
       xml.WriteTagAndContents("UserSessionKeyTimeoutInMinutes", AdministrationUserSessionKeyTimeoutInMinutes);
+      xml.WriteTagAndContents("AdministrationSessionSize", AdministrationSessionSize);
       xml.WriteTagEnd("Administration");
 
       xml.WriteTagEnd("Settings");

@@ -60,7 +60,7 @@ namespace Core.Administration
         System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient();
         if (client.ConnectAsync(hostUrl, port).Wait(connectTimeout) == false)
         {
-          Global.Write($"Could not connect to url [{hostUrl}], port [{port}]");
+          Global.WriteToConsoleDebug($"Could not connect to url [{hostUrl}], port [{port}]");
           return null; //Couldn't connect within the connectTimeout period, return null (failure)
         }
         SslStream stream = new SslStream(client.GetStream(), false, ValidateServerCertificate!);
@@ -71,7 +71,7 @@ namespace Core.Administration
       }
       catch (Exception ex)
       {
-        Global.Write(ex.Message);
+        Global.WriteToConsoleDebug(ex.Message);
       }
       return returnClient;
     }
@@ -119,25 +119,25 @@ namespace Core.Administration
           }
           catch (SocketException ex)
           {
-            Global.Write(ex.Message);
+            Global.WriteToConsoleDebug(ex.Message);
             break;
           }
           catch (EndOfStreamException ex)
           {
             //Connection Closed
-            Global.Write(ex.Message);
+            Global.WriteToConsoleDebug(ex.Message);
             break;
           }
           catch (IOException ex)
           {
             //No Data
-            Global.Write(ex.Message);
+            Global.WriteToConsoleDebug(ex.Message);
             break;
           }
           catch (Exception ex)
           {
             //Unknown Error
-            Global.Write(ex.Message);
+            Global.WriteToConsoleDebug(ex.Message);
 
             break; //Exit from Loop
           }
@@ -148,7 +148,7 @@ namespace Core.Administration
       }
       catch (Exception e)
       {
-        Global.Write(e.Message);
+        Global.WriteToConsoleDebug(e.Message);
       }
     }
   
@@ -166,7 +166,7 @@ namespace Core.Administration
       }
       catch (Exception ex)
       {
-        Global.Write(ex.Message);
+        Global.WriteToConsoleDebug(ex.Message);
       }
       return Rc;
 

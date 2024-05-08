@@ -92,7 +92,7 @@ namespace Core
     }
 
     [Conditional("DEBUG")]
-    public static void Write(string val, LOG_TYPE debug = LOG_TYPE.INF)
+    public static void WriteToConsoleDebug(string val, LOG_TYPE debug = LOG_TYPE.INF)
     {
       if (debug == LOG_TYPE.INF)
         Console.ForegroundColor = ConsoleColor.White;
@@ -107,6 +107,17 @@ namespace Core
       Console.WriteLine("");
     }
 
+
+    public static string FullExceptionMessage(Exception ex)
+    {
+      string msg = ex.Message;
+      while (ex.InnerException is not null)
+      {
+        ex = ex.InnerException;
+        msg += " -(inner)- " + ex.Message;
+      }
+      return msg;
+    }
 
     public static string StripOff(string rootPath, string path)
     {

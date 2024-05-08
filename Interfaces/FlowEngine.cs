@@ -23,15 +23,19 @@ namespace Core
     List<Variable> GlobalVariables = new List<Variable>();
     private static List<FlowRequest> WaitingRequests = new List<FlowRequest>(256);
     Administration.TcpTlsServer? tcpServer;
-    private object mThreadPoolCriticalSection = new object();
     private static STATE mState = STATE._None;
-
+    private static long ThreadName = Options.ThreadNameStartingNumber;
     internal static FlowEngine Instance = new FlowEngine();
 
+    public static string GetNextThreadName()
+    {
+      Interlocked.Increment(ref ThreadName);
+      return ThreadName.ToString();
+    }
 
     public void Init(string[] args)
     {
-      Global.Write($"Initializing... Current working directory [{Directory.GetCurrentDirectory()}]");
+      Global.WriteToConsoleDebug($"Initializing... Current working directory [{Directory.GetCurrentDirectory()}]");
       Instance = this;
       Packet.ReversePacketId = true;
       Console.CancelKeyPress += Console_CancelKeyPress;
@@ -39,10 +43,7 @@ namespace Core
       Options.PreParseArgs(args);
       Options.LoadSettings();
       Options.ParseArgs(args); //Command line arguments always override the settings.xml file
-      Global.Write("Initializing...Loading users");
-      SecurityProfileManager.Load();
-      UserManager.Load();
-      MessageProcessor.Init();
+      ThreadName = Options.ThreadNameStartingNumber;
       try
       {
         tcpServer = new Administration.TcpTlsServer(Options.AdministrationReadPacketTimeoutInMs, Options.TlsCertFileNamePath, Options.TlsCertPassword);
@@ -53,23 +54,29 @@ namespace Core
       }
       catch (FileNotFoundException ex)
       {
-        Global.Write(ex.Message + $" - [{Options.TlsCertFileNamePath}]", LOG_TYPE.ERR);
+        Global.WriteToConsoleDebug(ex.Message + $" - [{Options.TlsCertFileNamePath}]", LOG_TYPE.ERR);
         Environment.Exit(0);
       }
       catch (Exception ex1)
       {
-        Global.Write(ex1.Message, LOG_TYPE.ERR);
+        Global.WriteToConsoleDebug(ex1.Message, LOG_TYPE.ERR);
         Environment.Exit(0);
       }
 
-      Global.Write($"Initializing...Loading plugins from [{Options.GetFullPath(Options.PluginPath)}]");
-      PluginManager.Load(Options.GetFullPath(Options.PluginPath)); //Open all the *.dlls and load them
-      Global.Write($"Initializing...Loading flows from [{Options.GetFullPath(Options.FlowPath)}]");
-      FlowManager.Load(Options.GetFullPath(Options.FlowPath));  //Parse all the flows in the path and attach them to the plugins
-      Global.Write("Initializing...Starting all plugins");
-      PluginManager.StartPlugins();
+      Global.WriteToConsoleDebug($"Initializing...Loading plugins from [{Options.GetFullPath(Options.PluginPath)}]");
+      PluginManager.Load(Options.GetFullPath(Options.PluginPath)); //Open all the *.dlls and load them  //PluginManager.GlobalPluginValues is populated here
+      Global.WriteToConsoleDebug($"Initializing...Loading flows from [{Options.GetFullPath(Options.FlowPath)}]");
+      FlowManager.Load(Options.GetFullPath(Options.FlowPath), PluginManager.GlobalPluginValues);  //Parse all the flows in the path and attach them to the plugins
+      Global.WriteToConsoleDebug("Initializing...Starting all plugins");
+      PluginManager.StartPlugins(); 
+
+      Global.WriteToConsoleDebug("Initializing...Loading users");
+      SecurityProfileManager.Load();
+      UserManager.Load();
+      MessageProcessor.Init(PluginManager.GlobalPluginValues);
+
       ThreadPool.GetMaxThreads(out int threads, out int compThreads);
-      Global.Write($"Threads in Pool, worker [{threads}], I/O threads [{compThreads}]");
+      Global.WriteToConsoleDebug($"Threads in Pool, worker [{threads}], I/O threads [{compThreads}]");
     }
 
 
@@ -78,7 +85,7 @@ namespace Core
     /// </summary>
     public void Run()
     {
-      Global.Write("Running...");
+      Global.WriteToConsoleDebug("Running...");
       mState = STATE.Running;
 
       for (int i = 0; i < WaitingRequests.Count; i++)
@@ -101,26 +108,26 @@ namespace Core
         }
 #endif
       } while (mState == STATE.Running);
-      Global.Write("Stopping...");
+      Global.WriteToConsoleDebug("Stopping...");
       tcpServer!.Stop();
       PluginManager.StopPlugins();
-      Global.Write("Flow Engine exiting");
+      Global.WriteToConsoleDebug("Flow Engine exiting");
     }
 
     private void Administration_TcpServer_NewPacket(object? sender, Administration.EventArgsPacket e)
     {
-      Global.Write($"Received new TCP Administration packet, type [{e.Packet.PacketType}]");
+      Global.WriteToConsoleDebug($"Received new TCP Administration packet, type [{e.Packet.PacketType}]");
       MessageProcessor.ProcessMessage(e.Packet, e.Client);
     }
 
     private void Administration_TcpServer_ConnectionClosed(object? sender, Administration.EventArgsTcpClient e)
     {
-      Global.Write("TCP Administration connection closed");
+      Global.WriteToConsoleDebug("TCP Administration connection closed");
     }
 
     private void Administration_TcpServer_NewConnection(object? sender, Administration.EventArgsTcpClient e)
     {
-      Global.Write("New TCP Administration connection");
+      Global.WriteToConsoleDebug("New TCP Administration connection");
 
     }
 
@@ -148,11 +155,11 @@ namespace Core
     {
       if (request.PluginStartedFrom is not null)
       {
-        Global.Write($"Plugin [{request.PluginStartedFrom.Name}] Starting new flow [{request.FlowToStart}] in new thread");
+        RESP.Log?.Write($"Plugin [{request.PluginStartedFrom.Name}] Starting new flow [{request.FlowToStart}] in new thread", LOG_TYPE.INF, request.OverrideThreadName);
       }
       else
       {
-        Global.Write($"Starting new flow [{request.FlowToStart}] in new thread");
+        RESP.Log?.Write($"Starting new flow [{request.FlowToStart}] in new thread", LOG_TYPE.INF, request.OverrideThreadName);
       }
       if (mState == STATE.Initializing)
       {
@@ -168,11 +175,11 @@ namespace Core
     {
       if (request.PluginStartedFrom is not null)
       {
-        Global.Write($"Plugin [{request.PluginStartedFrom.Name}] Starting new flow [{request.FlowToStart}]");
+        RESP.Log?.Write($"Plugin [{request.PluginStartedFrom.Name}] Starting new flow [{request.FlowToStart}]");
       }
       else
       {
-        Global.Write($"Starting new flow [{request.FlowToStart}]");
+        RESP.Log?.Write($"Starting new flow [{request.FlowToStart}]");
       }
 
       Flow clonedFlow = request.FlowToStart.Clone(); //Need to clone the flow before running it
@@ -193,9 +200,14 @@ namespace Core
     /// <param name="stateInfo"></param>
     public static void ThreadProc(object? stateInfo)
     {
-      FlowRequest? flowRequest = stateInfo as FlowRequest;
+      FlowRequest ? flowRequest = stateInfo as FlowRequest;
       if (flowRequest is null)
         return;
+
+      if (flowRequest.OverrideThreadName is null)
+        Thread.CurrentThread.Name = GetNextThreadName();
+      else
+        Thread.CurrentThread.Name = flowRequest.OverrideThreadName;
 
       if (flowRequest.CloneFlow == FlowRequest.CLONE_FLOW.CloneFlow)
         flowRequest.FlowToStart = flowRequest.FlowToStart.Clone(); //Need to clone the flow before running it

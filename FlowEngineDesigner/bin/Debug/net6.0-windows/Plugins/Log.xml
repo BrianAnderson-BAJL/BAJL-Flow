@@ -1,5 +1,10 @@
 ﻿<Settings>
 	<Setting>
+		<DataType>Boolean</DataType>
+		<Key>ShareLogWithOtherPlugins</Key>
+		<Value>True</Value>
+	</Setting>
+	<Setting>
 		<DataType>String</DataType>
 		<Key>LogPath</Key>
 		<Value>C:\Users\brian\source\repos\FlowEngine\FlowEngine\bin\Debug\net6.0\Logs\log1.log</Value>

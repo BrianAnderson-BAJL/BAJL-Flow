@@ -18,6 +18,7 @@ namespace FlowEngineDesigner
     private FILE_MODE FileMode = FILE_MODE.Open;
     private cFlowWrapper FlowWrapper;
     private FlowWrapperChanged Call_Back;
+    private string SaveAsFileName = "";
     public frmAdministrationFile(FILE_MODE fileMode, cFlowWrapper flowWrapper, FlowWrapperChanged call_back)
     {
       InitializeComponent();
@@ -205,20 +206,20 @@ namespace FlowEngineDesigner
         }
       }
 
-      string fileName = txtFileName.Text;
+      SaveAsFileName = txtFileName.Text;
       if (tvDirectories.SelectedNode is not null && tvDirectories.SelectedNode.Text != "/") //Only append the path if something is selected and it isn't the root path /
       {
-        fileName = BuildPathFromTree(fileName);
+        SaveAsFileName = BuildPathFromTree(SaveAsFileName);
       }
 
       if (FileMode == FILE_MODE.Save)
       {
-        FlowSave fs = new FlowSave(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, fileName, chkDeployLive.Checked, FlowWrapper!.XmlWriteMemory()); //Stupid code parser doesn't understand that FlowWrapper can't be null here, so the !
+        FlowSave fs = new FlowSave(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName, chkDeployLive.Checked, FlowWrapper!.XmlWriteMemory()); //Stupid code parser doesn't understand that FlowWrapper can't be null here, so the !
         cServer.SendAndResponse(fs.GetPacket(), Callback_FileSave);
       }
       if (FileMode == FILE_MODE.Open)
       {
-        FlowOpen fo = new FlowOpen(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, fileName);
+        FlowOpen fo = new FlowOpen(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName);
         cServer.SendAndResponse(fo.GetPacket(), Callback_FileOpen);
       }
     }
@@ -243,6 +244,7 @@ namespace FlowEngineDesigner
       BaseResponse response = new BaseResponse(e.Packet);
       if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)
       {
+        FlowWrapper.FileName = SaveAsFileName;
         Call_Back(FlowWrapper);
         this.Close();
       }

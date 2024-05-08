@@ -119,7 +119,7 @@ namespace Core.Administration
       }
       catch (Exception ex)
       {
-        Global.Write(ex.Message);
+        Global.WriteToConsoleDebug(ex.Message);
       }
       return Rc;
 
@@ -158,7 +158,7 @@ namespace Core.Administration
           }
           catch (SocketException ex)
           {
-            Global.Write(ex.Message);
+            Global.WriteToConsoleDebug(ex.Message);
             break;
           }
           catch (EndOfStreamException)
@@ -173,7 +173,7 @@ namespace Core.Administration
           catch (Exception ex)
           {
             //Unknown Error
-            Global.Write(ex.Message);
+            Global.WriteToConsoleDebug(ex.Message);
 
             break; //Exit from Loop
           }

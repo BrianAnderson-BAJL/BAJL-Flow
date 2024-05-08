@@ -28,7 +28,7 @@ namespace Core.Administration
         System.Net.Sockets.TcpClient Client = new System.Net.Sockets.TcpClient();
         if (Client.ConnectAsync(hostUrl, port).Wait(connectTimeout) == false)
         {
-          Global.Write($"Could not connect to url [{hostUrl}], port [{port}]");
+          Global.WriteToConsoleDebug($"Could not connect to url [{hostUrl}], port [{port}]");
           return null; //Couldn't connect within the connectTimeout period, return null (failure)
         }
         returnClient = new TcpClient(Client);
@@ -38,7 +38,7 @@ namespace Core.Administration
       }
       catch 
       {
-        Global.Write($"Could not connect to url [{hostUrl}], port [{port}]");
+        Global.WriteToConsoleDebug($"Could not connect to url [{hostUrl}], port [{port}]");
       }
       return returnClient;
     }

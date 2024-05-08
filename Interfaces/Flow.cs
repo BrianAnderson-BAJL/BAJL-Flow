@@ -192,7 +192,7 @@ namespace Core
     {
       if (DebuggerManager.AttachedDebuggersCount <= 0)
       {
-        Global.Write("SendFlowDebugResponse - Could not find debugger!");
+        Global.WriteToConsoleDebug("SendFlowDebugResponse - Could not find debugger!");
         return;
       }
 
@@ -233,7 +233,7 @@ namespace Core
     {
       if (DebuggerManager.AttachedDebuggersCount <= 0)
       {
-        Global.Write("SendFlowDebugTraceStep - Could not find debugger!");
+        Global.WriteToConsoleDebug("SendFlowDebugTraceStep - Could not find debugger!");
         return;
       }
 
@@ -261,7 +261,7 @@ namespace Core
         xml.WriteTagAndContents("OutputType", this.Resp.OutputType);
         if (this.Resp.Variable is not null)
         {
-          xml.WriteTagAndContents("FlowResponseVariable", this.Resp.Variable.ToJson(), Xml.BAJL_ENCODE.Base64Encoding); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
+          xml.WriteTagAndContents("FlowResponseVariable", this.Resp.Variable.ToJson(), Xml.BAJL_ENCODE.Base64Encoding); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack //TODO: Convert Json in XML to pure XML
         }
         xml.WriteTagEnd("FlowResponse");
       }
@@ -762,9 +762,9 @@ namespace Core
       return FileName;
     }
 
-    public string ToJson(JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0)
+    public string ToJson() //JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0
     {
-      string json = new string('\t', TabIndents);
+      string json = new string('\t', 0);
 
       json += "\"flow\"";
       json += ": {";

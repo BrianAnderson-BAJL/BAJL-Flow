@@ -115,7 +115,7 @@ namespace Core.Administration
       }
       catch (Exception ex)
       {
-        Global.Write(ex.Message);
+        Global.WriteToConsoleDebug(ex.Message);
 
       }
     }

@@ -19,7 +19,6 @@ namespace FlowEngineDesigner
     {
       InitializeComponent();
       mPlugin = plugin;
-
     }
 
     private void btnOk_Click(object sender, EventArgs e)
