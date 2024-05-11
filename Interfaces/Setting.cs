@@ -1,5 +1,4 @@
-﻿using Google.Protobuf.WellKnownTypes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Drawing;
@@ -9,11 +8,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class Setting
   {
-    public string GroupName = "";
+    public string GroupName = "Default";
     
     /// <summary>
     /// This is used to have specific settings when another drop down setting is selected
@@ -83,11 +82,31 @@ namespace Core
       Value = value;
       DataType = DATA_TYPE.Integer;
     }
+    public Setting(string key, long value)
+    {
+      Key = key;
+      Value = value;
+      DataType = DATA_TYPE.Integer;
+    }
+    public Setting(string key, string groupName, int value)
+    {
+      Key = key;
+      GroupName = groupName;
+      Value = value;
+      DataType = DATA_TYPE.Integer;
+    }
     public Setting(string key, decimal value)
     {
       Key = key;
       Value = value;
       DataType = DATA_TYPE.Decimal;
+    }
+    public Setting(string key, string groupName, string value)
+    {
+      Key = key;
+      GroupName = groupName;
+      Value = value;
+      DataType = DATA_TYPE.String;
     }
     public Setting(string key, string value)
     {
@@ -193,6 +212,7 @@ namespace Core
       Xml xml = new Xml();
       xml.WriteMemoryNew(1);
       xml.WriteTagStart("Setting");
+      xml.WriteTagAndContents("GroupName", GroupName);
       xml.WriteTagAndContents("DataType", DataType);
       xml.WriteTagAndContents("Key", Key);
       xml.WriteTagAndContents("Value", this.Value);
@@ -218,6 +238,7 @@ namespace Core
 
     public void FromXml(string xml)
     {
+      GroupName = Xml.GetXMLChunk(ref xml, "GroupName");
       DataType = Xml.GetXmlChunkAsEnum<DATA_TYPE>(ref xml, "DataType");
       Key = Xml.GetXMLChunk(ref xml, "Key");
       ParseValue(ref xml, DataType);

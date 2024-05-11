@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class UserLoginIdCheck : BaseMessage
   {
     public string LoginId = "";
 
 
-    public UserLoginIdCheck(Core.Administration.Packet packet) : base(packet)
+    public UserLoginIdCheck(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
       packet.GetData(out this.LoginId);
     }
@@ -21,7 +21,7 @@ namespace Core.Administration.Messages
       this.LoginId = loginId;
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = base.GetPacket();
       packet.AddData(this.LoginId);

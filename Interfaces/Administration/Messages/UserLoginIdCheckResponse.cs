@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class UserLoginIdCheckResponse : BaseResponse
   {
@@ -15,13 +15,13 @@ namespace Core.Administration.Messages
       LoginIdSuggestion = loginIdSuggestion;
     }
 
-    public UserLoginIdCheckResponse(Core.Administration.Packet packet) : base(packet)
+    public UserLoginIdCheckResponse(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
       PacketType = packet.PacketType;
       packet.GetData(out this.LoginIdSuggestion);
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = base.GetPacket();
       packet.AddData(LoginIdSuggestion);

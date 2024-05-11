@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Buffers.Binary;
-using static Core.Administration.Messages.BaseResponse;
-using Core.Administration.Messages;
+using static FlowEngineCore.Administration.Messages.BaseResponse;
+using FlowEngineCore.Administration.Messages;
 using System.Net.Security;
 using MySqlX.XDevAPI;
 
-namespace Core.Administration
+namespace FlowEngineCore.Administration
 {
   public class Packet
   {
@@ -55,6 +55,10 @@ namespace Core.Administration
       FlowDebugResponse,
       FlowDebugAlways,   // register for all debug events even if not debugging a specific flow
       FlowDebugAlwaysResponse,
+      ServerSettingsGet,
+      ServerSettingsGetResponse,
+      ServerSettingsEdit,
+      ServerSettingsEditResponse,
     }
     private static int NextPacketId = 0;
     public PACKET_TYPE PacketType = PACKET_TYPE._Unknown;
@@ -234,7 +238,7 @@ namespace Core.Administration
       SendData.AddRange(Temp);
     }
 
-    public void GetData(out Core.Administration.Messages.BaseResponse.RESPONSE_CODE Val)
+    public void GetData(out FlowEngineCore.Administration.Messages.BaseResponse.RESPONSE_CODE Val)
     {
       GetData(out int temp);
       Val = (RESPONSE_CODE)temp;

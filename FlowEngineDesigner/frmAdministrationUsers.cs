@@ -1,6 +1,6 @@
-﻿using Core;
-using Core.Administration.Messages;
-using Core.Administration.Packets;
+﻿using FlowEngineCore;
+using FlowEngineCore.Administration.Messages;
+using FlowEngineCore.Administration.Packets;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -45,7 +45,7 @@ namespace FlowEngineDesigner
       }
     }
 
-    private void Callback_UsersGet(Core.Administration.EventArgsPacket e)
+    private void Callback_UsersGet(FlowEngineCore.Administration.EventArgsPacket e)
     {
       if (e.Packet.PeekResponseCode() == BaseResponse.RESPONSE_CODE.Success)
       {
@@ -84,7 +84,7 @@ namespace FlowEngineDesigner
     {
       if (lstUsers.SelectedItems.Count == 0)
         return;
-      Core.User? user = lstUsers.SelectedItems[0].Tag as Core.User;
+      FlowEngineCore.User? user = lstUsers.SelectedItems[0].Tag as FlowEngineCore.User;
       if (user is not null)
       {
         FORM_MODE mode = FORM_MODE.Edit;
@@ -105,7 +105,7 @@ namespace FlowEngineDesigner
     {
       if (lstUsers.SelectedItems.Count == 0)
         return;
-      Core.User? user = lstUsers.SelectedItems[0].Tag as Core.User;
+      FlowEngineCore.User? user = lstUsers.SelectedItems[0].Tag as FlowEngineCore.User;
       if (user is not null)
       {
         frmAdministrationUserProperties f = new frmAdministrationUserProperties(FORM_MODE.Delete, user);

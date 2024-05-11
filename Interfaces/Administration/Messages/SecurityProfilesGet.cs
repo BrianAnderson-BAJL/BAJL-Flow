@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class SecurityProfilesGet : BaseMessage
   {
@@ -12,7 +12,7 @@ namespace Core.Administration.Messages
     /// Used when parsing a response from a client
     /// </summary>
     /// <param name="packet"></param>
-    public SecurityProfilesGet(Core.Administration.Packet packet) : base(packet)
+    public SecurityProfilesGet(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
 
     }
@@ -20,7 +20,7 @@ namespace Core.Administration.Messages
     {
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       return base.GetPacket();
     }

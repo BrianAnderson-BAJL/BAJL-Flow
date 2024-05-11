@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Database
 {
-  public class ValidatorZeroRecords : Core.FunctionValidator
+  public class ValidatorZeroRecords : FlowEngineCore.FunctionValidator
   {
 
     public ValidatorZeroRecords()

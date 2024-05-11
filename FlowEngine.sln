@@ -5,7 +5,7 @@ VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_FlowEngine", "FlowEngine\_FlowEngine.csproj", "{DA5F8B60-6996-448E-9373-9CBA1995B800}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Interfaces\Core.csproj", "{A64C8EE9-0809-481F-945F-7FA769822C6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowEngineCore", "Interfaces\FlowEngineCore.csproj", "{A64C8EE9-0809-481F-945F-7FA769822C6A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database", "Db\Database.csproj", "{9484314D-1E9C-4D06-8215-A59CC013E6D3}"
 EndProject
@@ -20,11 +20,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Http", "Http\Http.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logger", "Log\Logger.csproj", "{C6A71A78-641E-4F72-8DDF-452FB72591F4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Flow", "Flow\Flow.csproj", "{3EC0672F-39FF-4DAB-A8B3-836206DBB800}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowCore", "Flow\FlowCore.csproj", "{3EC0672F-39FF-4DAB-A8B3-836206DBB800}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Session", "Session\Session.csproj", "{FE88610A-7A96-453E-BE62-5D00A5738AD6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation", "Validation\Validation.csproj", "{3C34896B-A6A1-4530-9F38-3C5052716B6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation", "Validation\Validation.csproj", "{3C34896B-A6A1-4530-9F38-3C5052716B6A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

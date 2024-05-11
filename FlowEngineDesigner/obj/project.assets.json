@@ -556,7 +556,7 @@
           "lib/net6.0/ZstdSharp.dll": {}
         }
       },
-      "Core/1.0.0": {
+      "FlowEngineCore/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v6.0",
         "dependencies": {
@@ -564,10 +564,10 @@
           "Newtonsoft.Json": "13.0.3"
         },
         "compile": {
-          "bin/placeholder/Core.dll": {}
+          "bin/placeholder/FlowEngineCore.dll": {}
         },
         "runtime": {
-          "bin/placeholder/Core.dll": {}
+          "bin/placeholder/FlowEngineCore.dll": {}
         }
       }
     }
@@ -1835,15 +1835,15 @@
         "zstdsharp.port.nuspec"
       ]
     },
-    "Core/1.0.0": {
+    "FlowEngineCore/1.0.0": {
       "type": "project",
-      "path": "../Interfaces/Core.csproj",
-      "msbuildProject": "../Interfaces/Core.csproj"
+      "path": "../Interfaces/FlowEngineCore.csproj",
+      "msbuildProject": "../Interfaces/FlowEngineCore.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net6.0-windows7.0": [
-      "Core >= 1.0.0"
+      "FlowEngineCore >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -1873,8 +1873,8 @@
         "net6.0-windows7.0": {
           "targetAlias": "net6.0-windows",
           "projectReferences": {
-            "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\Core.csproj": {
-              "projectPath": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\Core.csproj"
+            "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\FlowEngineCore.csproj": {
+              "projectPath": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\FlowEngineCore.csproj"
             }
           }
         }

@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration
+namespace FlowEngineCore.Administration
 {
   public class EventArgsTcpClient : EventArgs
   {

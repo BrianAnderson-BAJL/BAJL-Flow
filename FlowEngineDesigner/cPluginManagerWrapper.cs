@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
@@ -20,19 +20,19 @@ namespace FlowEngineDesigner
 
     public static void LoadPlugins(string FullPath)
     {
-      Core.PluginManager.Load(FullPath);
-      Core.PluginManager.StartPluginsDesigner();
+      FlowEngineCore.PluginManager.Load(FullPath);
+      FlowEngineCore.PluginManager.StartPluginsDesigner();
 
       PluginsLoaded = true;
     }
 
     public static void CreateAllGrphics()
     {
-      for (int x = 0; x < Core.PluginManager.Plugins.Count; x++)
+      for (int x = 0; x < FlowEngineCore.PluginManager.Plugins.Count; x++)
       {
-        for (int y = 0; y < Core.PluginManager.Plugins[x].Functions.Count; y++)
+        for (int y = 0; y < FlowEngineCore.PluginManager.Plugins[x].Functions.Count; y++)
         {
-          CreateGraphic(Core.PluginManager.Plugins[x], Core.PluginManager.Plugins[x].Functions[y]);
+          CreateGraphic(FlowEngineCore.PluginManager.Plugins[x], FlowEngineCore.PluginManager.Plugins[x].Functions[y]);
         }
       }
 
@@ -59,7 +59,7 @@ namespace FlowEngineDesigner
 
 
 
-    public static void CreateGraphic(Core.Plugin plugin, Core.Function function)
+    public static void CreateGraphic(FlowEngineCore.Plugin plugin, FlowEngineCore.Function function)
     {
       if (File.Exists(cOptions.GetFullPath(cOptions.PluginGraphicsPath) + plugin.Name + "." + function.Name + ".png") == true)
           return;
@@ -67,14 +67,14 @@ namespace FlowEngineDesigner
       Color backgroundColor = Color.Transparent;
       Color borderColor = Color.Black;
       Color fontColor = Color.White;
-      Setting? s = plugin.SettingFind("BackgroundColor");
+      Setting? s = plugin.GetSettings.SettingFind("BackgroundColor");
       if (s is not null)
         backgroundColor = (Color)s.Value;
 
-      s = plugin.SettingFind("BorderColor");
+      s = plugin.GetSettings.SettingFind("BorderColor");
       if (s is not null)
         borderColor = (Color)s.Value;
-      s = plugin.SettingFind("FontColor");
+      s = plugin.GetSettings.SettingFind("FontColor");
       if (s is not null)
         fontColor = (Color)s.Value;
 

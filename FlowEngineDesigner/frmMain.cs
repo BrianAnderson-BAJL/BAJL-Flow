@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Administration.Messages;
+﻿using FlowEngineCore;
+using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -238,13 +238,21 @@ namespace FlowEngineDesigner
     }
 
 
-    private void Callback_FlowDebugAlways(Core.Administration.EventArgsPacket e)
+    private void Callback_FlowDebugAlways(FlowEngineCore.Administration.EventArgsPacket e)
     {
     }
 
     private void debugAlwaysToolStripMenuItem_Click(object sender, EventArgs e)
     {
 
+    }
+
+    private void settingsToolStripMenuItem1_Click(object sender, EventArgs e)
+    {
+      //FlowEngineCore.Administration.Messages.
+
+      frmSettings f = new frmSettings(Options.GetSettings, "Server settings");
+      f.Show();
     }
   }
 }

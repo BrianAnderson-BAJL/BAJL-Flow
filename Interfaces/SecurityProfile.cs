@@ -1,11 +1,11 @@
-﻿using Core.Administration;
+﻿using FlowEngineCore.Administration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class SecurityProfile
   {
@@ -30,6 +30,7 @@ namespace Core
     public SECURITY_ACCESS_LEVEL AdministrationUsers = SECURITY_ACCESS_LEVEL.None;
     public SECURITY_ACCESS_LEVEL AdministrationSecurityProfiles = SECURITY_ACCESS_LEVEL.None;
     public SECURITY_ACCESS_LEVEL AdministrationFlows = SECURITY_ACCESS_LEVEL.None;
+    public SECURITY_ACCESS_LEVEL ServerSettings = SECURITY_ACCESS_LEVEL.None;
 
     /// <summary>
     /// Returns a blank SecurityProfile with no access to anything.
@@ -63,6 +64,7 @@ namespace Core
           break;
 
         case Packet.PACKET_TYPE.UsersGet:
+        case Packet.PACKET_TYPE.UserLoginIdCheck:
           rc = AdministrationUsers >= SECURITY_ACCESS_LEVEL.Readonly; break;
         case Packet.PACKET_TYPE.UserEdit:
           rc = AdministrationUsers >= SECURITY_ACCESS_LEVEL.Edit; break;
@@ -85,7 +87,10 @@ namespace Core
         case Packet.PACKET_TYPE.FlowDebug:
         case Packet.PACKET_TYPE.FlowDebugAlways:
           rc = AdministrationFlows >= SECURITY_ACCESS_LEVEL.Full; break;
-
+        case Packet.PACKET_TYPE.ServerSettingsGet:
+          rc = ServerSettings >= SECURITY_ACCESS_LEVEL.Readonly; break;
+        case Packet.PACKET_TYPE.ServerSettingsEdit:
+          rc = ServerSettings >= SECURITY_ACCESS_LEVEL.Edit; break;
         default:
           rc = false;
           break;

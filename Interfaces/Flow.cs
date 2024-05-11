@@ -1,6 +1,6 @@
-﻿using Core.Administration;
-using Core.Administration.Messages;
-using Core.Interfaces;
+﻿using FlowEngineCore.Administration;
+using FlowEngineCore.Administration.Messages;
+using FlowEngineCore.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class Flow : IToJson
   {
@@ -116,7 +116,7 @@ namespace Core
     /// </summary>
     public void PrepareFlowForTracing()
     {
-      if (Options.ServerType != Options.SERVER_TYPE.Development)
+      if (Options.GetSettings.SettingGetAsString("ServerType") != Options.SERVER_TYPE.Development.ToString())
         return;
 
         if (start is null)
@@ -176,7 +176,7 @@ namespace Core
         nextNextSteps.Clear();
       } while (nextSteps.Count > 0);
 
-      if (Options.ServerType == Options.SERVER_TYPE.Development && lastStep is not null)
+      if (Options.GetSettings.SettingGetAsString("ServerType") == Options.SERVER_TYPE.Development.ToString() && lastStep is not null)
       {
         
         SendFlowDebugTraceStep(lastStep.resps, lastStep, new Variable("parms"), this.DebugFlowStartTime.End().Ticks);
@@ -288,7 +288,7 @@ namespace Core
       xml.WriteTagEnd("Trace");
       string xmlStr = xml.ReadMemory();
       previousStep.DebugTraceXml = xmlStr;
-      Core.Administration.Messages.TraceResponse trace = new Core.Administration.Messages.TraceResponse(previousStep.Id, previousStep.Name, xmlStr, ticks, resp.Success);
+      FlowEngineCore.Administration.Messages.TraceResponse trace = new FlowEngineCore.Administration.Messages.TraceResponse(previousStep.Id, previousStep.Name, xmlStr, ticks, resp.Success);
       DebuggerManager.SendToAllDebuggers(trace.GetPacket());
     }
 
@@ -746,7 +746,7 @@ namespace Core
               {
                 if (inputStep.Function.Input is not null)
                 {
-                  Core.Input? iw = inputStep.Function.Input.Clone(inputStep);
+                  FlowEngineCore.Input? iw = inputStep.Function.Input.Clone(inputStep);
                   function.LinkAdd(this, output, iw);
                 }
               }

@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -40,7 +40,7 @@ namespace FlowEngineDesigner
         }
         ListViewItem lvi = lvTracer.Items.Add(name);
         lvi.SubItems.Add(e.Trace);
-        lvi.SubItems.Add(Core.Global.ConvertToString(e.Ticks));
+        lvi.SubItems.Add(FlowEngineCore.Global.ConvertToString(e.Ticks));
         lvi.Tag = e.XmlData;
         if (e.TracerType == cEventManager.TRACER_TYPE.Error)
         {

@@ -1,4 +1,5 @@
-﻿using Core.Administration.Messages;
+﻿using FlowEngineCore.Administration.Messages;
+using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace FlowEngineCore
 {
   internal class UserManager
   {
@@ -102,7 +103,7 @@ namespace Core
     public static void Save()
     {
       Xml xml = new Xml();
-      xml.WriteFileNew(Options.UserPath);
+      xml.WriteFileNew(Options.GetFullPath(Options.GetSettings.SettingGetAsString("UserPath")));
       xml.WriteTagStart("Users");
       lock (mCriticalSection)
       {
@@ -118,8 +119,8 @@ namespace Core
 
     public static void Load()
     {
-      Core.Xml xml = new Core.Xml();
-      string users = xml.FileRead(Options.UserPath);
+      FlowEngineCore.Xml xml = new FlowEngineCore.Xml();
+      string users = xml.FileRead(Options.GetFullPath(Options.GetSettings.SettingGetAsString("UserPath")));
       users = Xml.GetXMLChunk(ref users, "Users");
       string userXml = Xml.GetXMLChunk(ref users, "User");
       List<User> userList = new List<User>(128);

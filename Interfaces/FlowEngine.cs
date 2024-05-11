@@ -4,11 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-using Core.Administration.Messages;
-using Core.Administration;
-using Core.Administration.Packets;
+using FlowEngineCore.Administration.Messages;
+using FlowEngineCore.Administration;
+using FlowEngineCore.Administration.Packets;
 
-namespace Core
+namespace FlowEngineCore
 {
     public class FlowEngine
   {
@@ -24,7 +24,7 @@ namespace Core
     private static List<FlowRequest> WaitingRequests = new List<FlowRequest>(256);
     Administration.TcpTlsServer? tcpServer;
     private static STATE mState = STATE._None;
-    private static long ThreadName = Options.ThreadNameStartingNumber;
+    private static long ThreadName = 0;// Options.ThreadNameStartingNumber;
     internal static FlowEngine Instance = new FlowEngine();
 
     public static string GetNextThreadName()
@@ -41,20 +41,20 @@ namespace Core
       Console.CancelKeyPress += Console_CancelKeyPress;
       mState = STATE.Initializing;
       Options.PreParseArgs(args);
-      Options.LoadSettings();
+      Options.CreateAndLoadSettings();
       Options.ParseArgs(args); //Command line arguments always override the settings.xml file
-      ThreadName = Options.ThreadNameStartingNumber;
+      ThreadName = Options.GetSettings.SettingGetAsLong("ThreadNameStartingNumber");
       try
       {
-        tcpServer = new Administration.TcpTlsServer(Options.AdministrationReadPacketTimeoutInMs, Options.TlsCertFileNamePath, Options.TlsCertPassword);
+        tcpServer = new Administration.TcpTlsServer(Options.GetSettings.SettingGetAsInt("ReadPacketTimeoutInMs"), Options.GetSettings.SettingGetAsString("TlsCertFileNamePath"), Options.GetSettings.SettingGetAsString("TlsCertPassword"));
         tcpServer.NewConnection += Administration_TcpServer_NewConnection;
         tcpServer.ConnectionClosed += Administration_TcpServer_ConnectionClosed;
         tcpServer.NewPacket += Administration_TcpServer_NewPacket;
-        tcpServer.Start(Options.AdministrationPortNumber);
+        tcpServer.Start(Options.GetSettings.SettingGetAsInt("PortNumber"));
       }
       catch (FileNotFoundException ex)
       {
-        Global.WriteToConsoleDebug(ex.Message + $" - [{Options.TlsCertFileNamePath}]", LOG_TYPE.ERR);
+        Global.WriteToConsoleDebug(ex.Message + $" - [{Options.GetSettings.SettingGetAsString("TlsCertFileNamePath")}]", LOG_TYPE.ERR);
         Environment.Exit(0);
       }
       catch (Exception ex1)
@@ -63,10 +63,10 @@ namespace Core
         Environment.Exit(0);
       }
 
-      Global.WriteToConsoleDebug($"Initializing...Loading plugins from [{Options.GetFullPath(Options.PluginPath)}]");
-      PluginManager.Load(Options.GetFullPath(Options.PluginPath)); //Open all the *.dlls and load them  //PluginManager.GlobalPluginValues is populated here
-      Global.WriteToConsoleDebug($"Initializing...Loading flows from [{Options.GetFullPath(Options.FlowPath)}]");
-      FlowManager.Load(Options.GetFullPath(Options.FlowPath), PluginManager.GlobalPluginValues);  //Parse all the flows in the path and attach them to the plugins
+      Global.WriteToConsoleDebug($"Initializing...Loading plugins from [{Options.GetFullPath(Options.GetSettings.SettingGetAsString("PluginPath"))}]");
+      PluginManager.Load(Options.GetFullPath(Options.GetSettings.SettingGetAsString("PluginPath"))); //Open all the *.dlls and load them  //PluginManager.GlobalPluginValues is populated here
+      Global.WriteToConsoleDebug($"Initializing...Loading flows from [{Options.GetFullPath(Options.GetSettings.SettingGetAsString("FlowPath"))}]");
+      FlowManager.Load(Options.GetFullPath(Options.GetSettings.SettingGetAsString("FlowPath")), PluginManager.GlobalPluginValues);  //Parse all the flows in the path and attach them to the plugins
       Global.WriteToConsoleDebug("Initializing...Starting all plugins");
       PluginManager.StartPlugins(); 
 

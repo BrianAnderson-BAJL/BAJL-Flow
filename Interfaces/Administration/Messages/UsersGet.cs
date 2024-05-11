@@ -1,11 +1,11 @@
-﻿using Core.Administration.Messages;
+﻿using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Packets
+namespace FlowEngineCore.Administration.Packets
 {
   public class UsersGet : BaseMessage
   {
@@ -13,7 +13,7 @@ namespace Core.Administration.Packets
     /// Used when parsing a response from a client
     /// </summary>
     /// <param name="packet"></param>
-    public UsersGet(Core.Administration.Packet packet) : base(packet)
+    public UsersGet(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
       
     }
@@ -21,7 +21,7 @@ namespace Core.Administration.Packets
     {
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       return base.GetPacket(); 
     }

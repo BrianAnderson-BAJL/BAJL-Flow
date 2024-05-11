@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Parsers;
+﻿using FlowEngineCore;
+using FlowEngineCore.Parsers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,7 +20,7 @@ using static FlowEngineDesigner.cEventManager;
 namespace FlowEngineDesigner
 {
 
-  public class cFlowWrapper : Core.Flow
+  public class cFlowWrapper : FlowEngineCore.Flow
   {
     private bool mNeedToSave = false;
     internal Size HighlightSize = new Size(30, 30);
@@ -77,11 +77,11 @@ namespace FlowEngineDesigner
 #pragma warning restore CS0661 // Type defines operator == or operator != but does not override Object.GetHashCode()
 #pragma warning restore CS0660 // Type defines operator == or operator != but does not override Object.Equals(object o)
     {
-      public Core.FunctionStep Step;
+      public FlowEngineCore.FunctionStep Step;
       public Output.TYPE OutputType;
       public int Depth;
 
-      public PREV_STEP(Core.FunctionStep step, Output.TYPE outputType, int depth)
+      public PREV_STEP(FlowEngineCore.FunctionStep step, Output.TYPE outputType, int depth)
       {
         this.Step = step;
         this.OutputType = outputType;
@@ -104,7 +104,7 @@ namespace FlowEngineDesigner
       }
 
     }
-    public List<Variable> GetVariablesFromPreviousSteps(Core.FunctionStep step)
+    public List<Variable> GetVariablesFromPreviousSteps(FlowEngineCore.FunctionStep step)
     {
       bool previousStepAdded = false;
       int depth = 0;
@@ -180,12 +180,12 @@ namespace FlowEngineDesigner
       }
     }
 
-    private List<PREV_STEP> FindPreviousSteps(Core.FunctionStep step, int depth)
+    private List<PREV_STEP> FindPreviousSteps(FlowEngineCore.FunctionStep step, int depth)
     {
       List<PREV_STEP> previousteps = new List<PREV_STEP>();
       for (int x = 0; x < functionSteps.Count; x++)
       {
-        Core.FunctionStep ps = functionSteps[x];
+        FlowEngineCore.FunctionStep ps = functionSteps[x];
         for (int y = 0; y < ps.LinkOutputs.Count; y++)
         {
           Link l = ps.LinkOutputs[y];
@@ -243,9 +243,9 @@ namespace FlowEngineDesigner
     /// <param name="pos"></param>
     public void StepAdd(string name, Vector2 pos)
     {
- 
-      Core.Function function = Core.PluginManager.FindFunctionByName(name);
-      Core.FunctionStep step = new FunctionStep(this, getNextId(), name, pos);
+
+      FlowEngineCore.Function function = FlowEngineCore.PluginManager.FindFunctionByName(name);
+      FlowEngineCore.FunctionStep step = new FunctionStep(this, getNextId(), name, pos);
       step.Function = function;
       step.ParmVars = step.Function.Parms.ToParmVars();
 
@@ -256,24 +256,24 @@ namespace FlowEngineDesigner
     }
 
 
-    public void LinkDelete(Core.FunctionStep step, Core.Link link)
+    public void LinkDelete(FlowEngineCore.FunctionStep step, FlowEngineCore.Link link)
     {
       step.LinkOutputs.Remove(link);
     }
 
-    public void StepDelete(Core.FunctionStep? step)
+    public void StepDelete(FlowEngineCore.FunctionStep? step)
     {
       if (step is null)
         return;
 
-      List<Core.Link> linksToDelete = new List<Core.Link>(2);
+      List<FlowEngineCore.Link> linksToDelete = new List<FlowEngineCore.Link>(2);
       
       //Need to remove all Output links to this steps Input
       for (int x = 0; x < functionSteps.Count; x++)
       {
         for (int y = 0; y < functionSteps[x].LinkOutputs.Count; y++)
         {
-          Core.Link link = functionSteps[x].LinkOutputs[y];
+          FlowEngineCore.Link link = functionSteps[x].LinkOutputs[y];
           if (link.Input.Step is not null && link.Input.Step.Id == step.Id)
           {
             linksToDelete.Add(link);
@@ -428,7 +428,7 @@ namespace FlowEngineDesigner
           {
             if (step.Function.Outputs is not null)
             {
-              Core.Output o = step.Function.Outputs[i];
+            FlowEngineCore.Output o = step.Function.Outputs[i];
               Vector2 pos = (step.Position + o.Offset);
               r = camera.CreateDrawingRect(pos, HighlightSize);
               if (r.Contains(v) == true)
@@ -553,11 +553,11 @@ namespace FlowEngineDesigner
 
     }
 
-    private void DrawLinks(Core.FunctionStep step, Graphics graphics, cCamera camera)
+    private void DrawLinks(FlowEngineCore.FunctionStep step, Graphics graphics, cCamera camera)
     {
       for (int x = 0; x < step.LinkOutputs.Count; x++)
       {
-        Core.Link l = step.LinkOutputs[x];
+        FlowEngineCore.Link l = step.LinkOutputs[x];
         DrawLink(l, graphics, camera, 3, Color.Blue);
       }
     }
@@ -642,9 +642,9 @@ namespace FlowEngineDesigner
       {
         Vector2 pos = (step.Position + step.Function.Input.Offset);
         r = camera.CreateDrawingRect(pos, HighlightSize);
-        if ((cMouse.FlowItem is Core.Input) == false && r.Contains(cMouse.pos.ToPoint()) == true)
+        if ((cMouse.FlowItem is FlowEngineCore.Input) == false && r.Contains(cMouse.pos.ToPoint()) == true)
         {
-          Core.Output? co = cMouse.FlowItem as Core.Output;
+          FlowEngineCore.Output? co = cMouse.FlowItem as FlowEngineCore.Output;
           if ((co is null) || (co is not null && co.Step is not null && co.Step.Id != step.Id))
           {
             graphics.DrawImage(Global.HighlightYellow, r);
@@ -667,9 +667,9 @@ namespace FlowEngineDesigner
           r = camera.CreateDrawingRect(pos, HighlightSize);
           //float Distance = Vector2.Distance(cMouse.Pos, (pos + camera.Position + (HighlightCenterOffset * camera.ZoomLevel)));
           //camera.FormFlow.label1.Text = Distance.ToString();
-          if ((cMouse.FlowItem is Core.Output) == false && r.Contains(cMouse.pos.ToPoint()) == true)
+          if ((cMouse.FlowItem is FlowEngineCore.Output) == false && r.Contains(cMouse.pos.ToPoint()) == true)
           {
-            Core.Input? ci = cMouse.FlowItem as Core.Input;
+            FlowEngineCore.Input? ci = cMouse.FlowItem as FlowEngineCore.Input;
             if ((ci is null) || (ci is not null && ci.Step is not null && ci.Step.Id != step.Id))
             {
               graphics.DrawImage(Global.HighlightYellow, r);
@@ -877,7 +877,7 @@ namespace FlowEngineDesigner
 
     }
 
-    private void XmlWriteComments(Core.Xml xml)
+    private void XmlWriteComments(FlowEngineCore.Xml xml)
     {
       if (Comments.Count > 0)
       {
@@ -895,7 +895,7 @@ namespace FlowEngineDesigner
       }
     }
 
-    private void XmlWriteStep(Core.Xml xml, Core.FunctionStep step)
+    private void XmlWriteStep(FlowEngineCore.Xml xml, FlowEngineCore.FunctionStep step)
     {
       xml.WriteTagStart("Step");
       xml.WriteTagAndContents("Id", step.Id);
@@ -915,7 +915,7 @@ namespace FlowEngineDesigner
       xml.WriteTagStart("Links");
       for (int x = 0; x < step.LinkOutputs.Count; x++)
       {
-        Core.Link lw = step.LinkOutputs[x];
+        FlowEngineCore.Link lw = step.LinkOutputs[x];
         xml.WriteTagStart("Link");
         xml.WriteTagAndContents("Id", lw.Id);
         xml.WriteTagAndContents("OutputLabel", lw.Output.Label);

@@ -1,15 +1,15 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Net;
 using System.Numerics;
 using System.Runtime.InteropServices;
-using static Core.PARM;
+using static FlowEngineCore.PARM;
 
 namespace Logger
 {
-  public class Log : Core.Plugin, Core.Interfaces.ILog
+  public class Log : FlowEngineCore.Plugin, FlowEngineCore.Interfaces.ILog
   {
     private class LogEntry
     {
@@ -56,10 +56,10 @@ namespace Logger
       function.Parms.Add(new PARM("Log Values", DATA_TYPE.Various));
 
 
-      SettingAdd(new Setting(LOG_SHARE_WITH_PLUGINS, true));
-      SettingAdd(new Setting("LogPath", ""));
+      mSettings.SettingAdd(new Setting(LOG_SHARE_WITH_PLUGINS, true));
+      mSettings.SettingAdd(new Setting("LogPath", ""));
 
-      Setting setting = SettingAdd(new Setting(SETTING_TIME_STYLE, SETTING_TIME_STYLE_LOCAL, STRING_SUB_TYPE.DropDownList));
+      Setting setting = mSettings.SettingAdd(new Setting(SETTING_TIME_STYLE, SETTING_TIME_STYLE_LOCAL, STRING_SUB_TYPE.DropDownList));
       setting.OptionAdd(SETTING_TIME_STYLE_LOCAL);
       setting.OptionAdd(SETTING_TIME_STYLE_UTC);
 
@@ -71,7 +71,7 @@ namespace Logger
         StringSubType = STRING_SUB_TYPE.DropDownList
       };
 
-      Setting s = SettingAdd(retentionStyle);  //Number of Logs, Time Period, Size
+      Setting s = mSettings.SettingAdd(retentionStyle);  //Number of Logs, Time Period, Size
       if (s is not null)
       {
         s.OptionAdd("Time based");
@@ -113,19 +113,19 @@ namespace Logger
 
       }
 
-      SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-      SettingAdd(new Setting("", "Designer", "BorderColor", Color.Yellow));
-      SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
+      mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+      mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Yellow));
+      mSettings.SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
 
       this.StartPriority = 9000; //Log should start before other plugins, put at least a 1000 between other plugins to give room to manipulate the start up priority
 
     }
 
-    public override void LoadSettings(Dictionary<string, object> GlobalPluginValues)
+    public override void LoadSettings(string pluginPath, Dictionary<string, object> GlobalPluginValues)
     {
-      base.LoadSettings(GlobalPluginValues);
+      base.LoadSettings(pluginPath, GlobalPluginValues);
 
-      if (this.SettingGetAsBoolean(LOG_SHARE_WITH_PLUGINS) == true)
+      if (mSettings.SettingGetAsBoolean(LOG_SHARE_WITH_PLUGINS) == true)
       {
         GlobalPluginValues.Add("log", this);
       }
@@ -163,13 +163,13 @@ namespace Logger
       base.StartPlugin(GlobalPluginValues);
 
       //Set the function pointer to the time style I want.
-      string timeStyle = this.SettingGetAsString(SETTING_TIME_STYLE);
+      string timeStyle = mSettings.SettingGetAsString(SETTING_TIME_STYLE);
       if (timeStyle == SETTING_TIME_STYLE_LOCAL)
         GetDateTime = LocalTime;
       else
         GetDateTime = UtcTime;
 
-      LogFileName = this.SettingGetAsString("LogPath");
+      LogFileName = mSettings.SettingGetAsString("LogPath");
 
       LogThread = new Thread(LogThreadRuntime);
       LogThread.Start();
@@ -230,13 +230,13 @@ namespace Logger
       }
     }
 
-    public RESP Create(Core.Flow flow, Variable[] vars)
+    public RESP Create(FlowEngineCore.Flow flow, Variable[] vars)
     {
       Log.WriteToConsole("Log.Create");
       return RESP.SetSuccess();
     }
 
-    public RESP Write(Core.Flow flow, Variable[] vars)
+    public RESP Write(FlowEngineCore.Flow flow, Variable[] vars)
     {
       vars[0].GetValue(out string logTypeStr);
       Variable? var = null;

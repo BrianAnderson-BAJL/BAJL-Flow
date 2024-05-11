@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class BaseMessage
   {
     public string ServerKey = "";
     public string SessionKey = "";
 
-    public Core.Administration.Packet.PACKET_TYPE PacketType;
+    public FlowEngineCore.Administration.Packet.PACKET_TYPE PacketType;
 
     public BaseMessage(Packet.PACKET_TYPE packetType)
     {
@@ -25,14 +25,14 @@ namespace Core.Administration.Messages
       SessionKey = sessionKey;
     }
 
-    public BaseMessage(Core.Administration.Packet packet)
+    public BaseMessage(FlowEngineCore.Administration.Packet packet)
     {
       PacketType = packet.PacketType;
       packet.GetData(out this.ServerKey);
       packet.GetData(out this.SessionKey);
     }
 
-    public virtual Core.Administration.Packet GetPacket()
+    public virtual FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet p = new Packet(PacketType);
       p.AddData(ServerKey);

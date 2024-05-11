@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Interfaces\Core.csproj" />
+    <ProjectReference Include="..\Interfaces\FlowEngineCore.csproj" />
   </ItemGroup>
 
 </Project>

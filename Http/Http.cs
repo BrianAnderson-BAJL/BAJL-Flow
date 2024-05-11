@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Interfaces;
+﻿using FlowEngineCore;
+using FlowEngineCore.Interfaces;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
@@ -8,11 +8,11 @@ using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using static Core.PARM;
+using static FlowEngineCore.PARM;
 
 namespace Http
 {
-  public class Http : Core.Plugin
+  public class Http : FlowEngineCore.Plugin
   {
     private Thread? ListenerThread;
     private HttpListener? Listener;
@@ -40,10 +40,10 @@ namespace Http
       {
         Setting s = new Setting("Uri", DATA_TYPE.String);
         s.Description = "The URIs this Http pluging should listen on, comma delimited. (http://*:80,http://*:443, ...)";
-        SettingAdd(s);
-        SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-        SettingAdd(new Setting("", "Designer", "BorderColor", Color.Orange));
-        SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
+        mSettings.SettingAdd(s);
+        mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+        mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Orange));
+        mSettings.SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
       }
       //SETTINGS
 
@@ -148,10 +148,10 @@ namespace Http
       //SAMPLE VARIABLES FOR DESIGNER
       {
 
-        Variable root = new Variable(Flow.VAR_NAME_FLOW_START, DATA_FORMAT_SUB_VARIABLES.Block);
+        Variable root = new Variable(Flow.VAR_NAME_FLOW_START);
         //Variable request = new Variable(Flow.VAR_REQUEST);
         root.SubVariableAdd(new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object));
-        Variable headers = new Variable(VAR_HEADERS, DATA_FORMAT_SUB_VARIABLES.Block);
+        Variable headers = new Variable(VAR_HEADERS);
         root.SubVariableAdd(headers);
         Variable data = new Variable(Flow.VAR_DATA);
         data.SubVariableAdd(new Variable("YOUR_SAMPLE_DATA", "GOES_HERE"));
@@ -186,7 +186,7 @@ namespace Http
     private void ListenerThreadRuntime()
     {
       Thread.CurrentThread.Name = "HTTP Plugin";
-      Setting? uris = SettingFind("Uri");
+      Setting? uris = mSettings.SettingFind("Uri");
       if (uris is null)
       {
         mLog?.Write("Unable to start HTTP listening, no URIs to listen on", LOG_TYPE.WAR);
@@ -417,7 +417,7 @@ namespace Http
     /// <param name="vars 3">"data format"</param>
     /// <param name="Resps">Output Index 0 = SUCCESS</param>
     /// <param name="Resps">Output Index 1 = ERROR</param>
-    public RESP Send(Core.Flow flow, Variable[] vars)
+    public RESP Send(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Http.Send", LOG_TYPE.DBG);
 
@@ -457,28 +457,28 @@ namespace Http
       return RESP.SetSuccess();
     }
 
-    public RESP Disconnect(Core.Flow flow, Variable[] vars)
+    public RESP Disconnect(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Http.Disconnect", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
 
 
-    public RESP ConnectSendReceiveDisconnect(Core.Flow flow, Variable[] vars)
+    public RESP ConnectSendReceiveDisconnect(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Http.ConnectSendReceiveDisconnect", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
 
 
-    public RESP Connect(Core.Flow flow, Variable[] vars)
+    public RESP Connect(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Http.Connect", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
 
 
-    public RESP Receive(Core.Flow flow, Variable[] vars)
+    public RESP Receive(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Http.Receive", LOG_TYPE.DBG);
       return RESP.SetSuccess();

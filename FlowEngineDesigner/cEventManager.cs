@@ -1,4 +1,4 @@
-﻿using Core.Administration.Messages;
+﻿using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,12 +43,12 @@ namespace FlowEngineDesigner
       }
     }
 
-    public static void RaiseEventTracer(Core.Administration.Packet packet)
+    public static void RaiseEventTracer(FlowEngineCore.Administration.Packet packet)
     {
-      if (packet.PacketType != Core.Administration.Packet.PACKET_TYPE.Trace)
+      if (packet.PacketType != FlowEngineCore.Administration.Packet.PACKET_TYPE.Trace)
         return;
 
-      Core.Administration.Messages.TraceResponse trace = new TraceResponse(packet);
+      FlowEngineCore.Administration.Messages.TraceResponse trace = new TraceResponse(packet);
       TRACER_TYPE type = TRACER_TYPE.Information;
       if (trace.Success == false)
         type = TRACER_TYPE.Error;

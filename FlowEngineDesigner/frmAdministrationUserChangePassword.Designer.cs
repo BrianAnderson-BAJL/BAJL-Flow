@@ -47,6 +47,7 @@
       chkShowPassword.TabIndex = 30;
       chkShowPassword.Text = "Show Password";
       chkShowPassword.UseVisualStyleBackColor = true;
+      chkShowPassword.CheckedChanged += chkShowPassword_CheckedChanged;
       // 
       // label3
       // 
@@ -125,7 +126,7 @@
       Controls.Add(txtLoginId);
       Controls.Add(btnChangePassword);
       Name = "frmAdministrationUserChangePassword";
-      Text = "frmAdministrationUserChangePassword";
+      Text = "Administration - User Change Password";
       FormClosing += frmAdministrationUserChangePassword_FormClosing;
       Load += frmAdministrationUserChangePassword_Load;
       ResumeLayout(false);

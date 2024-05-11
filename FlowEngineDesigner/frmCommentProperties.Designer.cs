@@ -36,7 +36,7 @@
       // label1
       // 
       label1.AutoSize = true;
-      label1.Location = new Point(37, 38);
+      label1.Location = new Point(12, 17);
       label1.Name = "label1";
       label1.Size = new Size(64, 15);
       label1.TabIndex = 0;
@@ -44,15 +44,17 @@
       // 
       // txtComment
       // 
-      txtComment.Location = new Point(107, 35);
+      txtComment.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+      txtComment.Location = new Point(12, 35);
       txtComment.Multiline = true;
       txtComment.Name = "txtComment";
-      txtComment.Size = new Size(345, 123);
+      txtComment.Size = new Size(445, 158);
       txtComment.TabIndex = 1;
       // 
       // btnOk
       // 
-      btnOk.Location = new Point(357, 188);
+      btnOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+      btnOk.Location = new Point(362, 199);
       btnOk.Name = "btnOk";
       btnOk.Size = new Size(95, 45);
       btnOk.TabIndex = 2;
@@ -64,7 +66,7 @@
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(471, 245);
+      ClientSize = new Size(469, 256);
       Controls.Add(btnOk);
       Controls.Add(txtComment);
       Controls.Add(label1);

@@ -1,11 +1,11 @@
-﻿using Core.Administration;
+﻿using FlowEngineCore.Administration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace FlowEngineCore
 {
   internal class Debugger
   {

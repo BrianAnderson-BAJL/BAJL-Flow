@@ -1,4 +1,4 @@
-﻿using Core.Administration.Messages;
+﻿using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -30,11 +30,11 @@ namespace FlowEngineDesigner
         MessageBox.Show("No user signed in!");
         return;
       }
-      Core.Administration.Messages.UserChangePassword changePassword = new Core.Administration.Messages.UserChangePassword(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, cServer.UserLoggedIn.LoginId, txtOldPassword.Text, txtNewPassword.Text);
+      FlowEngineCore.Administration.Messages.UserChangePassword changePassword = new FlowEngineCore.Administration.Messages.UserChangePassword(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, cServer.UserLoggedIn.LoginId, txtOldPassword.Text, txtNewPassword.Text);
       cServer.SendAndResponse(changePassword.GetPacket(), Callback_UserChangePassword);
     }
 
-    private void Callback_UserChangePassword(Core.Administration.EventArgsPacket e)
+    private void Callback_UserChangePassword(FlowEngineCore.Administration.EventArgsPacket e)
     {
       BaseResponse response = new BaseResponse(e.Packet);
       if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)
@@ -64,6 +64,20 @@ namespace FlowEngineDesigner
           cServer.Disconnect();
           e.Cancel = false;
         }
+      }
+    }
+
+    private void chkShowPassword_CheckedChanged(object sender, EventArgs e)
+    {
+      if (chkShowPassword.Checked == true)
+      {
+        txtNewPassword.PasswordChar = '\0';
+        txtOldPassword.PasswordChar = '\0';
+      }
+      else
+      {
+        txtNewPassword.PasswordChar = '*';
+        txtOldPassword.PasswordChar = '*';
       }
     }
   }

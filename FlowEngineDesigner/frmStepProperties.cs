@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,7 +13,7 @@ namespace FlowEngineDesigner
 {
   public partial class frmStepProperties : Form
   {
-    private Core.FunctionStep mStep;
+    private FlowEngineCore.FunctionStep mStep;
     private cFlowWrapper mFlow;
     private List<UserControl> userControls;
     private const int StartX = 28;
@@ -22,7 +22,7 @@ namespace FlowEngineDesigner
     private const int WidthSubtract = 30;
     private int ScrollBarWidthSubtract = 0;
     private const int ucHeight = 29;
-    public frmStepProperties(Core.FunctionStep step, cFlowWrapper flow)
+    public frmStepProperties(FlowEngineCore.FunctionStep step, cFlowWrapper flow)
     {
       InitializeComponent();
       mStep = step;
@@ -224,7 +224,7 @@ namespace FlowEngineDesigner
     {
       if (cmbValidators.SelectedIndex > 0)
       {
-        Core.FunctionValidator? validator = cmbValidators.SelectedItem as Core.FunctionValidator;
+        FlowEngineCore.FunctionValidator? validator = cmbValidators.SelectedItem as FlowEngineCore.FunctionValidator;
         mStep.Validator = validator;
         lblValidatorDescription.Text = validator?.Descriptoin ?? "";
       }

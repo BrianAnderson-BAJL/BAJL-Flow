@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Interfaces;
+﻿using FlowEngineCore;
+using FlowEngineCore.Interfaces;
 using MySql.Data.MySqlClient;
 using System.Linq.Expressions;
 
@@ -99,8 +99,8 @@ namespace Db
             PopulateParameters(command, vars);
             using (MySqlDataReader reader = command.ExecuteReader())
             {
-              bool tinyAsBool = mDb.SettingGetAsBoolean(Db.Database.DB_TREAT_TINYINT_AS_BOOLEAN);
-              string dataFormat = mDb.SettingGetAsString(Db.Database.DB_DATE_FORMAT);
+              bool tinyAsBool = mDb.GetSettings.SettingGetAsBoolean(Db.Database.DB_TREAT_TINYINT_AS_BOOLEAN);
+              string dataFormat = mDb.GetSettings.SettingGetAsString(Db.Database.DB_DATE_FORMAT);
               while (reader.Read())
               {
                 Variable row = new Variable("record");

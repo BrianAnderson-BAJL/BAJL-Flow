@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Core.SecurityProfile;
+using static FlowEngineCore.SecurityProfile;
 
-namespace Core
+namespace FlowEngineCore
 {
   internal class SecurityProfileManager
   {
@@ -32,10 +32,25 @@ namespace Core
       return SecurityProfile.NoAccess;
     }
 
+    private static SecurityProfile? FindByNameNullReturnable(string name)
+    {
+      name = name.ToLower();
+      lock (mCriticalSection)
+      {
+        for (int x = 0; x < Profiles.Count; x++)
+        {
+          if (Profiles[x].Name.ToLower() == name)
+            return Profiles[x];
+        }
+      }
+      return null;
+    }
+
+
     public static void Save()
     {
       Xml xml = new Xml();
-      xml.WriteFileNew(Options.SecurityProfilesPath);
+      xml.WriteFileNew(Options.GetFullPath(Options.GetSettings.SettingGetAsString("SecurityProfilesPath")));
       xml.WriteTagStart("Profiles");
       lock (mCriticalSection)
       {
@@ -56,8 +71,8 @@ namespace Core
 
     public static void Load()
     {
-      Core.Xml xml = new Core.Xml();
-      string profiles = xml.FileRead(Options.SecurityProfilesPath);
+      FlowEngineCore.Xml xml = new FlowEngineCore.Xml();
+      string profiles = xml.FileRead(Options.GetFullPath(Options.GetSettings.SettingGetAsString("SecurityProfilesPath")));
       profiles = Xml.GetXMLChunk(ref profiles, "Profiles");
       string profileXml = Xml.GetXMLChunk(ref profiles, "Profile");
       List<SecurityProfile> spList = new List<SecurityProfile>(128);
@@ -85,9 +100,9 @@ namespace Core
       }
     }
 
-    public static RECORD_RESULT Add(Core.Administration.Messages.SecurityProfileAdd spa)
+    public static RECORD_RESULT Add(FlowEngineCore.Administration.Messages.SecurityProfileAdd spa)
     {
-      SecurityProfile? sp = FindByName(spa.Name);
+      SecurityProfile? sp = FindByNameNullReturnable(spa.Name);
       if (sp is not null)
         return RECORD_RESULT.Duplicate;
 
@@ -105,9 +120,9 @@ namespace Core
       return RECORD_RESULT.Success;
     }
 
-    public static RECORD_RESULT Edit(Core.Administration.Messages.SecurityProfileEdit spe)
+    public static RECORD_RESULT Edit(FlowEngineCore.Administration.Messages.SecurityProfileEdit spe)
     {
-      SecurityProfile? sp = FindByName(spe.OldName);
+      SecurityProfile? sp = FindByNameNullReturnable(spe.OldName);
       if (sp is null)
         return RECORD_RESULT.Error;
 
@@ -119,7 +134,7 @@ namespace Core
       Save();
       return RECORD_RESULT.Success;
     }
-    public static RECORD_RESULT Delete(Core.Administration.Messages.SecurityProfileDelete spd)
+    public static RECORD_RESULT Delete(FlowEngineCore.Administration.Messages.SecurityProfileDelete spd)
     {
       lock (mCriticalSection)
       {

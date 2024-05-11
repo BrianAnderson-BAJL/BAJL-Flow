@@ -1,4 +1,4 @@
-﻿using Core.Interfaces;
+﻿using FlowEngineCore.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class PluginManager
   {
@@ -35,13 +35,13 @@ namespace Core
         Type[] Types = a.GetTypes();
         for (int y = 0; y < Types.Length; y++)
         {
-          if (Types[y] is not null && Types[y].BaseType is not null && Types[y].BaseType!.FullName == "Core.Plugin")
+          if (Types[y] is not null && Types[y].BaseType is not null && Types[y].BaseType!.FullName == "FlowEngineCore.Plugin")
           {
-            Core.Plugin? p = Activator.CreateInstance(Types[y]) as Core.Plugin;
+            FlowEngineCore.Plugin? p = Activator.CreateInstance(Types[y]) as FlowEngineCore.Plugin;
             if (p is not null)
             {
               p.Init();
-              p.LoadSettings(GlobalPluginValues);
+              p.LoadSettings(Files[x], GlobalPluginValues);
               mPlugins.Add(p);
             }
           }

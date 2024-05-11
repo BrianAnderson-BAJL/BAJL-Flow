@@ -31,8 +31,8 @@ namespace FlowEngineDesigner
     }
     public bool Hit;
     public HIT_TYPE Type;
-    public Core.FlowBase? HitItem;
-    public Core.FlowBase? ParentItem;
+    public FlowEngineCore.FlowBase? HitItem;
+    public FlowEngineCore.FlowBase? ParentItem;
     public Vector2 Position;
 
     public HIT_RESULT()

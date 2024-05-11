@@ -5,10 +5,10 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using Core;
+using FlowEngineCore;
 
 
-namespace Core.Administration
+namespace FlowEngineCore.Administration
 {
   public class TcpServer
   {

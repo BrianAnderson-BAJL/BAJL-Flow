@@ -4,13 +4,13 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using static Core.PARM;
+using static FlowEngineCore.PARM;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class PARMS: List<PARM>
   {
-    public Core.Flow? Flow;
+    public FlowEngineCore.Flow? Flow;
     public PARM? FindParmByName(string name)
     {
       for (int x = 0; x < this.Count; x++)

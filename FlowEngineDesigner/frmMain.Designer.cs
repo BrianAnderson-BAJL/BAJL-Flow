@@ -55,6 +55,7 @@
       toolStripStatusLabel1 = new ToolStripStatusLabel();
       tsLoggedInAs = new ToolStripStatusLabel();
       openFileDialog1 = new OpenFileDialog();
+      settingsToolStripMenuItem1 = new ToolStripMenuItem();
       menuStrip1.SuspendLayout();
       statusStrip1.SuspendLayout();
       SuspendLayout();
@@ -147,7 +148,7 @@
       // 
       // serverToolStripMenuItem
       // 
-      serverToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { connectToolStripMenuItem, disconnectToolStripMenuItem, connectRecentToolStripMenuItem, administrationToolStripMenuItem });
+      serverToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { connectToolStripMenuItem, disconnectToolStripMenuItem, connectRecentToolStripMenuItem, settingsToolStripMenuItem1, administrationToolStripMenuItem });
       serverToolStripMenuItem.Name = "serverToolStripMenuItem";
       serverToolStripMenuItem.Size = new Size(51, 20);
       serverToolStripMenuItem.Text = "&Server";
@@ -250,6 +251,13 @@
       // 
       openFileDialog1.FileName = "openFileDialog1";
       // 
+      // settingsToolStripMenuItem1
+      // 
+      settingsToolStripMenuItem1.Name = "settingsToolStripMenuItem1";
+      settingsToolStripMenuItem1.Size = new Size(180, 22);
+      settingsToolStripMenuItem1.Text = "&Settings";
+      settingsToolStripMenuItem1.Click += settingsToolStripMenuItem1_Click;
+      // 
       // frmMain
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
@@ -300,5 +308,6 @@
     private ToolStripMenuItem flowOpenToolStripMenuItem;
     private OpenFileDialog openFileDialog1;
     public ToolStripMenuItem debugAlwaysToolStripMenuItem;
+    private ToolStripMenuItem settingsToolStripMenuItem1;
   }
 }

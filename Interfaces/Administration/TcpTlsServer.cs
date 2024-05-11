@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Net.Security;
 using System.Security.Authentication;
 
-namespace Core.Administration
+namespace FlowEngineCore.Administration
 {
   public class TcpTlsServer
   {

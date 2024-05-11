@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -32,14 +32,14 @@ namespace FlowEngineDesigner
     private void LoadToolbox()
     {
       tvToolbox.Nodes.Clear();
-      for (int x = 0; x < Core.PluginManager.Plugins.Count; x++)
+      for (int x = 0; x < FlowEngineCore.PluginManager.Plugins.Count; x++)
       {
-        TreeNode tn = tvToolbox.Nodes.Add(Core.PluginManager.Plugins[x].Name);
-        tn.Tag = Core.PluginManager.Plugins[x];
-        for (int y = 0; y < Core.PluginManager.Plugins[x].Functions.Count; y++)
+        TreeNode tn = tvToolbox.Nodes.Add(FlowEngineCore.PluginManager.Plugins[x].Name);
+        tn.Tag = FlowEngineCore.PluginManager.Plugins[x];
+        for (int y = 0; y < FlowEngineCore.PluginManager.Plugins[x].Functions.Count; y++)
         {
-          TreeNode SubNode = tn.Nodes.Add(Core.PluginManager.Plugins[x].Functions[y].Name);
-          SubNode.Tag = Core.PluginManager.Plugins[x].Functions[y];
+          TreeNode SubNode = tn.Nodes.Add(FlowEngineCore.PluginManager.Plugins[x].Functions[y].Name);
+          SubNode.Tag = FlowEngineCore.PluginManager.Plugins[x].Functions[y];
 
         }
       }
@@ -53,8 +53,8 @@ namespace FlowEngineDesigner
         tvToolbox.SelectedNode = e.Node;
         if (e.Node.Tag is not null)
         {
-          Core.Plugin? Pin = e.Node.Tag as Core.Plugin;
-          if (Pin is not null && Pin.Settings.Count > 0)
+          FlowEngineCore.Plugin? Pin = e.Node.Tag as FlowEngineCore.Plugin;
+          if (Pin is not null && Pin.GetSettings.SettingsList.Count > 0)
           {
             cmsPopup.Show(MousePosition);
           }
@@ -71,10 +71,10 @@ namespace FlowEngineDesigner
     {
       if (tvToolbox.SelectedNode is not null)
       {
-        Core.Plugin? plugin = tvToolbox.SelectedNode.Tag as Core.Plugin;
+        FlowEngineCore.Plugin? plugin = tvToolbox.SelectedNode.Tag as FlowEngineCore.Plugin;
         if (plugin is not null)
         {
-          frmSettings f = new frmSettings(plugin);
+          frmSettings f = new frmSettings(plugin.GetSettings, $"Plugin Settings [{plugin.Name}]");
           f.Show();
         }
       }
@@ -85,7 +85,7 @@ namespace FlowEngineDesigner
       if (e.Button == MouseButtons.Left)
       {
         TreeViewHitTestInfo tvi = tvToolbox.HitTest(new Point(e.X, e.Y));
-        if (tvi.Node is not null && tvi.Node.Tag is Core.Function)
+        if (tvi.Node is not null && tvi.Node.Tag is FlowEngineCore.Function)
         {
           tvToolbox.SelectedNode = tvi.Node;
           DoDragDrop(tvi.Node.Tag, DragDropEffects.Copy);

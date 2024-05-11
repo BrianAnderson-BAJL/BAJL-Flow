@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,15 +13,15 @@ namespace FlowEngineDesigner
 {
   public partial class ucParameterDropDownList : ucParameter
   {
-    Core.FunctionStep? Step;
-    Core.Flow? Flow;
-    Core.PARM_VAR ParmVar;
-    public ucParameterDropDownList(Core.PARM_VAR parmVar)
+    FlowEngineCore.FunctionStep? Step;
+    FlowEngineCore.Flow? Flow;
+    FlowEngineCore.PARM_VAR ParmVar;
+    public ucParameterDropDownList(FlowEngineCore.PARM_VAR parmVar)
     {
       ParmVar = parmVar;
       InitializeComponent();
     }
-    public ucParameterDropDownList(Core.PARM_VAR parmVar, Core.FunctionStep step, Core.Flow flow)
+    public ucParameterDropDownList(FlowEngineCore.PARM_VAR parmVar, FlowEngineCore.FunctionStep step, FlowEngineCore.Flow flow)
     {
       ParmVar = parmVar;
       Step = step;

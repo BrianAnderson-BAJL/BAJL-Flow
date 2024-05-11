@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class UserLoginResponse : BaseResponse
   {
@@ -26,7 +26,7 @@ namespace Core.Administration.Messages
       NeedToChangePassword = needToChangePassword;
     }
 
-    public UserLoginResponse(Core.Administration.Packet packet) : base(packet) 
+    public UserLoginResponse(FlowEngineCore.Administration.Packet packet) : base(packet) 
     {
       packet.GetData(out LoginId);
       packet.GetData(out SecurityProfile);
@@ -37,7 +37,7 @@ namespace Core.Administration.Messages
       packet.GetData(out NeedToChangePassword);
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = base.GetPacket();
       packet.AddData(LoginId);

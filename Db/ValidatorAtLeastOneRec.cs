@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Database
 {
-  public class ValidatorAtLeastOneRec : Core.FunctionValidator
+  public class ValidatorAtLeastOneRec : FlowEngineCore.FunctionValidator
   {
 
     public ValidatorAtLeastOneRec() 
@@ -23,7 +23,7 @@ namespace Database
 
       if (resp.Variable is null)
       {
-        resp.SetError(Core.STEP_ERROR_NUMBERS.FV_MustHaveOneRecord, Name);
+        resp.SetError(FlowEngineCore.STEP_ERROR_NUMBERS.FV_MustHaveOneRecord, Name);
         return;
       }
 

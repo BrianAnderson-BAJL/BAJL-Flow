@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace Core
+namespace FlowEngineCore
 {
   public enum DATA_TYPE
   {

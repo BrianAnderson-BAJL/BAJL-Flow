@@ -1,22 +1,28 @@
-﻿using Core.Administration.Messages;
-using Core.Administration.Packets;
-using Core.Interfaces;
+﻿using FlowEngineCore.Administration.Messages;
+using FlowEngineCore.Administration.Packets;
+using FlowEngineCore.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using static Core.Administration.Messages.BaseResponse;
+using static FlowEngineCore.Administration.Messages.BaseResponse;
 
-namespace Core.Administration
+namespace FlowEngineCore.Administration
 {
   internal class MessageProcessor
   {
     public delegate void ProcessMessageDelegate(Packet message, TcpClientBase client);
     private static Dictionary<Packet.PACKET_TYPE, ProcessMessageDelegate> Processors = new Dictionary<Packet.PACKET_TYPE, ProcessMessageDelegate>(128);
     private static ILog? mLog = null;
+
+    private static string CacheAdministrationPrivateKey = "";
+    private static int CacheAdministrationUserMaxLoginAttempts = 0;
+    private static int CacheAdministrationUserLockOutMinutes = 0;
+    private static int CacheAdministrationUserSessionKeyTimeoutInMinutes = 0;
 
     public static void Init(Dictionary<string, object> GlobalPluginValues)
     {
@@ -43,6 +49,10 @@ namespace Core.Administration
         mLog = GlobalPluginValues["log"] as ILog;
       }
 
+      CacheAdministrationPrivateKey = Options.GetSettings.SettingGetAsString("PrivateKey");
+      CacheAdministrationUserMaxLoginAttempts = Options.GetSettings.SettingGetAsInt("UserMaxLoginAttempts");
+      CacheAdministrationUserLockOutMinutes = Options.GetSettings.SettingGetAsInt("UserLockOutMinutes");
+      CacheAdministrationUserSessionKeyTimeoutInMinutes = Options.GetSettings.SettingGetAsInt("UserSessionKeyTimeoutInMinutes");
     }
 
     public static void ProcessMessage(Packet packet, TcpClientBase client)
@@ -76,7 +86,7 @@ namespace Core.Administration
       BaseMessage message = new BaseMessage(packet);
       packet.ResetReadPosition();
       //Does the private key match?
-      if (message.ServerKey != Options.AdministrationPrivateKey)
+      if (message.ServerKey != CacheAdministrationPrivateKey)
       {
         mLog?.Write("SECURITY ERROR!  Server Key mismatch");
         SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
@@ -117,16 +127,16 @@ namespace Core.Administration
         {
           user.LoginAttempts++;
           mLog?.Write($"SECURITY ERROR!  User Login, User password does not match Attempt number [{user.LoginAttempts}]");
-          if (user.LoginAttempts >= Options.AdministrationUserMaxLoginAttempts && Options.AdministrationUserMaxLoginAttempts > 0)
+          if (user.LoginAttempts >= CacheAdministrationUserMaxLoginAttempts && CacheAdministrationUserMaxLoginAttempts > 0)
           {
-            user.LockOutUntil = DateTime.UtcNow.AddMinutes(Options.AdministrationUserLockOutMinutes);
-            mLog?.Write($"SECURITY ERROR!  User Login, User login attempts is [{Options.AdministrationUserMaxLoginAttempts}] User is being locked out for [{(user.LockOutUntil - DateTime.UtcNow).TotalMinutes}] minutes");
+            user.LockOutUntil = DateTime.UtcNow.AddMinutes(CacheAdministrationUserLockOutMinutes);
+            mLog?.Write($"SECURITY ERROR!  User Login, User login attempts is [{CacheAdministrationUserMaxLoginAttempts}] User is being locked out for [{(user.LockOutUntil - DateTime.UtcNow).TotalMinutes}] minutes");
           }
           return false;
         }
         user.LoginAttempts = 0;
         user.SessionKey = SecureHasherV1.Hash(Guid.NewGuid().ToString()); //User has successfully logged in, lets generate a new session key
-        user.SessionKeyExpiration = DateTime.UtcNow + TimeSpan.FromMinutes(Options.AdministrationUserSessionKeyTimeoutInMinutes);
+        user.SessionKeyExpiration = DateTime.UtcNow + TimeSpan.FromMinutes(CacheAdministrationUserSessionKeyTimeoutInMinutes);
         return true;
 
       }
@@ -178,7 +188,7 @@ namespace Core.Administration
       client.Send(response.GetPacket());
     }
 
-    private static void ProcessUserAdd(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessUserAdd(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       UserAdd? userAdd = new UserAdd(packet);
       RECORD_RESULT results = UserManager.Add(userAdd);
@@ -187,7 +197,7 @@ namespace Core.Administration
       client.Send(response.GetPacket());
     }
 
-    private static void ProcessUserEdit(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessUserEdit(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       UserEdit? userEdit = new UserEdit(packet);
       User? user = UserManager.FindByLoginId(userEdit.OldLoginId);
@@ -215,7 +225,7 @@ namespace Core.Administration
 
     }
 
-    private static void ProcessUserDelete(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessUserDelete(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       UserDelete userDelete = new UserDelete(packet);
       bool resp = UserManager.Delete(userDelete.LoginId);
@@ -233,7 +243,7 @@ namespace Core.Administration
 
     }
 
-    private static void ProcessUserLogin(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessUserLogin(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       //If we got here, the user successfully logged in in the SecurityValid function
       UserLogin? userLogin = new UserLogin(packet);
@@ -248,7 +258,7 @@ namespace Core.Administration
         }
       }
     }
-    private static void ProcessUserLoginIdCheck(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessUserLoginIdCheck(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       UserLoginIdCheck? loginCheck = new UserLoginIdCheck(packet);
       if (loginCheck is not null)
@@ -271,13 +281,13 @@ namespace Core.Administration
 
     }
 
-    private static void ProcessUsersGet(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessUsersGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       UsersGetResponse response = new UsersGetResponse(packet.PacketId, UserManager.GetUsers.ToArray());
       client.Send(response.GetPacket());
     }
 
-    private static void ProcessUserChangePassword(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessUserChangePassword(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       //If we got here, the user successfully logged in the SecurityValid function
       UserChangePassword? data = new UserChangePassword(packet);
@@ -296,13 +306,13 @@ namespace Core.Administration
     }
 
 
-    private static void ProcessSecurityProfilesGet(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessSecurityProfilesGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       SecurityProfilesGetResponse response = new SecurityProfilesGetResponse(packet.PacketId, SecurityProfileManager.GetProfiles.ToArray());
       client.Send(response.GetPacket());
     }
 
-    private static void ProcessSecurityProfileAdd(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessSecurityProfileAdd(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       SecurityProfileAdd data = new SecurityProfileAdd(packet);
       RECORD_RESULT result = SecurityProfileManager.Add(data);
@@ -310,7 +320,7 @@ namespace Core.Administration
       client.Send(response.GetPacket());
     }
 
-    private static void ProcessSecurityProfileEdit(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessSecurityProfileEdit(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       SecurityProfileEdit data = new SecurityProfileEdit(packet);
       RECORD_RESULT result = SecurityProfileManager.Edit(data);
@@ -318,17 +328,17 @@ namespace Core.Administration
       client.Send(response.GetPacket());
     }
 
-    private static void ProcessSecurityProfileDelete(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessSecurityProfileDelete(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       SecurityProfileDelete data = new SecurityProfileDelete(packet);
       RECORD_RESULT result = SecurityProfileManager.Delete(data);
       BaseResponse response = new BaseResponse(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileDeleteResponse);
       client.Send(response.GetPacket());
     }
-    private static void ProcessFlowsGet(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessFlowsGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       FlowsGet data = new FlowsGet(packet);
-      string path = Options.GetFullPath(Options.FlowPath);
+      string path = Options.GetFullPath(Options.GetSettings.SettingGetAsString("FlowPath"));
       string relativePath = "";
       Xml xml = new Xml();
       xml.WriteMemoryNew();
@@ -359,7 +369,7 @@ namespace Core.Administration
         xml.WriteTagEnd("File");
       }
 
-      if (Options.FlowPathAllowSubDirectories == true)
+      if (Options.GetSettings.SettingGetAsBoolean("FlowPathAllowSubDirectories") == true)
       {
         string[] dirs = Directory.GetDirectories(path);
         for (int x = 0; x < dirs.Length; x++)
@@ -371,24 +381,24 @@ namespace Core.Administration
       xml.WriteTagEnd("Directory" + depth.ToString());
     }
 
-    private static void ProcessFlowSave(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessFlowSave(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       FlowSave data = new FlowSave(packet);
       string xmlData = data.FlowXml;
       
       RESPONSE_CODE responseCode = RESPONSE_CODE.Success;
 
-      for (int x = 0; x < Core.Global.IllegalFileNameCharacters.Length; x++)
+      for (int x = 0; x < FlowEngineCore.Global.IllegalFileNameCharacters.Length; x++)
       {
-        if (data.FileName.Contains(Core.Global.IllegalFileNameCharacters[x]) == true)
+        if (data.FileName.Contains(FlowEngineCore.Global.IllegalFileNameCharacters[x]) == true)
         {
           responseCode = RESPONSE_CODE.BadRequest;
           break;
         }
       }
-      for (int x = 0; x < Core.Global.IllegalFileNameStartCharacters.Length; x++)
+      for (int x = 0; x < FlowEngineCore.Global.IllegalFileNameStartCharacters.Length; x++)
       {
-        if (data.FileName.StartsWith(Core.Global.IllegalFileNameStartCharacters[x]) == true)
+        if (data.FileName.StartsWith(FlowEngineCore.Global.IllegalFileNameStartCharacters[x]) == true)
         {
           responseCode = RESPONSE_CODE.BadRequest;
           break;
@@ -410,7 +420,7 @@ namespace Core.Administration
       {
         try
         {
-          string path = Options.GetFullPath(Options.FlowPath, data.FileName);
+          string path = Options.GetFullPath(Options.GetSettings.SettingGetAsString("FlowPath"), data.FileName);
           System.IO.File.WriteAllText(path, data.FlowXml);
           if (data.FlowGoLive == true)
           {
@@ -428,23 +438,23 @@ namespace Core.Administration
     }
 
 
-    private static void ProcessFlowOpen(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessFlowOpen(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       FlowOpen data = new FlowOpen(packet);
 
       RESPONSE_CODE responseCode = RESPONSE_CODE.Success;
 
-      for (int x = 0; x < Core.Global.IllegalFileNameCharacters.Length; x++)
+      for (int x = 0; x < FlowEngineCore.Global.IllegalFileNameCharacters.Length; x++)
       {
-        if (data.FileName.Contains(Core.Global.IllegalFileNameCharacters[x]) == true)
+        if (data.FileName.Contains(FlowEngineCore.Global.IllegalFileNameCharacters[x]) == true)
         {
           responseCode = RESPONSE_CODE.BadRequest;
           break;
         }
       }
-      for (int x = 0; x < Core.Global.IllegalFileNameStartCharacters.Length; x++)
+      for (int x = 0; x < FlowEngineCore.Global.IllegalFileNameStartCharacters.Length; x++)
       {
-        if (data.FileName.StartsWith(Core.Global.IllegalFileNameStartCharacters[x]) == true)
+        if (data.FileName.StartsWith(FlowEngineCore.Global.IllegalFileNameStartCharacters[x]) == true)
         {
           responseCode = RESPONSE_CODE.BadRequest;
           break;
@@ -464,7 +474,7 @@ namespace Core.Administration
       {
         try
         {
-          string path = Options.GetFullPath(Options.FlowPath, data.FileName);
+          string path = Options.GetFullPath(Options.GetSettings.SettingGetAsString("FlowPath"), data.FileName);
           flowXml = System.IO.File.ReadAllText(path);
         }
         catch
@@ -478,12 +488,12 @@ namespace Core.Administration
     }
 
 
-    private static void ProcessFlowDebug(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessFlowDebug(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       FlowDebug data = new FlowDebug(packet);
       string xmlData = data.FlowXml;
 
-      if (Options.ServerType != Options.SERVER_TYPE.Development)
+      if (Options.GetSettings.SettingGetAsString("ServerType") != Options.SERVER_TYPE.Development.ToString())
       {
         BaseResponse response = new BaseResponse(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, Packet.PACKET_TYPE.FlowDebugResponse);
         client.Send(response.GetPacket());
@@ -520,15 +530,14 @@ namespace Core.Administration
       {
         mLog?.Write("Flow Debug Execution error", ex, LOG_TYPE.ERR);
       }
-
     }
 
 
-    private static void ProcessFlowDebugAlways(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessFlowDebugAlways(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       FlowDebugAlways data = new FlowDebugAlways(packet);
 
-      if (Options.ServerType != Options.SERVER_TYPE.Development)
+      if (Options.GetSettings.SettingGetAsString("ServerType") != Options.SERVER_TYPE.Development.ToString()) //TODO: Change this, I hate it, comparing strings...
       {
         BaseResponse response = new BaseResponse(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, Packet.PACKET_TYPE.FlowDebugResponse);
         client.Send(response.GetPacket());
@@ -548,11 +557,28 @@ namespace Core.Administration
       }
 
     }
-    private static void ProcessCloseConnection(Core.Administration.Packet packet, Core.Administration.TcpClientBase client)
+    private static void ProcessCloseConnection(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
 #if DEBUG
       FlowEngine.Instance.Stop(); //Stop the flow engine running after a disconnect for development purposes.
 #endif
+    }
+
+    private static void ProcessServerSettingsGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
+    {
+      string path = Options.GetFullPath(Options.SettingsPath);
+      string xml = System.IO.File.ReadAllText(path);
+      ServerSettingsGetResponse response = new ServerSettingsGetResponse(packet.PacketId, RESPONSE_CODE.Success, xml);
+      client.Send(response.GetPacket());
+    }
+
+
+    private static void ProcessServerSettingsEdit(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
+    {
+      string path = Options.GetFullPath(Options.SettingsPath);
+      string xml = System.IO.File.ReadAllText(path);
+      ServerSettingsGetResponse response = new ServerSettingsGetResponse(packet.PacketId, RESPONSE_CODE.Success, xml);
+      client.Send(response.GetPacket());
     }
   }
 }

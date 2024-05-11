@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class FunctionStep : FlowBase
   {
@@ -93,7 +93,7 @@ namespace Core
     /// </summary>
     /// <param name="flow"></param>
     /// <returns></returns>
-    public virtual RESP Execute(Core.Flow flow)
+    public virtual RESP Execute(FlowEngineCore.Flow flow)
     {
       Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
       Variable[] vars = new Variable[ParmVars.Count];
@@ -146,7 +146,7 @@ namespace Core
       var.SubVariableAdd(new Variable("step", this));
 
       // If this is a development server then add the steps parameters for the trace information
-      if (Options.ServerType == Options.SERVER_TYPE.Development)
+      if (Options.GetSettings.SettingGetAsString("ServerType") == Options.SERVER_TYPE.Development.ToString())
       {
         Variable parameters = new Variable("parms");
         for (int x = 0; x < vars.Length; x++)

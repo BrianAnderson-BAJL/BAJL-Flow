@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Administration.Messages;
+﻿using FlowEngineCore;
+using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -98,7 +98,7 @@ namespace FlowEngineDesigner
     }
 
 
-    private void Callback_FileOpen(Core.Administration.EventArgsPacket e)
+    private void Callback_FileOpen(FlowEngineCore.Administration.EventArgsPacket e)
     {
       FlowOpenResponse response = new FlowOpenResponse(e.Packet);
       if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)

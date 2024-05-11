@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Interfaces;
+﻿using FlowEngineCore;
+using FlowEngineCore.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;

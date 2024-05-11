@@ -1,12 +1,12 @@
-﻿using Core;
-using Core.Interfaces;
+﻿using FlowEngineCore;
+using FlowEngineCore.Interfaces;
 using MySqlX.XDevAPI.Relational;
 using System;
 using System.Drawing;
 
 namespace Session
 {
-    public class Session : Core.Plugin
+    public class Session : FlowEngineCore.Plugin
   {
     private IDatabase? Database;
     private const uint USER_REGISTER_DUPLICATE_OUTPUT = 1;
@@ -71,11 +71,11 @@ namespace Session
 
       //SETTINGS
       {
-        SettingAdd(new Setting("LoginAttemptsBeforeLock", 3));
-        SettingAdd(new Setting("LockAccountMinutes", 30));
-        SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-        SettingAdd(new Setting("", "Designer", "BorderColor", Color.Teal));
-        SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
+        mSettings.SettingAdd(new Setting("LoginAttemptsBeforeLock", 3));
+        mSettings.SettingAdd(new Setting("LockAccountMinutes", 30));
+        mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+        mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Teal));
+        mSettings.SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
       }
       //SETTINGS
 
@@ -106,7 +106,7 @@ namespace Session
     /// <param name="flow"></param>
     /// <param name="vars"></param>
     /// <returns></returns>
-    public RESP UserRegister(Core.Flow flow, Variable[] vars)
+    public RESP UserRegister(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Session.UserRegister", LOG_TYPE.DBG);
       if (Database is null)
@@ -149,7 +149,7 @@ namespace Session
     /// <param name="flow"></param>
     /// <param name="vars"></param>
     /// <returns></returns>
-    public RESP UserLogin(Core.Flow flow, Variable[] vars)
+    public RESP UserLogin(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Session.UserLogin", LOG_TYPE.DBG);
 
@@ -193,14 +193,14 @@ namespace Session
       records[0]["Password"].GetValue(out string passwordDb);
       if (SecureHasherV1.Verify(password, passwordDb) == false) //Check if the password matches the database
       {
-        if (loginAttempts < SettingGetAsInt("LoginAttemptsBeforeLock"))
+        if (loginAttempts < mSettings.SettingGetAsInt("LoginAttemptsBeforeLock"))
         {
           Database.Execute("UPDATE Users SET LoginAttempts = LoginAttempts + 1 WHERE UserId = @UserId", varUserId);
         }
         else
         {
-          Variable varLoginAttempts = new("@LoginAttempts", SettingGetAsInt("LoginAttemptsBeforeLock"));
-          Variable varMinutesToLock = new("@LockAccountMinutes", SettingGetAsInt("LockAccountMinutes"));
+          Variable varLoginAttempts = new("@LoginAttempts", mSettings.SettingGetAsInt("LoginAttemptsBeforeLock"));
+          Variable varMinutesToLock = new("@LockAccountMinutes", mSettings.SettingGetAsInt("LockAccountMinutes"));
           Database.Execute("UPDATE Users SET LoginAttempts = @LoginAttempts, LockedUntil = Now() + interval @LockAccountMinutes MINUTE WHERE UserId = @UserId", varLoginAttempts, varMinutesToLock, varUserId);
         }
         mLog?.Write("Session.UserLogin - Bad Password", LOG_TYPE.INF);
@@ -220,7 +220,7 @@ namespace Session
     /// <param name="flow"></param>
     /// <param name="vars"></param>
     /// <returns></returns>
-    public RESP UserLogout(Core.Flow flow, Variable[] vars)
+    public RESP UserLogout(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Session.UserLogout", LOG_TYPE.DBG);
       return RESP.SetError(2, "User failed to log out");
@@ -232,7 +232,7 @@ namespace Session
     /// <param name="flow"></param>
     /// <param name="vars"></param>
     /// <returns></returns>
-    public RESP UserLogoutAll(Core.Flow flow, Variable[] vars)
+    public RESP UserLogoutAll(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Session.UserLogoutAll", LOG_TYPE.DBG);
       return RESP.SetError(2, "User failed to log out all");
@@ -244,7 +244,7 @@ namespace Session
     /// <param name="flow"></param>
     /// <param name="vars"></param>
     /// <returns></returns>
-    public RESP DeviceRegister(Core.Flow flow, Variable[] vars)
+    public RESP DeviceRegister(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Session.DeviceRegister", LOG_TYPE.DBG);
       if (Database is null)
@@ -311,7 +311,7 @@ namespace Session
     /// <param name="flow"></param>
     /// <param name="vars"></param>
     /// <returns></returns>
-    public RESP CheckDevice(Core.Flow flow, Variable[] vars)
+    public RESP CheckDevice(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Session.UserLogout", LOG_TYPE.DBG);
       return RESP.SetError(2, "Device register failed");
@@ -324,7 +324,7 @@ namespace Session
     /// <param name="flow"></param>
     /// <param name="vars"></param>
     /// <returns></returns>
-    public RESP CheckSession(Core.Flow flow, Variable[] vars)
+    public RESP CheckSession(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Session.CheckSession", LOG_TYPE.DBG);
       if (Database is null)

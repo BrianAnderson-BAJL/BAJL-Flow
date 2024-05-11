@@ -1,4 +1,4 @@
-﻿using Core;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -26,7 +26,7 @@ namespace FlowEngineDesigner
 
     private void frmFlowProperties_Load(object sender, EventArgs e)
     {
-      string[] startTypes = Enum.GetNames(typeof(Core.FlowRequest.START_TYPE));
+      string[] startTypes = Enum.GetNames(typeof(FlowEngineCore.FlowRequest.START_TYPE));
       for (int x = 0; x < startTypes.Length; x++)
       {
         cmbDebugStartType.Items.Add(startTypes[x]);
@@ -57,7 +57,7 @@ namespace FlowEngineDesigner
 
     private void CmbDebugStartType_SelectedIndexChanged(object? sender, EventArgs e)
     {
-      Flow.DebugStartType = System.Enum.Parse<Core.FlowRequest.START_TYPE>(cmbDebugStartType.Text);
+      Flow.DebugStartType = System.Enum.Parse<FlowEngineCore.FlowRequest.START_TYPE>(cmbDebugStartType.Text);
     }
 
     private void label3_Click(object sender, EventArgs e)
@@ -67,7 +67,7 @@ namespace FlowEngineDesigner
 
     private void cmbPlugins_SelectedIndexChanged(object? sender, EventArgs e)
     {
-      Flow.StartPlugin = cmbPlugins.SelectedItem as Core.Plugin;
+      Flow.StartPlugin = cmbPlugins.SelectedItem as FlowEngineCore.Plugin;
       if (Flow.StartPlugin is not null && Flow.StartPlugin.SampleStartData is not null)
       {
         Flow.StartCommands = Flow.StartPlugin.FlowStartCommands.ToParmVars();

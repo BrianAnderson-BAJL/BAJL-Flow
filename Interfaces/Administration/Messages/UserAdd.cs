@@ -1,11 +1,11 @@
-﻿using Core.Administration.Messages;
+﻿using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class UserAdd : BaseMessage
   {
@@ -19,7 +19,7 @@ namespace Core.Administration.Messages
     /// Used when parsing a response from a client
     /// </summary>
     /// <param name="packet"></param>
-    public UserAdd(Core.Administration.Packet packet) : base(packet)
+    public UserAdd(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
       packet.GetData(out this.LoginId);
       packet.GetData(out this.Password);
@@ -36,7 +36,7 @@ namespace Core.Administration.Messages
       this.SecurityProfile = securityProfile;
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = base.GetPacket();
       packet.AddData(this.LoginId);

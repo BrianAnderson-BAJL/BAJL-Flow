@@ -1,5 +1,5 @@
-﻿using Core.Administration.Messages;
-using Core.Administration;
+﻿using FlowEngineCore.Administration.Messages;
+using FlowEngineCore.Administration;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -30,13 +30,13 @@ namespace FlowEngineDesigner
       }
     }
 
-    private void Callback_UserLogin(Core.Administration.EventArgsPacket e)
+    private void Callback_UserLogin(FlowEngineCore.Administration.EventArgsPacket e)
     {
       if (e.Packet.PeekResponseCode() != BaseResponse.RESPONSE_CODE.Success)
         return;
 
       UserLoginResponse loginResponse = new UserLoginResponse(e.Packet);
-      cServer.UserLoggedIn = new Core.User();
+      cServer.UserLoggedIn = new FlowEngineCore.User();
       cServer.UserLoggedIn.LoginId = loginResponse.LoginId;
       cServer.UserLoggedIn.SecurityProfileNameTemp = loginResponse.SecurityProfile;
       cServer.UserLoggedIn.NameFirst = loginResponse.NameFirst;

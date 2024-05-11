@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Administration.Messages;
+﻿using FlowEngineCore;
+using FlowEngineCore.Administration.Messages;
 
 namespace FlowEngineDesigner
 {
@@ -59,7 +59,7 @@ namespace FlowEngineDesigner
     }
 
 
-    private void Callback_Files(Core.Administration.EventArgsPacket e)
+    private void Callback_Files(FlowEngineCore.Administration.EventArgsPacket e)
     {
       //TreeNode? previousSelectedNode = tvDirectories.SelectedNode;
       FlowsGetResponse data = new FlowsGetResponse(e.Packet);
@@ -162,20 +162,20 @@ namespace FlowEngineDesigner
         txtFileName.Focus();
         return;
       }
-      for (int x = 0; x < Core.Global.IllegalFileNameCharacters.Length; x++)
+      for (int x = 0; x < FlowEngineCore.Global.IllegalFileNameCharacters.Length; x++)
       {
-        if (txtFileName.Text.Contains(Core.Global.IllegalFileNameCharacters[x]) == true)
+        if (txtFileName.Text.Contains(FlowEngineCore.Global.IllegalFileNameCharacters[x]) == true)
         {
-          MessageBox.Show("Illegal characters detected, file name can't contain '" + Core.Global.IllegalFileNameCharacters[x] + "'");
+          MessageBox.Show("Illegal characters detected, file name can't contain '" + FlowEngineCore.Global.IllegalFileNameCharacters[x] + "'");
           txtFileName.Focus();
           return;
         }
       }
-      for (int x = 0; x < Core.Global.IllegalFileNameStartCharacters.Length; x++)
+      for (int x = 0; x < FlowEngineCore.Global.IllegalFileNameStartCharacters.Length; x++)
       {
-        if (txtFileName.Text.StartsWith(Core.Global.IllegalFileNameStartCharacters[x]) == true)
+        if (txtFileName.Text.StartsWith(FlowEngineCore.Global.IllegalFileNameStartCharacters[x]) == true)
         {
-          MessageBox.Show("Illegal characters at beginning of file name, file name can't start with '" + Core.Global.IllegalFileNameStartCharacters[x] + "'");
+          MessageBox.Show("Illegal characters at beginning of file name, file name can't start with '" + FlowEngineCore.Global.IllegalFileNameStartCharacters[x] + "'");
           txtFileName.Focus();
           return;
         }
@@ -239,7 +239,7 @@ namespace FlowEngineDesigner
       return path + "/" + fileName;
     }
 
-    private void Callback_FileSave(Core.Administration.EventArgsPacket e)
+    private void Callback_FileSave(FlowEngineCore.Administration.EventArgsPacket e)
     {
       BaseResponse response = new BaseResponse(e.Packet);
       if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)
@@ -250,7 +250,7 @@ namespace FlowEngineDesigner
       }
     }
 
-    private void Callback_FileOpen(Core.Administration.EventArgsPacket e)
+    private void Callback_FileOpen(FlowEngineCore.Administration.EventArgsPacket e)
     {
       FlowOpenResponse response = new FlowOpenResponse(e.Packet);
       if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)

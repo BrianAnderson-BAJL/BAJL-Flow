@@ -9,9 +9,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
-using Core.Administration;
+using FlowEngineCore.Administration;
 
-namespace Core.Administration
+namespace FlowEngineCore.Administration
 {
   public class TcpTlsClient : TcpClientBase
   {
@@ -52,9 +52,9 @@ namespace Core.Administration
       }
     }
 
-    public static Core.Administration.TcpTlsClient? Connect(string hostUrl, int port, int connectTimeout = 5000, int ReadPacketTimeout = 5000)
+    public static FlowEngineCore.Administration.TcpTlsClient? Connect(string hostUrl, int port, int connectTimeout = 5000, int ReadPacketTimeout = 5000)
     {
-      Core.Administration.TcpTlsClient? returnClient = null;
+      FlowEngineCore.Administration.TcpTlsClient? returnClient = null;
       try
       {
         System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient();

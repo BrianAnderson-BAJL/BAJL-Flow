@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Interfaces;
+﻿using FlowEngineCore;
+using FlowEngineCore.Interfaces;
 using System.Drawing;
 using System.Numerics;
 using System.Reflection;
@@ -8,7 +8,7 @@ using System.Xml.Linq;
 
 namespace FlowCore
 {
-  public class FlowCore : Core.Plugin
+  public class FlowCore : FlowEngineCore.Plugin
   {
 
     /// <summary>
@@ -107,9 +107,9 @@ namespace FlowCore
       Function fun = new Function("Switch", this, Switch) { OutputsModifiable = true, }; //This is a switch the flow programmer needs to be able to modify the number of outputs (case val = 36, case val = 0, case default, ...)
       Functions.Add(fun);
 
-      SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-      SettingAdd(new Setting("", "Designer", "BorderColor", Color.Green));
-      SettingAdd(new Setting("", "Designer", "FontColor", Color.White));
+      mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+      mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Green));
+      mSettings.SettingAdd(new Setting("", "Designer", "FontColor", Color.White));
 
       pddl = new PARM(EVENT, STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
       pddl.OptionAdd(EVENT_START);
@@ -214,18 +214,18 @@ namespace FlowCore
       return null;
     }
 
-    private RESP Start(Core.Flow flow, Variable[] vars)
+    private RESP Start(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.Start", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
-    private RESP Stop(Core.Flow flow, Variable[] vars)
+    private RESP Stop(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.Stop", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
 
-    private RESP Trace(Core.Flow flow, Variable[] vars)
+    private RESP Trace(FlowEngineCore.Flow flow, Variable[] vars)
     {
       Variable varPreviousStepResp = vars[0];
       Variable? varResp = varPreviousStepResp.SubVariableFindByName("resp") as Variable;
@@ -254,7 +254,7 @@ namespace FlowCore
       return RESP.SetSuccess();
     }
 
-    private RESP VariableSplit(Core.Flow flow, Variable[] vars)
+    private RESP VariableSplit(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.VariableSplit", LOG_TYPE.DBG);
       vars[0].GetValue(out string source);
@@ -276,7 +276,7 @@ namespace FlowCore
     }
 
 
-    private RESP VariableContains(Core.Flow flow, Variable[] vars)
+    private RESP VariableContains(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.VariableContains", LOG_TYPE.DBG);
       vars[0].GetValue(out string source);
@@ -300,7 +300,7 @@ namespace FlowCore
         return RESP.SetError(1, "Seek value is not contained in Source value");
     }
 
-    private RESP VariablesExists(Core.Flow flow, Variable[] vars)
+    private RESP VariablesExists(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.VariableExists", LOG_TYPE.DBG);
 
@@ -313,7 +313,7 @@ namespace FlowCore
       return RESP.SetSuccess();
     }
 
-    private RESP VariablesDelete(Core.Flow flow, Variable[] vars)
+    private RESP VariablesDelete(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.VariablesDelete", LOG_TYPE.DBG);
 
@@ -328,7 +328,7 @@ namespace FlowCore
       return RESP.SetSuccess();
     }
 
-    private RESP Sleep(Core.Flow flow, Variable[] vars)  
+    private RESP Sleep(FlowEngineCore.Flow flow, Variable[] vars)  
     {
       mLog?.Write("FlowCore.Sleep", LOG_TYPE.DBG);
       if (vars.Length == 0)
@@ -347,7 +347,7 @@ namespace FlowCore
     /// <param name="vars[0]">Flow name to start</param>
     /// <param name="vars[1]">Variables to pass to new flow</param>
     /// <returns></returns>
-    private RESP FlowRun(Core.Flow flow, Variable[] vars)
+    private RESP FlowRun(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.FlowRun", LOG_TYPE.DBG);
       RESP? resp = null;
@@ -384,7 +384,7 @@ namespace FlowCore
     /// <param name="vars[0]">Flow name to start</param>
     /// <param name="vars[1]">Variables to pass to new flow</param>
     /// <returns></returns>
-    public RESP FlowRunAsync(Core.Flow flow, Variable[] vars)
+    public RESP FlowRunAsync(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.FlowRunAsync", LOG_TYPE.DBG);
       RESP? resp = null;
@@ -406,7 +406,7 @@ namespace FlowCore
       return resp;
     }
 
-    public RESP FlowReturn(Core.Flow flow, Variable[] vars)
+    public RESP FlowReturn(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Flow.FlowReturn", LOG_TYPE.DBG);
       if (vars.Length < 2)
@@ -432,13 +432,13 @@ namespace FlowCore
     }
 
 
-    public RESP If(Core.Flow flow, Variable[] vars)
+    public RESP If(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.If", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
 
-    public RESP Switch(Core.Flow flow, Variable[] vars)
+    public RESP Switch(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.Switch", LOG_TYPE.DBG);
       return RESP.SetSuccess();

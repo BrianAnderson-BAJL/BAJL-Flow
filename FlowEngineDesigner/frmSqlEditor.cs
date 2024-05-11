@@ -1,6 +1,6 @@
-﻿using Core;
-using Core.Interfaces;
-using Core.Parsers;
+﻿using FlowEngineCore;
+using FlowEngineCore.Interfaces;
+using FlowEngineCore.Parsers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -55,9 +55,9 @@ namespace FlowEngineDesigner
 
     private void frmSqlEditor_Load(object sender, EventArgs e)
     {
-      if (Core.PluginManager.GlobalPluginValues.ContainsKey("db") == true)
+      if (FlowEngineCore.PluginManager.GlobalPluginValues.ContainsKey("db") == true)
       {
-        IDatabase? db = Core.PluginManager.GlobalPluginValues["db"] as IDatabase;
+        IDatabase? db = FlowEngineCore.PluginManager.GlobalPluginValues["db"] as IDatabase;
         if (db is null)
           return;
 

@@ -28,8 +28,8 @@
           "net6.0-windows7.0": {
             "targetAlias": "net6.0-windows",
             "projectReferences": {
-              "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\Core.csproj": {
-                "projectPath": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\Core.csproj"
+              "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\FlowEngineCore.csproj": {
+                "projectPath": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\FlowEngineCore.csproj"
               }
             }
           }
@@ -66,12 +66,12 @@
         }
       }
     },
-    "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\Core.csproj": {
+    "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\FlowEngineCore.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\Core.csproj",
-        "projectName": "Core",
-        "projectPath": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\Core.csproj",
+        "projectUniqueName": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\FlowEngineCore.csproj",
+        "projectName": "FlowEngineCore",
+        "projectPath": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\FlowEngineCore.csproj",
         "packagesPath": "C:\\Users\\brian\\.nuget\\packages\\",
         "outputPath": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\obj\\",
         "projectStyle": "PackageReference",

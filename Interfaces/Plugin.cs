@@ -1,10 +1,10 @@
-﻿using Core.Interfaces;
+﻿using FlowEngineCore.Interfaces;
 using System.Drawing;
 using System.Reflection;
 using System.Web;
 
 
-namespace Core
+namespace FlowEngineCore
 {
 
 //#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -32,7 +32,7 @@ namespace Core
     /// <summary>
     /// These are for global values for the plugin
     /// </summary>
-    public List<Setting> Settings = new(16);
+    protected Settings mSettings = new();
 
     /// <summary>
     /// The actual DLL that is loaded at runtime
@@ -58,7 +58,7 @@ namespace Core
     /// <summary>
     /// The flows that this plugin could start, this is used only by the Flow Engine
     /// </summary>
-    protected List<Core.Flow> Flows = new();
+    protected List<FlowEngineCore.Flow> Flows = new();
 
     /// <summary>
     /// Used in the Flow Engine Designer, allows users to see what variables will be in the flow when it starts.
@@ -70,7 +70,7 @@ namespace Core
     protected object mFlowsCriticalSection = new object();
 
 
-    public void FlowAdd(Core.Flow flow)
+    public void FlowAdd(FlowEngineCore.Flow flow)
     {
       lock (mFlowsCriticalSection)
       {
@@ -100,113 +100,16 @@ namespace Core
     }
 
 
-    #region Settings (no need to look at most of the time)
-
-    public virtual List<Setting> GetSettings()
+    public Settings GetSettings
     {
-      return Settings;
+      get { return mSettings; }
     }
 
-    public virtual void SettingUpdate(Setting s)
+    public virtual void LoadSettings(string path, Dictionary<string, object> GlobalPluginValues)
     {
-      for (int i = 0; i < Settings.Count; i++)
-      {
-        if (Settings[i].Key.ToUpper() == s.Key.ToUpper())
-        {
-          Settings[i].Value = s.Value;
-          Settings[i].SubSettingsUpdate(s.SubSettings);
-        }
-      }
+
+      mSettings.LoadSettingsFromFile(path, GlobalPluginValues);
     }
-
-    public Setting SettingAdd(Setting setting)
-    {
-      Settings.Add(setting);
-      return setting;
-    }
-
-    public virtual Setting? SettingFind(string key)
-    {
-      key = key.ToUpper();
-      for (int i = 0; i < Settings.Count; i++)
-      {
-        if (Settings[i].Key.ToUpper() == key)
-          return Settings[i];
-      }
-      return null;
-    }
-
-    public virtual bool SettingGetAsBoolean(string key)
-    {
-      Setting? setting = SettingFind(key);
-      if (setting is null)
-        return false;
-
-      return (bool)setting.Value;
-    }
-
-    public virtual string SettingGetAsString(string key)
-    {
-      Setting? setting = SettingFind(key);
-      if (setting is null || setting.Value is null)
-        return "";
-
-      return setting.Value.ToString()!;
-    }
-
-    public virtual int SettingGetAsInt(string key)
-    {
-      Setting? setting = SettingFind(key);
-      if (setting is null || setting.Value is null || setting.Value is not int)
-        return 0;
-
-      return setting.Value;
-    }
-
-    public virtual void SaveSettings()
-    {
-      Type t = this.GetType();
-      Console.Write("Plugin Type - " + t.Name);
-      string path = Options.GetFullPath(Options.PluginPath, t.Name + ".xml");
-
-      Xml xml = new Xml();
-      xml.WriteFileNew(path);
-      xml.WriteTagStart("Settings");
-      for (int x = 0; x < Settings.Count; x++)
-      {
-        xml.WriteTagContentsBare(Settings[x].ToXml());
-      }
-      xml.WriteTagEnd("Settings");
-      xml.WriteFileClose();
-    }
-
-    public virtual void LoadSettings(Dictionary<string, object> GlobalPluginValues)
-    {
-      
-      Type t = this.GetType();
-      try
-      {
-        string cfgPath = Options.GetFullPath(Options.PluginPath + "/" + t.Name + ".xml");
-        Xml xml = new Xml();
-        string data = xml.FileRead(cfgPath);
-        do
-        {
-          string settingStr = Xml.GetXMLChunk(ref data, "Setting");
-          if (settingStr.Length <= 0)
-            break;
-
-          Setting s = new(settingStr);
-          this.SettingUpdate(s);
-        } while (data.Length > 0);
-
-      }
-      catch (Exception e)
-      {
-        Global.WriteToConsoleDebug($"Error loading settings for plugin [{t.Name}], Exception [{e.Message}]", LOG_TYPE.ERR);
-      }
-    }
-
-    #endregion
 
     /// <summary>
     /// Will initialize the plugin, read the settings, define the functions.

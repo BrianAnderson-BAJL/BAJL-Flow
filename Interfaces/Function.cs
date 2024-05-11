@@ -7,13 +7,13 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using static Core.FunctionValidator;
+using static FlowEngineCore.FunctionValidator;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class Function
   {
-    public delegate RESP FunctionDelegate(Core.Flow flow, Variable[] vars);
+    public delegate RESP FunctionDelegate(FlowEngineCore.Flow flow, Variable[] vars);
     public FunctionDelegate Fun;
     public PARMS Parms;
     public RESP Resps;
@@ -156,7 +156,7 @@ namespace Core
       return null;
     }
 
-    public RESP Execute(Core.Flow flow, Variable[] vars) 
+    public RESP Execute(FlowEngineCore.Flow flow, Variable[] vars) 
     {
       //All plugin functions are required to return a RESP object in the response
       RESP resp = Fun.Invoke(flow, vars);

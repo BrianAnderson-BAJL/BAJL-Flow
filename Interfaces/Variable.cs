@@ -1,5 +1,5 @@
-﻿using Core.Interfaces;
-using Core.Parsers;
+﻿using FlowEngineCore.Interfaces;
+using FlowEngineCore.Parsers;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Core
+namespace FlowEngineCore
 {
 
   public class Variable : IToJson
@@ -130,13 +130,13 @@ namespace Core
       Value = val;
       SubVariables = new List<Variable>();
     }
-    //public Variable(string name, DATA_TYPE dataType)
-    //{
-    //  DataType = dataType;
-    //  Name = name;
-    //  Value = 0L; //long, won't be expensive if the type changes later
-    //  SubVariables = new List<Variable>();
-    //}
+    public Variable(string name, DATA_TYPE dataType)
+    {
+      DataType = dataType;
+      Name = name;
+      Value =""; //long, won't be expensive if the type changes later
+      SubVariables = new List<Variable>();
+    }
 
     public void GetValue(out dynamic val)
     {

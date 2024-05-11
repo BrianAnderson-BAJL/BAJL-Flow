@@ -34,8 +34,8 @@
       lstData = new ListView();
       chName = new ColumnHeader();
       chUsers = new ColumnHeader();
-      chFlows = new ColumnHeader();
       chSecurityProfiles = new ColumnHeader();
+      chFlows = new ColumnHeader();
       SuspendLayout();
       // 
       // btnDelete
@@ -95,15 +95,15 @@
       chUsers.Text = "Users";
       chUsers.Width = 120;
       // 
-      // chFlows
-      // 
-      chFlows.Text = "Flows";
-      chFlows.Width = 120;
-      // 
       // chSecurityProfiles
       // 
       chSecurityProfiles.Text = "Security Profiles";
       chSecurityProfiles.Width = 120;
+      // 
+      // chFlows
+      // 
+      chFlows.Text = "Flows";
+      chFlows.Width = 120;
       // 
       // frmAdministrationSecurityProfiles
       // 
@@ -115,7 +115,7 @@
       Controls.Add(btnAdd);
       Controls.Add(lstData);
       Name = "frmAdministrationSecurityProfiles";
-      Text = "frmAdministrationSecurityProfiles";
+      Text = "Administration - Security Profiles";
       Activated += frmAdministrationSecurityProfiles_Activated;
       Load += frmAdministrationSecurityProfiles_Load;
       ResumeLayout(false);

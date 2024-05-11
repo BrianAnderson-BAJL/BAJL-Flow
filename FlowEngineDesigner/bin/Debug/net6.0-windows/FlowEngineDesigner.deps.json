@@ -8,7 +8,7 @@
     ".NETCoreApp,Version=v6.0": {
       "FlowEngineDesigner/1.0.0": {
         "dependencies": {
-          "Core": "1.0.0"
+          "FlowEngineCore": "1.0.0"
         },
         "runtime": {
           "FlowEngineDesigner.dll": {}
@@ -272,13 +272,13 @@
           }
         }
       },
-      "Core/1.0.0": {
+      "FlowEngineCore/1.0.0": {
         "dependencies": {
           "MySql.Data": "8.1.0",
           "Newtonsoft.Json": "13.0.3"
         },
         "runtime": {
-          "Core.dll": {}
+          "FlowEngineCore.dll": {}
         }
       }
     }
@@ -520,7 +520,7 @@
       "path": "zstdsharp.port/0.7.1",
       "hashPath": "zstdsharp.port.0.7.1.nupkg.sha512"
     },
-    "Core/1.0.0": {
+    "FlowEngineCore/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

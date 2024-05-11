@@ -1,4 +1,4 @@
-﻿using Core.Interfaces;
+﻿using FlowEngineCore.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class FlowManager
   {
@@ -52,7 +52,7 @@ namespace Core
         }
       }
 
-      if (Options.FlowPathAllowSubDirectories == true)
+      if (Options.GetSettings.SettingGetAsBoolean("FlowPathAllowSubDirectories") == true)
       {
         string[] dirs = Directory.GetDirectories(fullPath);
         for (int x = 0; x < dirs.Length; x++)

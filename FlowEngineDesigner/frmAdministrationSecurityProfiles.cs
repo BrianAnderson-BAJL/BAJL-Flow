@@ -1,6 +1,6 @@
-﻿using Core;
-using Core.Administration.Messages;
-using Core.Administration.Packets;
+﻿using FlowEngineCore;
+using FlowEngineCore.Administration.Messages;
+using FlowEngineCore.Administration.Packets;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -26,7 +26,7 @@ namespace FlowEngineDesigner
       cServer.RefreshSecurityProfiles(Callback_SecurityProfilesGet);
     }
 
-    private void Callback_SecurityProfilesGet(Core.Administration.EventArgsPacket e)
+    private void Callback_SecurityProfilesGet(FlowEngineCore.Administration.EventArgsPacket e)
     {
       lstData.Items.Clear();
       if (cServer.SecurityProfiles is null)
@@ -62,7 +62,7 @@ namespace FlowEngineDesigner
     {
       if (lstData.SelectedItems.Count == 0)
         return;
-      Core.SecurityProfile? item = lstData.SelectedItems[0].Tag as Core.SecurityProfile;
+      FlowEngineCore.SecurityProfile? item = lstData.SelectedItems[0].Tag as FlowEngineCore.SecurityProfile;
       if (item is not null)
       {
         if (mode == FORM_MODE.Edit && Access == SecurityProfile.SECURITY_ACCESS_LEVEL.Readonly)

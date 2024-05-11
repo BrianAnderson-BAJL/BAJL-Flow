@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class User
   {
@@ -18,11 +18,11 @@ namespace Core
     public string passwordHash = "";
     public string NameFirst = "";
     public string NameSur = "";
-    public SecurityProfile SecurityProfile = Core.SecurityProfile.NoAccess;
+    public SecurityProfile SecurityProfile = FlowEngineCore.SecurityProfile.NoAccess;
     public string SecurityProfileNameTemp = ""; //Used in the designer until the security profiles are loaded from the server.
     public string ServerKey = "";
     public string SessionKey = "";
-    public Tenant Tenant = Core.Tenant.None;
+    public Tenant Tenant = FlowEngineCore.Tenant.None;
     public int LoginAttempts = 0;
     public DateTime LockOutUntil = DateTime.UtcNow;
     public bool NeedToChangePassword = false;

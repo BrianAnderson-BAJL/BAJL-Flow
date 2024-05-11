@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
 using System.IO;
 using System.IO.Enumeration;
 using System.Linq;
@@ -7,7 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace FlowEngineCore
 {
   public class Options
   {
@@ -16,43 +18,51 @@ namespace Core
       Development,
       Production,
     }
-    public const int SettingsFileVersionExpected = 10; //Increment this when you make changes to the settings options, the settings.xml file will be recreated with the new values.
-    public static int SettingsFileVersion = 0;
-    public static string SettingsPath = "./settings.xml";
-    public static string PluginPath = @"C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Plugins";  //"./Plugins/";
-    public static string PluginGraphicsPath = "./Plugins/Graphics/";
-    public static string PluginStaticGraphicsPath = "./Plugins/StaticGraphics/";
-    public static string FlowPath = @"C:\Users\brian\Documents\Flows";
-    public static bool FlowPathAllowSubDirectories = true;
-    public static string UserPath = "./users.xml";
-    public static string SecurityProfilesPath = "./securityProfiles.xml";
-    public static string TlsCertFileNamePath = "C:\\GameDev\\certkey.pem";
-    public static string TlsCertPassword = "";
-    public static bool FocusOnMouseEnter = true;
-    public static int FlowUserHistoryMax = 10;
-    public static bool IgnoreEndingForwardSlash = true;
-    public static SERVER_TYPE ServerType = SERVER_TYPE.Development;
-    public static string TenantPath = "./tenants.xml";
-    public static long ThreadNameStartingNumber = 10000;
+
+    private static Settings mSettings = new();
+
+    public static Settings GetSettings
+    {
+      get {return mSettings;}
+    }
+
+    //public const int SettingsFileVersionExpected = 10; //Increment this when you make changes to the settings options, the settings.xml file will be recreated with the new values.
+    //public static int SettingsFileVersion = 0;
+    public static string SettingsPath = "./settings_newFormat.xml";
+    //public static string PluginPath = @"C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Plugins";  //"./Plugins/";
+    //public static string PluginGraphicsPath = "./Plugins/Graphics/";
+    //public static string PluginStaticGraphicsPath = "./Plugins/StaticGraphics/";
+    //public static string FlowPath = @"C:\Users\brian\Documents\Flows";
+    //public static bool FlowPathAllowSubDirectories = true;
+    //public static string UserPath = "./users.xml";
+    //public static string SecurityProfilesPath = "./securityProfiles.xml";
+    //public static string TlsCertFileNamePath = "C:\\GameDev\\certkey.pem";
+    //public static string TlsCertPassword = "";
+    //public static bool FocusOnMouseEnter = true;
+    //public static int FlowUserHistoryMax = 10;
+    //public static bool IgnoreEndingForwardSlash = true;
+    //public static SERVER_TYPE ServerType = SERVER_TYPE.Development;
+    //public static string TenantPath = "./tenants.xml";
+    //public static long ThreadNameStartingNumber = 10000;
     /// <summary>
     /// The Private key every user must have to get access to this server instance, this value is global to all users, it is used in conjunction with the users LoginId and password
     /// This value provides more security over just a basic loginid and password.
     /// </summary>
-    public static string AdministrationPrivateKey = "";
+    //public static string AdministrationPrivateKey = "";
 
     /// <summary>
     /// How many duplicate user LoginIds will the system check trying to find an unused loginid. (i.e. brian, brian1, brian2, ... to this max number)
     /// </summary>
-    public static int AdministrationReadPacketTimeoutInMs = 5000;
-    public static int AdministrationUserMaxLoginIdCheck = 100;
-    public static int AdministrationUserMaxLoginAttempts = 3;  //0 = Infinate
-    public static int AdministrationUserLockOutMinutes = 15;   //0 = No Lockout
-    public static int AdministrationSaltSize = 32;
-    public static int AdministrationHashSize = 32;
-    public static int AdministrationHashInterations = 20000;
-    public static int AdministrationPortNumber = 7000;
-    public static int AdministrationUserSessionKeyTimeoutInMinutes = 720; //12 hours default
-    public static int AdministrationSessionSize = 64;
+    //public static int AdministrationReadPacketTimeoutInMs = 5000;
+    //public static int AdministrationUserMaxLoginIdCheck = 100;
+    //public static int AdministrationUserMaxLoginAttempts = 3;  //0 = Infinate
+    //public static int AdministrationUserLockOutMinutes = 15;   //0 = No Lockout
+    //public static int AdministrationSaltSize = 32;
+    //public static int AdministrationHashSize = 32;
+    //public static int AdministrationHashInterations = 20000;
+    //public static int AdministrationPortNumber = 7000;
+    //public static int AdministrationUserSessionKeyTimeoutInMinutes = 720; //12 hours default
+    //public static int AdministrationSessionSize = 64;
 
     /// <summary>
     /// The settings.xml file path could be defined in the args, so need to preparse some values
@@ -70,7 +80,7 @@ namespace Core
           string val = GetArgValue(args[x]);
           if (val.ToLower() == "create")
           {
-            SaveSettings();
+            CreateAndLoadSettings();
             Global.WriteToConsoleDebug($"Default settings file create!...Settings path = [{SettingsPath}]");
           }
           else
@@ -123,86 +133,50 @@ namespace Core
           string val = GetArgValue(args[x]);
           if (val.ToLower() == "create")
           {
-            AdministrationPrivateKey = SecureHasherV1.SessionIdCreate();
-            SaveSettings();
-            Global.WriteToConsoleDebug($"ParseArgs...private key created [{AdministrationPrivateKey}] and saved to [{SettingsPath}]");
+            CreateAndLoadSettings();
+            string key = SecureHasherV1.SessionIdCreate();
+            mSettings.SettingUpdate(new Setting("PrivateKey", "Administration", key));
+            mSettings.SaveSettings(SettingsPath);
+            Global.WriteToConsoleDebug($"ParseArgs...private key created [{key}] and saved to [{SettingsPath}]");
             Environment.Exit(0); //We don't want to run the application, just get the private key and save it in the settings
           }
         }
       }
     }
-    public static void LoadSettings()
+    public static void CreateAndLoadSettings()
     {
-      Core.Xml xml = new Core.Xml();
-      string settings = xml.FileRead(SettingsPath);
-      settings = Xml.GetXMLChunk(ref settings, "Settings");
-      SettingsFileVersion = Xml.GetXMLChunkAsInt(ref settings, "SettingsFileVersion");
-      PluginPath = Xml.GetXMLChunk(ref settings, "PluginPath");
-      PluginGraphicsPath = Xml.GetXMLChunk(ref settings, "PluginGraphicsPath");
-      FlowPath = Xml.GetXMLChunk(ref settings, "FlowPath");
-      FlowPathAllowSubDirectories = Xml.GetXMLChunkAsBool(ref settings, "FlowPathAllowSubDirectories", FlowPathAllowSubDirectories);
-      FlowUserHistoryMax = Xml.GetXMLChunkAsInt(ref settings, "FlowUserHistoryMax");
-      ServerType = Xml.GetXmlChunkAsEnum<SERVER_TYPE>(ref settings, "ServerType", SERVER_TYPE.Production);
-      TlsCertFileNamePath = Xml.GetXMLChunk(ref settings, "TlsCertFileNamePath");
-      TlsCertPassword = Xml.GetXMLChunk(ref settings, "TlsCertPassword");
-      ThreadNameStartingNumber = Xml.GetXMLChunkAsLong(ref settings, "ThreadNameStartingNumber", ThreadNameStartingNumber);
+      mSettings.SettingAdd(new Setting("PluginPath", "./Plugins"));
+      mSettings.SettingAdd(new Setting("PluginGraphicsPath", "./Plugins/Graphics/"));
+      mSettings.SettingAdd(new Setting("FlowPath", "./Flows"));
+      mSettings.SettingAdd(new Setting("FlowPathAllowSubDirectories", true));
+      mSettings.SettingAdd(new Setting("TlsCertFileNamePath", "./cert.pfx"));
+      mSettings.SettingAdd(new Setting("TlsCertPassword", ""));
+      mSettings.SettingAdd(new Setting("FlowUserHistoryMax", 10));
+      mSettings.SettingAdd(new Setting("UserPath", "./users.xml"));
+      mSettings.SettingAdd(new Setting("SecurityProfilesPath", "./securityProfiles.xml"));
 
-      string adminXml = Xml.GetXMLChunk(ref settings, "Administration");
-      AdministrationPrivateKey = Xml.GetXMLChunk(ref adminXml, "PrivateKey");
-      AdministrationUserMaxLoginIdCheck = Xml.GetXMLChunkAsInt(ref adminXml, "UserMaxLoginIdCheck", AdministrationUserMaxLoginIdCheck);
-      AdministrationReadPacketTimeoutInMs = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationReadPacketTimeoutInMs", AdministrationReadPacketTimeoutInMs);
-      AdministrationUserMaxLoginAttempts = Xml.GetXMLChunkAsInt(ref adminXml, "UserMaxLoginAttempts", AdministrationUserMaxLoginAttempts);
-      AdministrationUserLockOutMinutes = Xml.GetXMLChunkAsInt(ref adminXml, "UserLockOutMinutes", AdministrationUserLockOutMinutes);
-      AdministrationSaltSize = Xml.GetXMLChunkAsInt(ref adminXml, "SaltSize", AdministrationSaltSize);
-      AdministrationHashSize = Xml.GetXMLChunkAsInt(ref adminXml, "HashSize", AdministrationHashSize);
-      AdministrationHashInterations = Xml.GetXMLChunkAsInt(ref adminXml, "HashInterations", AdministrationHashInterations);
-      AdministrationPortNumber = Xml.GetXMLChunkAsInt(ref adminXml, "PortNumber", AdministrationPortNumber);
-      AdministrationUserSessionKeyTimeoutInMinutes = Xml.GetXMLChunkAsInt(ref adminXml, "UserSessionKeyTimeoutInMinutes", AdministrationUserSessionKeyTimeoutInMinutes);
-      AdministrationSessionSize = Xml.GetXMLChunkAsInt(ref adminXml, "AdministrationSessionSize", AdministrationSessionSize);
+      Setting setting = mSettings.SettingAdd(new Setting("ServerType", SERVER_TYPE.Development.ToString(), STRING_SUB_TYPE.DropDownList));
+      setting.OptionAdd(SERVER_TYPE.Development.ToString());
+      setting.OptionAdd(SERVER_TYPE.Production.ToString());
+      mSettings.SettingAdd(new Setting("ThreadNameStartingNumber", 10000L));
 
-      Global.WriteToConsoleDebug($"Flow Engine ServerType running as [{ServerType}]");
-      if (SettingsFileVersion != SettingsFileVersionExpected)
-      {
-        Global.WriteToConsoleDebug($"SettingsFileVersion [{SettingsFileVersion}] has changed to [{SettingsFileVersionExpected}] Saving new settings.xml");
-        SaveSettings();
-      }
+
+      mSettings.SettingAdd(new Setting("PrivateKey", "Administration", ""));
+      mSettings.SettingAdd(new Setting("ReadPacketTimeoutInMs", "Administration", 5000));
+      mSettings.SettingAdd(new Setting("UserMaxLoginIdCheck", "Administration", 100));
+      mSettings.SettingAdd(new Setting("UserMaxLoginAttempts", "Administration", 3));
+      mSettings.SettingAdd(new Setting("UserLockOutMinutes", "Administration", 15));
+      mSettings.SettingAdd(new Setting("SaltSize", "Administration", 32));
+      mSettings.SettingAdd(new Setting("HashSize", "Administration", 32));
+      mSettings.SettingAdd(new Setting("HashInterations", "Administration", 20000));
+      mSettings.SettingAdd(new Setting("PortNumber", "Administration", 7000));
+      mSettings.SettingAdd(new Setting("UserSessionKeyTimeoutInMinutes", "Administration", 720));
+      mSettings.SettingAdd(new Setting("SessionSize", "Administration", 64));
+
+      mSettings.LoadSettingsFromFile(SettingsPath);
+      mSettings.SaveSettings(SettingsPath); //I save the settings here again during development to write out any new <Setting> blocks
     }
 
-    public static void SaveSettings()
-    {
-      Core.Xml xml = new Core.Xml();
-      xml.WriteFileNew(SettingsPath);
-      xml.WriteTagStart("Settings");
-      xml.WriteTagAndContents("SettingsFileVersion", SettingsFileVersionExpected);
-      xml.WriteTagAndContents("PluginPath", PluginPath);
-      xml.WriteTagAndContents("PluginGraphicsPath", PluginGraphicsPath);
-      xml.WriteTagAndContents("FlowPath", FlowPath);
-      xml.WriteTagAndContents("FlowPathAllowSubDirectories", FlowPathAllowSubDirectories);
-      xml.WriteTagAndContents("TlsCertFileNamePath", TlsCertFileNamePath);
-      xml.WriteTagAndContents("TlsCertPassword", TlsCertPassword);
-      xml.WriteTagAndContents("FlowUserHistoryMax", FlowUserHistoryMax);
-      xml.WriteTagAndContents("UserPath", UserPath);
-      xml.WriteTagAndContents("ServerType", ServerType);
-      xml.WriteTagAndContents("ThreadNameStartingNumber", ThreadNameStartingNumber);
-
-
-      xml.WriteTagStart("Administration");
-      xml.WriteTagAndContents("PrivateKey", AdministrationPrivateKey);
-      xml.WriteTagAndContents("AdministrationReadPacketTimeoutInMs", AdministrationReadPacketTimeoutInMs);
-      xml.WriteTagAndContents("UserMaxLoginIdCheck", AdministrationUserMaxLoginIdCheck);
-      xml.WriteTagAndContents("UserMaxLoginAttempts", AdministrationUserMaxLoginAttempts);
-      xml.WriteTagAndContents("UserLockOutMinutes", AdministrationUserLockOutMinutes);
-      xml.WriteTagAndContents("SaltSize", AdministrationSaltSize);
-      xml.WriteTagAndContents("HashSize", AdministrationHashSize);
-      xml.WriteTagAndContents("HashInterations", AdministrationHashInterations);
-      xml.WriteTagAndContents("PortNumber", AdministrationPortNumber);
-      xml.WriteTagAndContents("UserSessionKeyTimeoutInMinutes", AdministrationUserSessionKeyTimeoutInMinutes);
-      xml.WriteTagAndContents("AdministrationSessionSize", AdministrationSessionSize);
-      xml.WriteTagEnd("Administration");
-
-      xml.WriteTagEnd("Settings");
-      xml.WriteFileClose();
-    }
 
     public static string GetFullPath(string path, string fileName = "")
     {
@@ -238,17 +212,18 @@ namespace Core
     /// <returns></returns>
     public static string GetFlowFileNameRelativePath(string fileName)
     {
+      string flowPath = Options.GetSettings.SettingGetAsString("FlowPath");
       string temp = fileName;
-      if (fileName.Length > Options.FlowPath.Length)
+      if (fileName.Length > flowPath.Length)
       {
-        temp = fileName.Substring(Options.FlowPath.Length);
+        temp = fileName.Substring(flowPath.Length);
       }
       return temp;
     }
 
     public static string FixUrl(string url)
     {
-      if (Core.Options.IgnoreEndingForwardSlash == true)
+      if (true) //Core.Options.IgnoreEndingForwardSlash == 
       {
         if (url.Length > 0)
         {

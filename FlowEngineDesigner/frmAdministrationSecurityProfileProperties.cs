@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Administration.Messages;
+﻿using FlowEngineCore;
+using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,10 +15,10 @@ namespace FlowEngineDesigner
 {
   public partial class frmAdministrationSecurityProfileProperties : Form
   {
-    private Core.SecurityProfile? Profile = null;
+    private FlowEngineCore.SecurityProfile? Profile = null;
     private FORM_MODE Mode = FORM_MODE.ReadOnly;
     private string OldName = "";
-    public frmAdministrationSecurityProfileProperties(FORM_MODE mode, Core.SecurityProfile? profile = null)
+    public frmAdministrationSecurityProfileProperties(FORM_MODE mode, FlowEngineCore.SecurityProfile? profile = null)
     {
       InitializeComponent();
       Profile = profile;
@@ -27,7 +27,7 @@ namespace FlowEngineDesigner
 
     private void frmAdministrationSecurityProfileProperties_Load(object sender, EventArgs e)
     {
-      Core.SecurityProfile.SECURITY_ACCESS_LEVEL[] vals = Enum.GetValues<Core.SecurityProfile.SECURITY_ACCESS_LEVEL>();
+      FlowEngineCore.SecurityProfile.SECURITY_ACCESS_LEVEL[] vals = Enum.GetValues<FlowEngineCore.SecurityProfile.SECURITY_ACCESS_LEVEL>();
       for (int x = 0; x < vals.Length; x++)
       {
         cmbUsers.Items.Add(vals[x].ToString());
@@ -82,17 +82,17 @@ namespace FlowEngineDesigner
 
       if (Mode == FORM_MODE.Add)
       {
-        Core.Administration.Messages.SecurityProfileAdd u = new Core.Administration.Messages.SecurityProfileAdd(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text, users, sp, flows);
+        FlowEngineCore.Administration.Messages.SecurityProfileAdd u = new FlowEngineCore.Administration.Messages.SecurityProfileAdd(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text, users, sp, flows);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.Edit)
       {
-        Core.Administration.Messages.SecurityProfileEdit u = new Core.Administration.Messages.SecurityProfileEdit(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, OldName, txtName.Text, users, sp, flows);
+        FlowEngineCore.Administration.Messages.SecurityProfileEdit u = new FlowEngineCore.Administration.Messages.SecurityProfileEdit(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, OldName, txtName.Text, users, sp, flows);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.Delete)
       {
-        Core.Administration.Messages.SecurityProfileDelete u = new Core.Administration.Messages.SecurityProfileDelete(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text);
+        FlowEngineCore.Administration.Messages.SecurityProfileDelete u = new FlowEngineCore.Administration.Messages.SecurityProfileDelete(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.ReadOnly)
@@ -100,7 +100,7 @@ namespace FlowEngineDesigner
 
     }
 
-    private void Callback(Core.Administration.EventArgsPacket e)
+    private void Callback(FlowEngineCore.Administration.EventArgsPacket e)
     {
       BaseResponse response = new BaseResponse(e.Packet);
       if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)

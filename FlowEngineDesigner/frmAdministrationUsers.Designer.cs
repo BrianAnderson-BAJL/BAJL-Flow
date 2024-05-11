@@ -115,7 +115,7 @@
       Controls.Add(btnAdd);
       Controls.Add(lstUsers);
       Name = "frmAdministrationUsers";
-      Text = "Users";
+      Text = "Administration - Users";
       Activated += frmAdministrationUsers_Activated;
       Load += frmAdministrationUsers_Load;
       ResumeLayout(false);

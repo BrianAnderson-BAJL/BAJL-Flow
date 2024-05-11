@@ -1,6 +1,6 @@
-﻿using Core;
-using Core.Administration;
-using Core.Administration.Messages;
+﻿using FlowEngineCore;
+using FlowEngineCore.Administration;
+using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,12 +29,12 @@ namespace FlowEngineDesigner
         ElapsedTime = new TimeElapsed();
       }
     }
-    public delegate void ResponseDelegate(Core.Administration.EventArgsPacket e);
-    private static Core.Administration.TcpTlsClient? Client;
+    public delegate void ResponseDelegate(FlowEngineCore.Administration.EventArgsPacket e);
+    private static FlowEngineCore.Administration.TcpTlsClient? Client;
     private static Dictionary<int, CALLBACK_INFO> responseHandlers = new Dictionary<int, CALLBACK_INFO>(8);
     private static object CriticalSection = new object();
-    public static Core.User UserLoggedIn = new User();
-    public static List<Core.SecurityProfile>? SecurityProfiles;
+    public static FlowEngineCore.User UserLoggedIn = new User();
+    public static List<FlowEngineCore.SecurityProfile>? SecurityProfiles;
 
     public static bool Connect(string domainName, int port)
     {
@@ -44,7 +44,7 @@ namespace FlowEngineDesigner
         if (Client is not null && Client.Connected == true) //Already connected, just return true, they need to call Disconnect to create a new connection first.
           return true;
 
-        Client = Core.Administration.TcpTlsClient.Connect(domainName, port);
+        Client = FlowEngineCore.Administration.TcpTlsClient.Connect(domainName, port);
         if (Client is null)
           return false;
         else
@@ -79,7 +79,7 @@ namespace FlowEngineDesigner
       cServer.SendAndResponse(spg.GetPacket(), Callback_SecurityProfile, callback);
     }
 
-    private static void Callback_SecurityProfile(Core.Administration.EventArgsPacket e)
+    private static void Callback_SecurityProfile(FlowEngineCore.Administration.EventArgsPacket e)
     {
       if (e.Packet.PeekResponseCode() == BaseResponse.RESPONSE_CODE.Success)
       {
@@ -117,15 +117,15 @@ namespace FlowEngineDesigner
       return SecurityProfile.NoAccess;
     }
 
-    private static void CheckSecurityAccess(Core.SecurityProfile sp)
+    private static void CheckSecurityAccess(FlowEngineCore.SecurityProfile sp)
     {
-      if (sp.AdministrationUsers >= Core.SecurityProfile.SECURITY_ACCESS_LEVEL.Readonly)
+      if (sp.AdministrationUsers >= FlowEngineCore.SecurityProfile.SECURITY_ACCESS_LEVEL.Readonly)
       {
         //Global.FormMain.
       }
     }
 
-    private static void Client_ConnectionClosed(object? sender, Core.Administration.EventArgsTcpClient e)
+    private static void Client_ConnectionClosed(object? sender, FlowEngineCore.Administration.EventArgsTcpClient e)
     {
       try
       {
@@ -139,7 +139,7 @@ namespace FlowEngineDesigner
       catch { }
     }
 
-    private static void Client_NewPacket(object? sender, Core.Administration.EventArgsPacket e)
+    private static void Client_NewPacket(object? sender, FlowEngineCore.Administration.EventArgsPacket e)
     {
       
       CALLBACK_INFO? callbackInfo = null;
@@ -191,7 +191,7 @@ namespace FlowEngineDesigner
 
     }
 
-    public static void RequestSingleResponse(Core.Administration.Packet.PACKET_TYPE packetType)
+    public static void RequestSingleResponse(FlowEngineCore.Administration.Packet.PACKET_TYPE packetType)
     {
     }
 
@@ -211,7 +211,7 @@ namespace FlowEngineDesigner
     }
 
 
-    private static bool Send(Core.Administration.Packet packet)
+    private static bool Send(FlowEngineCore.Administration.Packet packet)
     {
       lock (CriticalSection)
       {
@@ -222,7 +222,7 @@ namespace FlowEngineDesigner
       }
     }
 
-    public static bool SendAndResponse(Core.Administration.Packet packet, ResponseDelegate callback, ResponseDelegate? callback_also = null)
+    public static bool SendAndResponse(FlowEngineCore.Administration.Packet packet, ResponseDelegate callback, ResponseDelegate? callback_also = null)
     {
       if (UserLoggedIn is null) //If the user isn't logged in and this isn't a login request, don't send anything
       {

@@ -1,5 +1,5 @@
-﻿using Core.Administration;
-using Core.Administration.Messages;
+﻿using FlowEngineCore.Administration;
+using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,16 +15,16 @@ namespace FlowEngineDesigner
   public partial class frmAdministrationUserProperties : Form
   {
     private FORM_MODE Mode;
-    private Core.User User;
+    private FlowEngineCore.User User;
     private System.Timers.Timer Tim = new System.Timers.Timer();
     private string PreviousLoginId = "";
-    public frmAdministrationUserProperties(FORM_MODE mode, Core.User? user)
+    public frmAdministrationUserProperties(FORM_MODE mode, FlowEngineCore.User? user)
     {
       InitializeComponent();
       Mode = mode;
       if (Mode == FORM_MODE.Add || user is null)
       {
-        User = new Core.User();
+        User = new FlowEngineCore.User();
       }
       else
       {
@@ -68,20 +68,24 @@ namespace FlowEngineDesigner
       if (Mode == FORM_MODE.Delete)
       {
         btnAction.Text = "Delete";
+        this.Text = $"Delete User [{txtLoginId.Text}]";
       }
       else if (Mode == FORM_MODE.ReadOnly)
       {
         btnAction.Text = "Ok";
+        this.Text = $"View User [{txtLoginId.Text}]";
       }
       else if (Mode == FORM_MODE.Add)
       {
         btnAction.Text = "Add";
+        this.Text = $"Add User";
         Tim.Start();
       }
       else if (Mode == FORM_MODE.Edit)
       {
         txtPassword.PlaceholderText = "Leave blank to not change password";
         btnAction.Text = "Edit";
+        this.Text = $"Edit User [{txtLoginId.Text}]";
         Tim.Start();
       }
 
@@ -100,7 +104,7 @@ namespace FlowEngineDesigner
       if (txtLoginId.Text.ToLower() != PreviousLoginId.ToLower() && txtLoginId.Text.ToLower() != User.LoginId.ToLower() && cServer.UserLoggedIn is not null)
       {
         PreviousLoginId = txtLoginId.Text;
-        Core.Administration.Messages.UserLoginIdCheck u = new Core.Administration.Messages.UserLoginIdCheck(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtLoginId.Text);
+        FlowEngineCore.Administration.Messages.UserLoginIdCheck u = new FlowEngineCore.Administration.Messages.UserLoginIdCheck(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtLoginId.Text);
         cServer.SendAndResponse(u.GetPacket(), Callback_UserLoginIdCheck);
       }
     }
@@ -115,24 +119,24 @@ namespace FlowEngineDesigner
 
       if (Mode == FORM_MODE.Add)
       {
-        Core.Administration.Messages.UserAdd u = new Core.Administration.Messages.UserAdd(cOptions.AdministrationPrivateKey, SessionKey, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
+        FlowEngineCore.Administration.Messages.UserAdd u = new FlowEngineCore.Administration.Messages.UserAdd(cOptions.AdministrationPrivateKey, SessionKey, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
         cServer.SendAndResponse(u.GetPacket(), Callback_User);
       }
       if (Mode == FORM_MODE.Edit)
       {
-        Core.Administration.Messages.UserEdit u = new Core.Administration.Messages.UserEdit(cOptions.AdministrationPrivateKey, SessionKey, User.LoginId, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
+        FlowEngineCore.Administration.Messages.UserEdit u = new FlowEngineCore.Administration.Messages.UserEdit(cOptions.AdministrationPrivateKey, SessionKey, User.LoginId, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
         cServer.SendAndResponse(u.GetPacket(), Callback_User);
       }
       if (Mode == FORM_MODE.Delete)
       {
-        Core.Administration.Messages.UserDelete u = new Core.Administration.Messages.UserDelete(cOptions.AdministrationPrivateKey, SessionKey, User.LoginId);
+        FlowEngineCore.Administration.Messages.UserDelete u = new FlowEngineCore.Administration.Messages.UserDelete(cOptions.AdministrationPrivateKey, SessionKey, User.LoginId);
         cServer.SendAndResponse(u.GetPacket(), Callback_User);
       }
       if (Mode == FORM_MODE.ReadOnly)
         this.Close();
     }
 
-    private void Callback_User(Core.Administration.EventArgsPacket e)
+    private void Callback_User(FlowEngineCore.Administration.EventArgsPacket e)
     {
       BaseResponse response = new BaseResponse(e.Packet);
       if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)
@@ -142,8 +146,12 @@ namespace FlowEngineDesigner
     }
 
 
-    private void Callback_UserLoginIdCheck(Core.Administration.EventArgsPacket e)
+    private void Callback_UserLoginIdCheck(FlowEngineCore.Administration.EventArgsPacket e)
     {
+      BaseResponse.RESPONSE_CODE rc = e.Packet.PeekResponseCode();
+      if (rc != BaseResponse.RESPONSE_CODE.Success && rc != BaseResponse.RESPONSE_CODE.Duplicate)
+        return;
+
       string LabelText = "";
       Color LabelColor = Color.Black;
       UserLoginIdCheckResponse response = new UserLoginIdCheckResponse(e.Packet);

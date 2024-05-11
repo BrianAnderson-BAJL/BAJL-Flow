@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class BaseResponse
   {
@@ -45,12 +45,12 @@ namespace Core.Administration.Messages
       PacketId = packetId;
     }
 
-    public BaseResponse(Core.Administration.Packet packet)
+    public BaseResponse(FlowEngineCore.Administration.Packet packet)
     {
       packet.GetData<RESPONSE_CODE>(out this.ResponseCode);
     }
 
-    public virtual Core.Administration.Packet GetPacket()
+    public virtual FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = new Packet(PacketType, PacketId);
       packet.AddData((int)ResponseCode);

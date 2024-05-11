@@ -1,10 +1,10 @@
-﻿using Core;
-using Core.Interfaces;
+﻿using FlowEngineCore;
+using FlowEngineCore.Interfaces;
 using System.Drawing;
 
 namespace Validation
 {
-  public class Validation : Core.Plugin
+  public class Validation : FlowEngineCore.Plugin
   {
 
     public override void Init()
@@ -34,9 +34,9 @@ namespace Validation
 
       //SETTINGS
       {
-        SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
-        SettingAdd(new Setting("", "Designer", "BorderColor", Color.Crimson));
-        SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
+        mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
+        mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Crimson));
+        mSettings.SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
       }
       //SETTINGS
 
@@ -54,7 +54,7 @@ namespace Validation
     {
     }
 
-    public RESP Email(Core.Flow flow, Variable[] vars)
+    public RESP Email(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Validation.Email", LOG_TYPE.DBG);
 
@@ -62,55 +62,55 @@ namespace Validation
       vars[1].GetValue(out string format);
 
       if (email is null)
-        return RESP.SetError(1, "email is null");
+        return RESP.SetError(1, "Email - null");
 
       if (email.Contains('@') == false)
-        return RESP.SetError(1, $"email no @ symbol [{email}]");
+        return RESP.SetError(1, $"Email - no @ symbol [{email}]");
 
       string[] emailSplit = email.Split('@');
       if (emailSplit.Length != 2)
-        return RESP.SetError(1, $"email wrong number of @ symbols [{email}]");
+        return RESP.SetError(1, $"Email - wrong number of @ symbols [{email}]");
 
       if (format == "a@a")
       {
         if (emailSplit[0].Length < 1)
-          return RESP.SetError(1, $"email value before @ symbol is not valid [{email}]");
+          return RESP.SetError(1, $"Email - value before @ symbol is not valid [{email}]");
 
         if (emailSplit[1].Length < 1)
-          return RESP.SetError(1, $"email value after @ symbol is not valid [{email}]");
+          return RESP.SetError(1, $"Email - value after @ symbol is not valid [{email}]");
       }
       else if (format == "a@a.a")
       {
         if (emailSplit[0].Length < 1)
-          return RESP.SetError(1, $"email value before @ symbol is not valid [{email}]");
+          return RESP.SetError(1, $"Email - value before @ symbol is not valid [{email}]");
 
         if (emailSplit[1].Length < 3) // must be at least a.a (3 characters)
-          return RESP.SetError(1, $"email value after @ symbol is not valid [{email}]");
+          return RESP.SetError(1, $"Email - value after @ symbol is not valid [{email}]");
 
         if (emailSplit[1].Contains("..") == true)
-          return RESP.SetError(1, $"email invalid double dot detected '..' [{email}]");
+          return RESP.SetError(1, $"Email - invalid double dot detected '..' [{email}]");
 
         string[] afterAt = emailSplit[1].Split('.');
         if (afterAt.Length < 2)
-          return RESP.SetError(1, $"email value after @ symbol is not valid, invalid domain name [{email}]");
+          return RESP.SetError(1, $"Email - value after @ symbol is not valid, invalid domain name [{email}]");
         for (int x = 0; x < afterAt.Length; x++)
         {
           if (afterAt[x].Length < 1)
-            return RESP.SetError(1, $"email value after @ symbol is not valid [{email}]");
+            return RESP.SetError(1, $"Email - value after @ symbol is not valid [{email}]");
         }
       }
 
       return RESP.SetSuccess();
     }
 
-    public RESP Phone(Core.Flow flow, Variable[] vars)
+    public RESP Phone(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Validation.Phone", LOG_TYPE.DBG);
 
       return RESP.SetSuccess();
     }
 
-    public RESP VariableHasValue(Core.Flow flow, Variable[] vars)
+    public RESP VariableHasValue(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Validation.VariableHasValue", LOG_TYPE.DBG);
 

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 
-namespace Core.Administration
+namespace FlowEngineCore.Administration
 {
   public class TcpClient : TcpClientBase
   {
@@ -20,9 +20,9 @@ namespace Core.Administration
       mContinue = false;
     }
 
-    public static Core.Administration.TcpClient? Connect(string hostUrl, int port, int connectTimeout = 5000, int readPacketTimeout = 5000)
+    public static FlowEngineCore.Administration.TcpClient? Connect(string hostUrl, int port, int connectTimeout = 5000, int readPacketTimeout = 5000)
     {
-      Core.Administration.TcpClient? returnClient = null;
+      FlowEngineCore.Administration.TcpClient? returnClient = null;
       try
       {
         System.Net.Sockets.TcpClient Client = new System.Net.Sockets.TcpClient();

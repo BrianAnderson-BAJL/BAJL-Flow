@@ -1,5 +1,5 @@
-﻿using Core;
-using Core.Administration.Messages;
+﻿using FlowEngineCore;
+using FlowEngineCore.Administration.Messages;
 using Microsoft.VisualBasic.Devices;
 using System.Numerics;
 using static FlowEngineDesigner.cEventManager;
@@ -40,7 +40,7 @@ namespace FlowEngineDesigner
 
       Flow.Draw(e.Graphics, Camera);
 
-      if (cMouse.DraggingStart.HasValue == true && (cMouse.FlowItem is Core.Input || cMouse.FlowItem is Core.Output))
+      if (cMouse.DraggingStart.HasValue == true && (cMouse.FlowItem is FlowEngineCore.Input || cMouse.FlowItem is FlowEngineCore.Output))
       {
         Pen p = new Pen(Color.Blue, 3);
 
@@ -152,7 +152,7 @@ namespace FlowEngineDesigner
           ResizeHandle? rh = cMouse.PreviousHitItem.HitItem as ResizeHandle;
           rh?.Resize(v);
         }
-        else if (cMouse.FlowItem is Core.FunctionStep || cMouse.FlowItem is Core.Comment)
+        else if (cMouse.FlowItem is FlowEngineCore.FunctionStep || cMouse.FlowItem is FlowEngineCore.Comment)
         {
           cMouse.DraggingStart = cMouse.pos;
           MoveSelectedItem(cMouse.FlowItem, v);
@@ -230,7 +230,7 @@ namespace FlowEngineDesigner
       if (cMouse.PreviousHitItem.Hit == false)
         return;
 
-      Core.FunctionStep? previousStep = cMouse.PreviousHitItem.ParentItem as Core.FunctionStep;
+      FlowEngineCore.FunctionStep? previousStep = cMouse.PreviousHitItem.ParentItem as FlowEngineCore.FunctionStep;
       if (previousStep is null)
         return;
 
@@ -246,11 +246,11 @@ namespace FlowEngineDesigner
         if (cMouse.PreviousHitItem.Type != HIT_RESULT.HIT_TYPE.Output) //If we just hit an Input the previous step needs to be from an Output
           return;
 
-        Core.Input? input = hit.HitItem as Core.Input;
+        FlowEngineCore.Input? input = hit.HitItem as FlowEngineCore.Input;
         if (input is null || input.Step is null)
           return;
 
-        Core.Output? output = cMouse.FlowItem as Core.Output;
+        FlowEngineCore.Output? output = cMouse.FlowItem as FlowEngineCore.Output;
         if (output is null)
           return;
 
@@ -264,10 +264,10 @@ namespace FlowEngineDesigner
         if (cMouse.PreviousHitItem.Type != HIT_RESULT.HIT_TYPE.Input) //If we just hit an Output the previous step needs to be from an Input
           return;
 
-        Core.Output? output = hit.HitItem as Core.Output;
+        FlowEngineCore.Output? output = hit.HitItem as FlowEngineCore.Output;
         if (output is null || output.Step is null)
           return;
-        Core.Input? input = cMouse.FlowItem as Core.Input;
+        FlowEngineCore.Input? input = cMouse.FlowItem as FlowEngineCore.Input;
         if (input is null)
           return;
 
@@ -304,7 +304,7 @@ namespace FlowEngineDesigner
     {
       if (e.Data is not null)
       {
-        Core.Function? fw = e.Data.GetData(typeof(Core.Function)) as Core.Function;
+        FlowEngineCore.Function? fw = e.Data.GetData(typeof(FlowEngineCore.Function)) as FlowEngineCore.Function;
         if (fw is not null)
         {
           Point p = pictureBox1.PointToClient(new Point(e.X, e.Y));
@@ -425,7 +425,7 @@ namespace FlowEngineDesigner
       cServer.SendAndResponse(flowDebug.GetPacket(), Callback_FlowDebug);
     }
 
-    private void Callback_FlowDebug(Core.Administration.EventArgsPacket e)
+    private void Callback_FlowDebug(FlowEngineCore.Administration.EventArgsPacket e)
     {
     }
 
@@ -475,13 +475,13 @@ namespace FlowEngineDesigner
     {
       if (SelectedItem.Hit == true)
       {
-        Core.FunctionStep? step = SelectedItem.HitItem as Core.FunctionStep;
+        FlowEngineCore.FunctionStep? step = SelectedItem.HitItem as FlowEngineCore.FunctionStep;
         if (step is not null)
         {
           frmStepProperties f = new frmStepProperties(step, Flow);
           f.Show();
         }
-        Core.Comment? comment = SelectedItem.HitItem as Core.Comment;
+        FlowEngineCore.Comment? comment = SelectedItem.HitItem as FlowEngineCore.Comment;
         if (comment is not null)
         {
           frmCommentProperties f = new frmCommentProperties(comment);
@@ -497,14 +497,14 @@ namespace FlowEngineDesigner
       {
         if (SelectedItem.Type == HIT_RESULT.HIT_TYPE.Function)
         {
-          Flow.StepDelete(SelectedItem.HitItem as Core.FunctionStep);
+          Flow.StepDelete(SelectedItem.HitItem as FlowEngineCore.FunctionStep);
           SelectedItem = new HIT_RESULT();
           pictureBox1.Refresh();
         }
         else if (SelectedItem.Type == HIT_RESULT.HIT_TYPE.Link)
         {
-          FunctionStep? fs = SelectedItem.ParentItem as Core.FunctionStep;
-          Core.Link? link = SelectedItem.HitItem as Core.Link;
+          FunctionStep? fs = SelectedItem.ParentItem as FlowEngineCore.FunctionStep;
+          FlowEngineCore.Link? link = SelectedItem.HitItem as FlowEngineCore.Link;
           if (fs is null || link is null)
             return;
 
@@ -514,7 +514,7 @@ namespace FlowEngineDesigner
         }
         else if (SelectedItem.Type == HIT_RESULT.HIT_TYPE.Comment)
         {
-          Comment? comment = SelectedItem.HitItem as Core.Comment;
+          Comment? comment = SelectedItem.HitItem as FlowEngineCore.Comment;
           if (comment is not null)
           {
             Flow.Comments.Remove(comment);

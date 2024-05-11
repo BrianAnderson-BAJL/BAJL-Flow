@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class FlowDebugResponse : BaseResponse
   {
@@ -15,7 +15,7 @@ namespace Core.Administration.Messages
     /// Used when parsing a response from a client
     /// </summary>
     /// <param name="packet"></param>
-    public FlowDebugResponse(Core.Administration.Packet packet) : base(packet)
+    public FlowDebugResponse(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
       packet.GetData(out this.FileName);
       packet.GetData(out this.Ticks);
@@ -28,7 +28,7 @@ namespace Core.Administration.Messages
       this.FlowXml = flowXml;
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = base.GetPacket();
       packet.AddData(this.FileName);

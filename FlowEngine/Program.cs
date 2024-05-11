@@ -1,6 +1,6 @@
 ﻿//ubuntu.22.04-x64
 //centos-x64
 
-Core.FlowEngine engine = new Core.FlowEngine();
+FlowEngineCore.FlowEngine engine = new FlowEngineCore.FlowEngine();
 engine.Init(args);
 engine.Run();

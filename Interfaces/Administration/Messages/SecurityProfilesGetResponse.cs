@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class SecurityProfilesGetResponse : BaseResponse
   {
@@ -13,7 +13,7 @@ namespace Core.Administration.Messages
     /// Used when parsing a response from a client
     /// </summary>
     /// <param name="packet"></param>
-    public SecurityProfilesGetResponse(Core.Administration.Packet packet) : base(packet)
+    public SecurityProfilesGetResponse(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
       int Count;
       packet.GetData(out Count);
@@ -41,7 +41,7 @@ namespace Core.Administration.Messages
       this.Profiles = profiles.ToList();
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = base.GetPacket();
       packet.AddData(this.Profiles.Count);  //Add the number of users

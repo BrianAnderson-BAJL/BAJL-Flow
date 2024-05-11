@@ -12,8 +12,8 @@ namespace FlowEngineDesigner
 {
   public partial class frmCommentProperties : Form
   {
-    private Core.Comment Comment;
-    public frmCommentProperties(Core.Comment comment)
+    private FlowEngineCore.Comment Comment;
+    public frmCommentProperties(FlowEngineCore.Comment comment)
     {
       InitializeComponent();
       Comment = comment;

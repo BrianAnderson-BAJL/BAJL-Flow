@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class FlowDebug : FlowSave
   {
@@ -12,7 +12,7 @@ namespace Core.Administration.Messages
     public string SampleData;
     public FlowRequest.START_TYPE StartType;
     
-    public FlowDebug(Core.Administration.Packet packet) : base(packet)
+    public FlowDebug(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
       packet.GetData(out SampleDataFormat);
       packet.GetData(out SampleData);
@@ -27,7 +27,7 @@ namespace Core.Administration.Messages
       this.PacketType = Packet.PACKET_TYPE.FlowDebug;
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = base.GetPacket();
       packet.AddData(this.SampleDataFormat);

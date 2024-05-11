@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Interfaces
+namespace FlowEngineCore.Interfaces
 {
   public enum JSON_ROOT_BLOCK_OPTIONS
   {

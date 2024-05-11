@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Core.Parsers.ParserJson;
+using static FlowEngineCore.Parsers.ParserJson;
 
-namespace Core.Parsers
+namespace FlowEngineCore.Parsers
 {
     public class ParserXml
     {

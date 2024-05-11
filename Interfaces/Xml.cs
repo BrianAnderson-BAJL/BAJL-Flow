@@ -9,7 +9,7 @@ using System.Security;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core
+namespace FlowEngineCore
 {
   /// <summary>
   /// Lazy mans XML parser / writer, doesn't support attributes or duplicate block names embedded inside blocks (i.e. <Parm><Parm></Parm></Parm>

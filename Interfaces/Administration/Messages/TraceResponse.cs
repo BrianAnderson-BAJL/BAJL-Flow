@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class TraceResponse : BaseResponse
   {
@@ -22,7 +22,7 @@ namespace Core.Administration.Messages
       this.Success = success;
     }
 
-    public TraceResponse(Core.Administration.Packet packet) : base(packet)
+    public TraceResponse(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
       PacketType = packet.PacketType;
       packet.GetData(out this.PreviousStepId);
@@ -32,7 +32,7 @@ namespace Core.Administration.Messages
       packet.GetData(out this.Success);
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = base.GetPacket();
       packet.AddData(this.PreviousStepId);

@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Core.Administration.Messages
+namespace FlowEngineCore.Administration.Messages
 {
   public class UserDelete : BaseMessage
   {
     public string LoginId = "";
-    public UserDelete(Core.Administration.Packet packet) : base(packet)
+    public UserDelete(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
       packet.GetData(out this.LoginId);
     }
@@ -18,7 +18,7 @@ namespace Core.Administration.Messages
       LoginId = loginId;
     }
 
-    public override Core.Administration.Packet GetPacket()
+    public override FlowEngineCore.Administration.Packet GetPacket()
     {
       Packet packet = base.GetPacket();
       packet.AddData(LoginId);

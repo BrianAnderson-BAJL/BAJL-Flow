@@ -5,9 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using static Core.Parsers.SqlParser.ParsedUnit;
+using static FlowEngineCore.Parsers.SqlParser.ParsedUnit;
 
-namespace Core.Parsers
+namespace FlowEngineCore.Parsers
 {
   public class SqlParser
   {

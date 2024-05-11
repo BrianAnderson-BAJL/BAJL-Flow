@@ -1,5 +1,4 @@
-﻿using Core;
-using Google.Protobuf.WellKnownTypes;
+﻿using FlowEngineCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,16 +13,18 @@ namespace FlowEngineDesigner
 {
   public partial class frmSettings : Form
   {
-    Core.Plugin mPlugin;
-    internal frmSettings(Core.Plugin plugin)
+    Settings mSettings;
+    string mFormTitle;
+    internal frmSettings(Settings settings, string formTitle)
     {
       InitializeComponent();
-      mPlugin = plugin;
+      mSettings = settings;
+      mFormTitle = formTitle;
     }
 
     private void btnOk_Click(object sender, EventArgs e)
     {
-      mPlugin.SaveSettings();
+      mSettings.SaveSettings();
       this.Close();
     }
 
@@ -36,10 +37,10 @@ namespace FlowEngineDesigner
     {
       lstSettings.Items.Clear();
       lstSettings.Groups.Clear();
-      this.Text = $"Plugin Settings [{mPlugin.Name}]";
-      for (int x = 0; x < mPlugin.Settings.Count; x++)
+      this.Text = mFormTitle;
+      for (int x = 0; x < mSettings.SettingsList.Count; x++)
       {
-        Core.Setting s = mPlugin.Settings[x];
+        FlowEngineCore.Setting s = mSettings.SettingsList[x];
         AddSettingToListView(s);
 
         if (s.DataType == DATA_TYPE.String && s.StringSubType == STRING_SUB_TYPE.DropDownList)
@@ -66,7 +67,7 @@ namespace FlowEngineDesigner
       if (s.Value is null)
         return;
       lvi.SubItems.Add(s.Value.ToString());
-      if (s.DataType == Core.DATA_TYPE.Color)
+      if (s.DataType == FlowEngineCore.DATA_TYPE.Color)
       {
         lvi.UseItemStyleForSubItems = false;
         lvi.SubItems[2].BackColor = (Color)s.Value;
@@ -132,7 +133,7 @@ namespace FlowEngineDesigner
             f.ShowDialog();
           }
           PopulateSettings();
-          mPlugin.SaveSettings();
+          mSettings.SaveSettings();
         }
       }
     }
