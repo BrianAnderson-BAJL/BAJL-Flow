@@ -12,7 +12,7 @@ namespace FlowEngineCore
   public class FlowManager
   {
     private static ILog? mLog = null;
-    private Dictionary<string, List<Flow>> FlowsByPlugin = new Dictionary<string, List<Flow>>();
+    private Dictionary<string, List<Flow>> FlowsByPlugin = new();
 
     /// <summary>
     /// Loading flows must be performed after the plugins are loaded

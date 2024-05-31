@@ -52,6 +52,7 @@
       txtValue.Name = "txtValue";
       txtValue.Size = new Size(256, 23);
       txtValue.TabIndex = 12;
+      txtValue.TextChanged += txtValue_TextChanged;
       // 
       // txtKey
       // 

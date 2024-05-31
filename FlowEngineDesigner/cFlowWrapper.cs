@@ -22,9 +22,18 @@ namespace FlowEngineDesigner
 
   public class cFlowWrapper : FlowEngineCore.Flow
   {
-    private bool mNeedToSave = false;
+    /// <summary>
+    /// Sometimes the start step isn't needed to be added. It is only needed when creating a new flow. We want to exclude it when opening/loading a flow.
+    /// Most of the time booleans as parameters are unclear. So created an enum (i.e. cFlowWrapper(false) don't know what false means there, but cFlowWrapper(INCLUDE_START_STEP.EXCLUDE) tells you exactly what it means, self documenting code.)
+    /// </summary>
+    public enum INCLUDE_START_STEP
+    {
+      INCLUDE,
+      EXCLUDE,
+    }
+    private bool mNeedToSave = false; //TODO: Use this to show message box before closing form
     internal Size HighlightSize = new Size(30, 30);
-    private bool mIncludeStart = true;
+    private INCLUDE_START_STEP mIncludeStart = INCLUDE_START_STEP.INCLUDE;
 
     internal static Vector2 HighlightCenterOffset = new Vector2(15, 15);
     private List<FunctionStep> mCurrentlyExecutingStep = new List<FunctionStep>(8);
@@ -37,7 +46,7 @@ namespace FlowEngineDesigner
 
     public void Init()
     {
-      if (mIncludeStart == true)
+      if (mIncludeStart == INCLUDE_START_STEP.INCLUDE)
       {
         StepAdd("FlowCore.Start", Vector2.Zero);
       }
@@ -45,7 +54,7 @@ namespace FlowEngineDesigner
       mModifiedLastDateTime = Global.CurrentDateTime;
     }
 
-    public cFlowWrapper(bool includeStart = true)
+    public cFlowWrapper(INCLUDE_START_STEP includeStart = INCLUDE_START_STEP.INCLUDE)
     {
       mIncludeStart = includeStart;
     }
@@ -104,6 +113,26 @@ namespace FlowEngineDesigner
       }
 
     }
+
+    public Variable? FindVariableDesigner(string name, FlowEngineCore.FunctionStep step)
+    {
+      Variable? variable = FindVariable(name);
+      if (variable is not null)
+        return variable;
+
+      List<Variable> variables = GetVariablesFromPreviousSteps(step);
+      for (int x = 0; x < variables.Count; x++)
+      {
+        variable = FindVariable(variables[x], name);
+        if (variable is not null) 
+          return variable;
+      }
+      return null;
+    }
+
+
+
+
     public List<Variable> GetVariablesFromPreviousSteps(FlowEngineCore.FunctionStep step)
     {
       bool previousStepAdded = false;
@@ -245,7 +274,7 @@ namespace FlowEngineDesigner
     {
 
       FlowEngineCore.Function function = FlowEngineCore.PluginManager.FindFunctionByName(name);
-      FlowEngineCore.FunctionStep step = new FunctionStep(this, getNextId(), name, pos);
+      FlowEngineCore.FunctionStep step = new FunctionStep(this, GetNextId(), name, pos);
       step.Function = function;
       step.ParmVars = step.Function.Parms.ToParmVars();
 

@@ -479,15 +479,23 @@ namespace FlowEngineDesigner
         if (step is not null)
         {
           frmStepProperties f = new frmStepProperties(step, Flow);
+          f.Location = CenterOfForm(f);
           f.Show();
         }
         FlowEngineCore.Comment? comment = SelectedItem.HitItem as FlowEngineCore.Comment;
         if (comment is not null)
         {
           frmCommentProperties f = new frmCommentProperties(comment);
+          f.Location = CenterOfForm(f);
           f.Show();
         }
       }
+    }
+
+    private Point CenterOfForm(Form childForm)
+    {
+      Point pt = new Point(this.Left + (this.Width / 2) - (childForm.Width / 2), this.Top + (this.Height / 2) - (childForm.Height / 2));
+      return pt;
     }
 
 
@@ -528,6 +536,7 @@ namespace FlowEngineDesigner
     private void propertiesToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmFlowProperties f = new frmFlowProperties(Flow);
+      f.Location = CenterOfForm(f);
       f.Show();
     }
 
@@ -554,12 +563,14 @@ namespace FlowEngineDesigner
     private void saveToolStripMenuItem1_Click(object sender, EventArgs e)
     {
       frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Save, Flow, FlowWrapperChanged_Callback);
+      f.Location = CenterOfForm(f);
       f.Show();
     }
 
     private void openToolStripMenuItem1_Click(object sender, EventArgs e)
     {
       frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Open, Flow, FlowWrapperChanged_Callback);
+      f.Location = CenterOfForm(f);
       f.Show();
     }
 

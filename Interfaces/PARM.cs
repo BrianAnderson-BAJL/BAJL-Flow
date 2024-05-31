@@ -59,6 +59,7 @@ namespace FlowEngineCore
     /// @Parm0, @Parm1, @Parm2, the 0, 1, 2, ... will be added to each parameter name to make them unique
     /// </summary>
     public bool NameChangeIncrement = false;
+    public string Description = "";
     public DATA_TYPE DataType = DATA_TYPE.String;
     public PARM_REQUIRED Required = PARM_REQUIRED.Yes;
     public PARM_ALLOW_MULTIPLE AllowMultiple = PARM_ALLOW_MULTIPLE.Single; //If Multiple, this parameter can be duplicated to allow multiple values to be passed in.

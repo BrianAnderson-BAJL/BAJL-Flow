@@ -84,7 +84,7 @@ namespace FlowEngineCore.Administration
     {
       if (NewPacket is not null)
       {
-        EventArgsPacket EA = new EventArgsPacket(Packet, Client);
+        EventArgsPacket EA = new(Packet, Client);
         EA.Packet = Packet;
         NewPacket(this, EA);
       }
@@ -94,7 +94,7 @@ namespace FlowEngineCore.Administration
     {
       if (ConnectionClosed is not null)
       {
-        EventArgsTcpClient EA = new EventArgsTcpClient(Client);
+        EventArgsTcpClient EA = new(Client);
         EA.Client = Client;
         ConnectionClosed(this, EA);
       }
@@ -104,8 +104,7 @@ namespace FlowEngineCore.Administration
     public virtual void Close()
     {
       mContinue = false;
-      if (Client is not null) 
-        Client.Close();
+      Client?.Close();
     }
 
     public virtual bool Send(Packet Packet)
@@ -147,7 +146,7 @@ namespace FlowEngineCore.Administration
               if (Br is null)
                 Br = new BinaryReader(NS);
 
-              Packet Packet = new Packet();
+              Packet Packet = new();
               Packet.ReadAllData(Br);
               if (Packet.PacketType == Packet.PACKET_TYPE.CloseConnection)
                 break;

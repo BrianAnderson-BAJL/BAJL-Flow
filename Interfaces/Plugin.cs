@@ -79,7 +79,7 @@ namespace FlowEngineCore
         FlowRemove(flow.FileName); //If a flow with the same file name is loaded, remove it so we can add the new one.
 
         Flows.Add(flow);
-        Global.WriteToConsoleDebug("Flow Added - " + flow.FileName);
+        FlowEngine.Log?.Write("Flow Added - " + flow.FileName);
       }
     }
 
@@ -91,7 +91,7 @@ namespace FlowEngineCore
         {
           if (Flows[x].FileName == fileName)
           {
-            Global.WriteToConsoleDebug("Flow Removed - " + fileName);
+            FlowEngine.Log?.Write("Flow Removed - " + fileName);
             Flows.RemoveAt(x);
             break;
           }

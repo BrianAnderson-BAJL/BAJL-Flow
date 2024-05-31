@@ -15,20 +15,15 @@ namespace FlowEngineCore.Administration.Messages
     /// <param name="packet"></param>
     public UsersGetResponse(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
-      int Count;
-      packet.GetData(out Count);
+      packet.GetData(out int Count);
       Users = new List<User>(Count);
       for (int x = 0; x < Count; x++)
       {
-        string loginId;
-        string nameFirst;
-        string nameSur;
-        string securityProfile;
-        packet.GetData(out loginId);
-        packet.GetData(out nameFirst);
-        packet.GetData(out nameSur);
-        packet.GetData(out securityProfile);
-        User user = new User();
+        packet.GetData(out string loginId);
+        packet.GetData(out string nameFirst);
+        packet.GetData(out string nameSur);
+        packet.GetData(out string securityProfile);
+        User user = new();
         user.LoginId = loginId;
         user.NameFirst = nameFirst;
         user.NameSur = nameSur;

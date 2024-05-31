@@ -214,24 +214,32 @@ namespace FlowEngineCore
 
     public virtual string ToJson()
     {
-      JObject baseObject = new JObject();
+      try
+      {
+        JObject baseObject = new JObject();
 
-      if (this.DataType == DATA_TYPE._None && this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
-      {
-        baseObject.Add(this.Name, this.ToJsonObject(this));
-      }
-      else if (this.DataType == DATA_TYPE._None && this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
-      {
-        baseObject.Add(this.Name, ToJsonArray(this));
-      }
-      else
-      {
-        if (this.DataType == DATA_TYPE.Object)
-          baseObject.Add(this.Name, this.Value.ToString() + $" [{this.Value.GetHashCode()}]");
+        if (this.DataType == DATA_TYPE._None && this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Block)
+        {
+          baseObject.Add(this.Name, this.ToJsonObject(this));
+        }
+        else if (this.DataType == DATA_TYPE._None && this.SubVariablesFormat == DATA_FORMAT_SUB_VARIABLES.Array)
+        {
+          baseObject.Add(this.Name, ToJsonArray(this));
+        }
         else
-          baseObject.Add(this.Name, this.Value);
+        {
+          if (this.DataType == DATA_TYPE.Object)
+            baseObject.Add(this.Name, this.Value.ToString() + $" [{this.Value.GetHashCode()}]");
+          else
+            baseObject.Add(this.Name, this.Value);
+        }
+        return baseObject.ToString();
       }
-      return baseObject.ToString();
+      catch (Exception ex)
+      {
+        FlowEngine.Log?.Write(ex, LOG_TYPE.WAR);
+        throw;
+      }
     }
 
 

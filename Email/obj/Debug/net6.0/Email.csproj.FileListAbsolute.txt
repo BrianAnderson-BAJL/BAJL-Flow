@@ -1,0 +1,16 @@
+C:\Users\brian\source\repos\FlowEngine\Email\bin\Debug\net6.0\Email.deps.json
+C:\Users\brian\source\repos\FlowEngine\Email\bin\Debug\net6.0\Email.dll
+C:\Users\brian\source\repos\FlowEngine\Email\bin\Debug\net6.0\Email.pdb
+C:\Users\brian\source\repos\FlowEngine\Email\bin\Debug\net6.0\FlowEngineCore.dll
+C:\Users\brian\source\repos\FlowEngine\Email\bin\Debug\net6.0\FlowEngineCore.pdb
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\Email.csproj.AssemblyReference.cache
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\Email.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\Email.AssemblyInfoInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\Email.AssemblyInfo.cs
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\Email.csproj.CoreCompileInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\Email.sourcelink.json
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\Email.csproj.Up2Date
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\Email.dll
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\refint\Email.dll
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\Email.pdb
+C:\Users\brian\source\repos\FlowEngine\Email\obj\Debug\net6.0\ref\Email.dll

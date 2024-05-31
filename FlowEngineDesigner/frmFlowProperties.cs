@@ -142,7 +142,7 @@ namespace FlowEngineDesigner
     {
       Flow.SampleData = txtSampleData.Text;
       Flow.PopulateSampleVariablesFromPlugin();
-      
+
       for (int x = 0; x < userControls.Count; x++)
       {
         ucParameter parm = userControls[x] as ucParameter;

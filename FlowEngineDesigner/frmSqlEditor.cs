@@ -118,7 +118,7 @@ namespace FlowEngineDesigner
     {
       if (Saved == false)
       {
-        if (MessageBox.Show("You have unsaved changes. Are you sure you want to close without saving your work?", "Close without saving?", MessageBoxButtons.YesNoCancel) != DialogResult.Yes)
+        if (MessageBox.Show("You have unsaved changes. Do you want to save your work?", "Cancel closing?", MessageBoxButtons.YesNoCancel) == DialogResult.Yes)
         {
           e.Cancel = true;
         }
@@ -222,13 +222,14 @@ namespace FlowEngineDesigner
 
     private void groupByHavingToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      rtbSql.SelectedText = "SELECT Users.StatusId, Count(*) AS Num \nFROM Users \nWHERE ACTIVE = @ParamActive AND MONTH(CreatedDateTime) = @ParamMonthNumber \nGROUP BY Users.StatusId \nHAVING Num > 0 \nORDER BY Num DESC";
+      //\\'28\\'2a\\'29\\'20\\'41\\'53\\'20\\'4e\\'75\\'6d
+      rtbSql.SelectedText = "SELECT Users.StatusId, Count(*) AS Num \r\nFROM Users \r\nWHERE Active = @ParamActive AND MONTH(CreatedDateTime) = @ParamMonthNumber \r\nGROUP BY Users.StatusId \r\nHAVING Num > 0 \r\nORDER BY Num DESC";
       ParseSql();
     }
 
     private void joinToLookUpToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      rtbSql.SelectedText = "SELECT Users.LoginId, Users.StatusId, luUserStatus.Descriptoin\nFROM Users LEFT JOIN luUserStatus ON Users.StatusId = luUserStatus.Id";
+      rtbSql.SelectedText = "SELECT Users.LoginId, Users.StatusId, luUserStatus.Descriptoin\r\nFROM Users LEFT JOIN luUserStatus ON Users.StatusId = luUserStatus.Id";
       ParseSql();
     }
 
@@ -276,6 +277,12 @@ namespace FlowEngineDesigner
       TxtSql.Lines = rtbSql.Lines;
       Saved = true;
       this.Close();
+    }
+
+    private void leftJoinMultipleTablesToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      rtbSql.SelectedText = "SELECT Users.LoginId, UserDevices.DeviceToken, UserSessions.SessionToken \r\nFROM ((Users LEFT JOIN UserSessions ON(Users.UserId = UserSessions.UserId)) \r\nLEFT JOIN UserDevices ON (Users.UserId = UserDevices.UserId))";
+      ParseSql();
     }
   }
 }

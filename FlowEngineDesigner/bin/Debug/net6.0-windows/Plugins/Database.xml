@@ -1,70 +1,84 @@
 ﻿<Settings>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>String</DataType>
 		<Key>DatabaseType</Key>
 		<Value>MySql</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>String</DataType>
 		<Key>Database</Key>
 		<Value>FlowEngine</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>String</DataType>
 		<Key>Url</Key>
 		<Value>192.168.0.84</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>Integer</DataType>
 		<Key>Port</Key>
 		<Value>3306</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>String</DataType>
 		<Key>User</Key>
-		<Value>root</Value>
+		<Value>fl_user</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>String</DataType>
 		<Key>Password</Key>
-		<Value>5D09e97bda!</Value>
+		<Value>JIsCpP0EiKKgAwEqh1CQ!</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>Integer</DataType>
 		<Key>ConnPoolSizeMax</Key>
 		<Value>10</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>Integer</DataType>
 		<Key>ConnPoolSizeMin</Key>
 		<Value>3</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>Boolean</DataType>
 		<Key>ShareDatabaseConnWithOtherPlugins</Key>
 		<Value>True</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>Boolean</DataType>
 		<Key>TreatTinyintAsBoolean</Key>
 		<Value>True</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Default</GroupName>
 		<DataType>String</DataType>
 		<Key>DateFormat</Key>
 		<Value>yyyy-MM-dd HH:mm:ss zzz</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Designer</GroupName>
 		<DataType>Color</DataType>
 		<Key>BackgroundColor</Key>
 		<Value>{R:255 G:255 B:255 A:0}</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Designer</GroupName>
 		<DataType>Color</DataType>
 		<Key>BorderColor</Key>
 		<Value>{R:0 G:0 B:255 A:255}</Value>
 	</Setting>
 	<Setting>
+		<GroupName>Designer</GroupName>
 		<DataType>Color</DataType>
 		<Key>FontColor</Key>
 		<Value>{R:255 G:255 B:255 A:255}</Value>

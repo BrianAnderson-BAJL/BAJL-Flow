@@ -181,6 +181,7 @@ namespace FlowEngineDesigner
     private void FlowWrapperChanged_Callback(cFlowWrapper flowWrapper)
     {
       frmFlow f = new frmFlow(flowWrapper);
+      Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
       f.Show();
       flowWrapper.PopulateSampleVariablesFromPlugin();
       f.pictureBox1.Refresh();

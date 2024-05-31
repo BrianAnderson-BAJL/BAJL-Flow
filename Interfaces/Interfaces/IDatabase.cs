@@ -12,6 +12,9 @@ namespace FlowEngineCore.Interfaces
     Variable Execute(string SQL, params Variable[] vars);
     Variable Select(string SQL, params Variable[] vars);
 
+    Variable SelectId(string SQL, params Variable[] vars);
+    Variable SelectOneRecord(string SQL, params Variable[] vars);
+
     List<string> GetTables();
     List<string> GetFields(string tableName);
   }

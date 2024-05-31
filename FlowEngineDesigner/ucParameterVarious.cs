@@ -28,6 +28,7 @@ namespace FlowEngineDesigner
       mParameterIndex = parameterIndex;
       txtKey.Text = mParmVar.ParmName;
       txtDataType.Text = mParmVar.Parm.DataType.ToString();
+      
 
       if (mParmVar.Var.DataType == DATA_TYPE.String || mParmVar.Var.DataType == DATA_TYPE.Various)
       {
@@ -64,6 +65,12 @@ namespace FlowEngineDesigner
       if (mParmVar.Parm.NameChangeable == true)
       {
         txtKey.ReadOnly = false;
+      }
+
+      if (mParmVar.Parm.Description == "")
+      {
+        txtKey.Width = txtKey.Width + 20;
+        lblDescription.Visible = false;
       }
     }
 
@@ -160,6 +167,25 @@ namespace FlowEngineDesigner
       {
         mParmVar.ParmName = txtKey.Text;
       }
+    }
+
+    private void lblDescription_MouseClick(object sender, MouseEventArgs e)
+    {
+      frmQuickTip.ShowQuickTip(mParmVar.Parm.Description);
+    }
+
+    private void txtValue_TextChanged(object sender, EventArgs e)
+    {
+      if (mStep is null)
+        return;
+      if (cmbDataType.SelectedIndex != DT_VARIABLE)
+        return;
+
+        Variable? var = mFlow.FindVariableDesigner(txtValue.Text, mStep);
+      if (var is null)
+        txtValue.ForeColor = Color.Red;
+      else
+        txtValue.ForeColor = Color.Black;
     }
   }
 }

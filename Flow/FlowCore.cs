@@ -24,6 +24,17 @@ namespace FlowCore
     private const string OPTION_ERROR = "Error";
 
     private const string PARM_FLOW_NAME = "Flow name";
+
+    private const string IF_COMPARE_LESS_THAN = "< (less than)";
+    private const string IF_COMPARE_LESS_EQUAL = "<= (less or equal)";
+    private const string IF_COMPARE_EQUAL = "= (equal)";
+    private const string IF_COMPARE_GREATER_EQUAL = ">= (greater or equal)";
+    private const string IF_COMPARE_GREATER_THAN = "> (greater than)";
+    private const string IF_COMPARE_NOT_EQUAL = "!= (not equal)";
+
+    private const int ERROR_IF_BAD_VARIABLES = (int)STEP_ERROR_NUMBERS.FlowCoreErrorMin + 1;
+
+
     public override void Init()
     {
       base.Init();
@@ -40,6 +51,14 @@ namespace FlowCore
       function.Input = new Input("Input", new System.Numerics.Vector2(10, 50));
       function.OutputClear();
       function.OutputAddSuccess();
+      Functions.Add(function);
+
+      function = new Function("Clean Error Info", this, CleanErrorDescription);
+      function.Parms.Add("Error Info", DATA_TYPE.String);
+      function.DefaultSaveResponseVariable = true;
+      function.RespNames.Name = "ErrorInfo";
+      function.OutputClear();
+      function.OutputAddSuccess(); //We don't want an error response, it is a pass through value
       Functions.Add(function);
 
 
@@ -63,7 +82,20 @@ namespace FlowCore
       function.Parms.Add("Variable", DATA_TYPE.Various);
       Functions.Add(function);
 
-      Functions.Add(new Function("If", this, If));
+      function = new Function("If", this, If);
+      function.Parms.Add(new PARM("Variable 1", DATA_TYPE.Various));
+      pddl = new PARM("Return", STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
+      pddl.OptionAdd(IF_COMPARE_LESS_THAN);
+      pddl.OptionAdd(IF_COMPARE_LESS_EQUAL);
+      pddl.OptionAdd(IF_COMPARE_EQUAL);
+      pddl.OptionAdd(IF_COMPARE_GREATER_EQUAL);
+      pddl.OptionAdd(IF_COMPARE_GREATER_THAN);
+      pddl.OptionAdd(IF_COMPARE_NOT_EQUAL);
+      function.Parms.Add(pddl);
+      function.Parms.Add(new PARM("Variable 2", DATA_TYPE.Various));
+      function.UpdateSuccessOutputLabel("true");
+      function.OutputAdd("false");
+      Functions.Add(function);
 
       function = new Function("Variables Exists", this, VariablesExists);
       function.UpdateErrorOutputLabel("Var Missing");
@@ -107,6 +139,11 @@ namespace FlowCore
       Function fun = new Function("Switch", this, Switch) { OutputsModifiable = true, }; //This is a switch the flow programmer needs to be able to modify the number of outputs (case val = 36, case val = 0, case default, ...)
       Functions.Add(fun);
 
+      function = new Function("Null Step", this, NullStep);
+      function.OutputClear();
+      function.OutputAddSuccess();
+      Functions.Add(function);
+
       mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
       mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Green));
       mSettings.SettingAdd(new Setting("", "Designer", "FontColor", Color.White));
@@ -120,16 +157,11 @@ namespace FlowCore
 
       //SAMPLE VARIABLES FOR DESIGNER
       {
-        Variable root = new Variable(Flow.VAR_NAME_FLOW_START, DATA_FORMAT_SUB_VARIABLES.Block);
-        Variable data = new Variable(Flow.VAR_DATA, "");
+        Variable root = new Variable(Flow.VAR_NAME_FLOW_START);
+        Variable data = new Variable(Flow.VAR_DATA);
         data.SubVariableAdd(new Variable("YOUR_SAMPLE_DATA", "GOES_HERE"));
         root.SubVariableAdd(data);
         SampleStartData = root;
-        //Variable v = new Variable(Flow.VAR_NAME_FLOW_START);
-        //Variable request = new Variable(Flow.VAR_REQUEST);
-        //request.Add(new Variable(Flow.VAR_DATA));
-        //v.Add(request);
-        //SampleVariables.Add(Flow.VAR_NAME_FLOW_START, v);
       }
       //SAMPLE VARIABLES FOR DESIGNER
     }
@@ -328,6 +360,12 @@ namespace FlowCore
       return RESP.SetSuccess();
     }
 
+    //TODO: Add more functions...
+    //TODO: VariablesCreate   - Create a new variable in the flow
+    //TODO: VariablesAdd      - Add sub variables to existing variable
+    //TODO: VariableCopy      - Copy an existing variable to a new variable, will do a deep copy of all sub variables.
+
+
     private RESP Sleep(FlowEngineCore.Flow flow, Variable[] vars)  
     {
       mLog?.Write("FlowCore.Sleep", LOG_TYPE.DBG);
@@ -435,6 +473,15 @@ namespace FlowCore
     public RESP If(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("FlowCore.If", LOG_TYPE.DBG);
+      if (vars.Length != 3)
+        return RESP.SetError(ERROR_IF_BAD_VARIABLES, $"Not enough variables, expected 3, received [{vars.Length}]");
+
+      Variable var1 = vars[0];
+      string compareStyle = vars[1].GetValueAsString();
+      Variable var2 = vars[2];
+
+      char.IsNumber('+');
+
       return RESP.SetSuccess();
     }
 
@@ -443,5 +490,49 @@ namespace FlowCore
       mLog?.Write("FlowCore.Switch", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
+
+
+    /// <summary>
+    /// Clean up the previous_step_resp and ErrorDescription for end user consumption, we want to remove any remnants of the flow engine.
+    /// </summary>
+    /// <param name="flow"></param>
+    /// <param name="vars"></param>
+    /// <returns></returns>
+    public RESP CleanErrorDescription(FlowEngineCore.Flow flow, Variable[] vars)
+    {
+      if (vars.Length == 0 || vars[0].Value is null)
+        return RESP.SetSuccess(new Variable());
+
+      Variable var = vars[0];
+      if (var.Count > 0)
+      {
+        if (var.Name == "previous_step_resp")
+        {
+          var.SubVariableDeleteByName("resp");
+          var.SubVariableDeleteByName("step");
+          var.SubVariableDeleteByName("parms");
+          Variable? errDesc = var.SubVariableFindByName("ErrorDescription");
+          if (errDesc is not null)
+          {
+            string val = errDesc.GetValueAsString();
+            val = val.Replace("flow_start.data.", "");
+            errDesc.Value = val;
+          }
+        }
+        return RESP.SetSuccess(var);
+      }
+      else
+      {
+        string val = vars[0].GetValueAsString();
+        val = val.Replace("flow_start.data.", "");
+        return RESP.SetSuccess(new Variable("", val));
+      }
+    }
+
+    public RESP NullStep(Flow flow, Variable[] vars)
+    {
+      return RESP.SetSuccess();
+    }
+
   }
 }

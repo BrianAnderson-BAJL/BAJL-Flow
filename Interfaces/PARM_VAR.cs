@@ -256,5 +256,17 @@ namespace FlowEngineCore
       
       return pv;
     }
+
+    public override string ToString()
+    {
+      if (this.ParmLiteralOrVariable == PARM_L_OR_V.Literal)
+      {
+        return this.Var.GetValueAsString();
+      }
+      else
+      {
+        return this.VariableName;
+      }
+    }
   }
 }

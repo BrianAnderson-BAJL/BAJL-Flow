@@ -13,6 +13,8 @@ namespace FlowEngineCore
     {
       Success,
       Error,
+      OutherOutput0, 
+      OutherOutput1,
     }
 
     public string Label = "";
@@ -21,8 +23,8 @@ namespace FlowEngineCore
     //public int OutputIndex = 0;
     public TYPE Type = TYPE.Success;
 
-    public static readonly string SUCCESS_LABEL = "Success";
-    public static readonly string ERROR_LABEL = "Error";
+    public const string SUCCESS_LABEL = "Success";
+    public const string ERROR_LABEL = "Error";
 
     internal static Vector2 HighlightCenterOffset = new Vector2(15, 15);
     public static readonly Vector2 SUCCESS_OUTPUT_POS = new Vector2(160, 90);

@@ -25,7 +25,7 @@ namespace FlowEngineCore.Administration
       FlowEngineCore.Administration.TcpClient? returnClient = null;
       try
       {
-        System.Net.Sockets.TcpClient Client = new System.Net.Sockets.TcpClient();
+        System.Net.Sockets.TcpClient Client = new();
         if (Client.ConnectAsync(hostUrl, port).Wait(connectTimeout) == false)
         {
           Global.WriteToConsoleDebug($"Could not connect to url [{hostUrl}], port [{port}]");
@@ -33,7 +33,7 @@ namespace FlowEngineCore.Administration
         }
         returnClient = new TcpClient(Client);
         returnClient.ReadPacketTimeout = readPacketTimeout;
-        Thread T = new Thread(new ParameterizedThreadStart(returnClient.ReadPacketsThread!));
+        Thread T = new(new ParameterizedThreadStart(returnClient.ReadPacketsThread!));
         T.Start(returnClient);
       }
       catch 

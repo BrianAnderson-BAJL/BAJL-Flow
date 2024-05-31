@@ -56,15 +56,22 @@ namespace Db
       }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="SQL"></param>
+    /// <param name="vars"></param>
+    /// <returns></returns>
     public Variable Execute(string SQL, params Variable[] vars)
     {
+      FlowEngine.Log?.Write("DB - " + SQL, LOG_TYPE.DBG);
       Variable root = new Variable("RecordsAffected", 0L);
       try
       {
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
           connection.Open();
-
+          
           using (MySqlCommand command = new MySqlCommand(SQL, connection))
           {
             PopulateParameters(command, vars);
@@ -84,8 +91,36 @@ namespace Db
       return root;
     }
 
+
+    public Variable SelectOneRecord(string SQL, params Variable[] vars)
+    {
+      Variable temp = Select(SQL, vars);
+      if (temp.Count > 0)
+      {
+        if (temp[0].Count > 0)
+        {
+          return temp[0];
+        }
+      }
+      return new Variable("data", 0L);
+    }
+
+    public Variable SelectId(string SQL, params Variable[] vars)
+    {
+      Variable temp = Select(SQL, vars);
+      if (temp.Count > 0)
+      {
+        if (temp[0].Count > 0)
+        {
+          return temp[0][0];
+        }
+      }
+      return new Variable("data", 0L);
+    }
+
     public Variable Select(string SQL, params Variable[] vars)
     {
+      FlowEngine.Log?.Write("DB - " + SQL, LOG_TYPE.DBG);
       Variable root = new Variable("Recordset");
       try
       {

@@ -190,6 +190,18 @@ namespace FlowEngineCore
       }
     }
 
+    public Setting? SubSettingsFind(string key)
+    {
+      for (int y = 0; y < this.mSubSettings.Count; y++)
+      {
+        if (this.mSubSettings[y].Key == key)
+        {
+          return this.mSubSettings[y];
+        }
+      }
+      return null;
+    }
+
     public void SubSettingsAdd(Setting setting)
     {
       this.mSubSettings.Add(setting);

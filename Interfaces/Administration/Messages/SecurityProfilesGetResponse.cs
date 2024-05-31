@@ -15,20 +15,15 @@ namespace FlowEngineCore.Administration.Messages
     /// <param name="packet"></param>
     public SecurityProfilesGetResponse(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
-      int Count;
-      packet.GetData(out Count);
+      packet.GetData(out int Count);
       Profiles = new List<SecurityProfile>(Count);
       for (int x = 0; x < Count; x++)
       {
-        string name;
-        int adminUsers;
-        int adminSecurityProfile;
-        int adminFlows;
-        packet.GetData(out name);
-        packet.GetData(out adminUsers);
-        packet.GetData(out adminSecurityProfile);
-        packet.GetData(out adminFlows);
-        SecurityProfile profile = new SecurityProfile();
+        packet.GetData(out string name);
+        packet.GetData(out int adminUsers);
+        packet.GetData(out int adminSecurityProfile);
+        packet.GetData(out int adminFlows);
+        SecurityProfile profile = new();
         profile.Name = name;
         profile.AdministrationUsers = (SecurityProfile.SECURITY_ACCESS_LEVEL)adminUsers;
         profile.AdministrationSecurityProfiles = (SecurityProfile.SECURITY_ACCESS_LEVEL)adminSecurityProfile;

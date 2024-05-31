@@ -16,7 +16,9 @@ namespace FlowEngineCore.Parsers
     {
       try
       {
-        JObject jo = JObject.Parse(json);
+        JsonSerializerSettings s = new JsonSerializerSettings();
+        s.MaxDepth = 10;
+        JObject? jo = JsonConvert.DeserializeObject<JObject>(json, s);
         Variable data = new Variable();
         Parse(jo, data);
         return data;
@@ -59,7 +61,6 @@ namespace FlowEngineCore.Parsers
 
     private void Parse(JArray ja, Variable parent)
     {
-      
       foreach (JValue item in ja)
       {
         Variable var = new Variable();
@@ -68,8 +69,11 @@ namespace FlowEngineCore.Parsers
       }
     }
 
-    private void Parse(JObject jo, Variable parent)
+    private void Parse(JObject? jo, Variable parent)
     {
+      if (jo is null)
+        return;
+
       foreach (var item in jo)
       {
         JToken? name = item.Key;

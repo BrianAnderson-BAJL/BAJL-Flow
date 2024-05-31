@@ -16,7 +16,6 @@ C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windo
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.genruntimeconfig.cache
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\ref\FlowEngineDesigner.dll
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmToolbox.resources
-C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.csproj.CopyComplete
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmMain.resources
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmSettings.resources
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmSettingDropDown.resources
@@ -65,3 +64,6 @@ C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windo
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Newtonsoft.Json.dll
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\FlowEngineCore.dll
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\FlowEngineCore.pdb
+C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmQuickTip.resources
+C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.sourcelink.json
+C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngi.C7E65AE5.Up2Date

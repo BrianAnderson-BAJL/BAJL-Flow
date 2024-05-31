@@ -16,7 +16,7 @@ namespace FlowEngineCore.Administration
   internal class MessageProcessor
   {
     public delegate void ProcessMessageDelegate(Packet message, TcpClientBase client);
-    private static Dictionary<Packet.PACKET_TYPE, ProcessMessageDelegate> Processors = new Dictionary<Packet.PACKET_TYPE, ProcessMessageDelegate>(128);
+    private static Dictionary<Packet.PACKET_TYPE, ProcessMessageDelegate> Processors = new(128);
     private static ILog? mLog = null;
 
     private static string CacheAdministrationPrivateKey = "";
@@ -43,6 +43,9 @@ namespace FlowEngineCore.Administration
       Processors.Add(Packet.PACKET_TYPE.FlowDebug, ProcessFlowDebug);
       Processors.Add(Packet.PACKET_TYPE.CloseConnection, ProcessCloseConnection);
       Processors.Add(Packet.PACKET_TYPE.FlowDebugAlways, ProcessFlowDebugAlways);
+      Processors.Add(Packet.PACKET_TYPE.ServerSettingsGet, ProcessServerSettingsGet);
+      Processors.Add(Packet.PACKET_TYPE.ServerSettingsEdit, ProcessServerSettingsEdit);
+
 
       if (GlobalPluginValues.ContainsKey("log") == true)
       {
@@ -61,8 +64,7 @@ namespace FlowEngineCore.Administration
       if (SecurityValid(packet, client) == false)
         return;
 
-      ProcessMessageDelegate? processor;
-      if (Processors.TryGetValue(packet.PacketType, out processor) == true)
+      if (Processors.TryGetValue(packet.PacketType, out ProcessMessageDelegate? processor) == true)
       {
         try
         {
@@ -83,7 +85,7 @@ namespace FlowEngineCore.Administration
 
     private static bool SecurityValid(Packet packet, TcpClientBase client)
     {
-      BaseMessage message = new BaseMessage(packet);
+      BaseMessage message = new(packet);
       packet.ResetReadPosition();
       //Does the private key match?
       if (message.ServerKey != CacheAdministrationPrivateKey)
@@ -100,10 +102,10 @@ namespace FlowEngineCore.Administration
       }
 
       //Is it a login and the user password hash matches, if yes, create a new session key and timeout
-      User? user = null;
+      User? user;
       if (message.PacketType == Packet.PACKET_TYPE.UserLogin)
       {
-        UserLogin? userLogin = new UserLogin(packet);
+        UserLogin? userLogin = new(packet);
         packet.ResetReadPosition();
         if (userLogin is null)
         {
@@ -183,23 +185,23 @@ namespace FlowEngineCore.Administration
     {
       Packet.PACKET_TYPE type = packet.PacketType + 1; //Response messages are allways one bigger in the enum
       mLog?.Write($"SendGenericError - response code [{responseCode}], response PACKET_TYPE id [{type}]");
-      BaseResponse response = new BaseResponse(packet.PacketId, type);
+      BaseResponse response = new(packet.PacketId, type);
       response.ResponseCode = responseCode;
       client.Send(response.GetPacket());
     }
 
     private static void ProcessUserAdd(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      UserAdd? userAdd = new UserAdd(packet);
+      UserAdd? userAdd = new(packet);
       RECORD_RESULT results = UserManager.Add(userAdd);
       mLog?.Write($"ProcessUserAdd - Record result [{results}], login id [{userAdd.LoginId}]");
-      BaseResponse response = new BaseResponse(packet.PacketId, results, Packet.PACKET_TYPE.UserAddResponse);
+      BaseResponse response = new(packet.PacketId, results, Packet.PACKET_TYPE.UserAddResponse);
       client.Send(response.GetPacket());
     }
 
     private static void ProcessUserEdit(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      UserEdit? userEdit = new UserEdit(packet);
+      UserEdit? userEdit = new(packet);
       User? user = UserManager.FindByLoginId(userEdit.OldLoginId);
       BaseResponse response;
       if (user is not null)
@@ -227,7 +229,7 @@ namespace FlowEngineCore.Administration
 
     private static void ProcessUserDelete(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      UserDelete userDelete = new UserDelete(packet);
+      UserDelete userDelete = new(packet);
       bool resp = UserManager.Delete(userDelete.LoginId);
       BaseResponse response;
       if (resp == true)
@@ -246,25 +248,24 @@ namespace FlowEngineCore.Administration
     private static void ProcessUserLogin(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       //If we got here, the user successfully logged in in the SecurityValid function
-      UserLogin? userLogin = new UserLogin(packet);
+      UserLogin? userLogin = new(packet);
       if (userLogin is not null)
       {
         User? user = UserManager.FindByLoginId(userLogin.LoginId);
         if (user is not null)
         {
           mLog?.Write($"ProcessUserLogin - response code [0], login id [{user.LoginId}]");
-          UserLoginResponse response = new UserLoginResponse(packet.PacketId, user.LoginId, user.SecurityProfile.Name, user.NameFirst, user.NameSur, user.SessionKey, user.SessionKeyExpiration, user.NeedToChangePassword);
+          UserLoginResponse response = new(packet.PacketId, user.LoginId, user.SecurityProfile.Name, user.NameFirst, user.NameSur, user.SessionKey, user.SessionKeyExpiration, user.NeedToChangePassword);
           client.Send(response.GetPacket());
         }
       }
     }
     private static void ProcessUserLoginIdCheck(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      UserLoginIdCheck? loginCheck = new UserLoginIdCheck(packet);
+      UserLoginIdCheck? loginCheck = new(packet);
       if (loginCheck is not null)
       {
-        string SuggestedLoginId;
-        RECORD_RESULT result = UserManager.CheckLoginIdInUse(loginCheck.LoginId, out SuggestedLoginId);
+        RECORD_RESULT result = UserManager.CheckLoginIdInUse(loginCheck.LoginId, out string SuggestedLoginId);
         BaseResponse.RESPONSE_CODE responseCode = BaseResponse.RESPONSE_CODE.Error;
         if (result == RECORD_RESULT.Success)
         {
@@ -275,7 +276,7 @@ namespace FlowEngineCore.Administration
           responseCode = BaseResponse.RESPONSE_CODE.Duplicate;
         }
         mLog?.Write($"ProcessUserLoginIdCheck - response code [{responseCode}], suggested login id [{SuggestedLoginId}]");
-        UserLoginIdCheckResponse response = new UserLoginIdCheckResponse(packet.PacketId, responseCode, SuggestedLoginId);
+        UserLoginIdCheckResponse response = new(packet.PacketId, responseCode, SuggestedLoginId);
         client.Send(response.GetPacket());
       }
 
@@ -283,14 +284,14 @@ namespace FlowEngineCore.Administration
 
     private static void ProcessUsersGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      UsersGetResponse response = new UsersGetResponse(packet.PacketId, UserManager.GetUsers.ToArray());
+      UsersGetResponse response = new(packet.PacketId, UserManager.GetUsers.ToArray());
       client.Send(response.GetPacket());
     }
 
     private static void ProcessUserChangePassword(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       //If we got here, the user successfully logged in the SecurityValid function
-      UserChangePassword? data = new UserChangePassword(packet);
+      UserChangePassword? data = new(packet);
       if (data is not null)
       {
         User? user = UserManager.FindByLoginId(data.LoginId);
@@ -298,7 +299,7 @@ namespace FlowEngineCore.Administration
         {
           user.passwordHash = SecureHasherV1.Hash(data.NewPassword);
           mLog?.Write($"ProcessUserChangePassword - response code [0], login id [{user.LoginId}]");
-          BaseResponse response = new BaseResponse(packet.PacketId, BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserChangePasswordResponse);
+          BaseResponse response = new(packet.PacketId, BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserChangePasswordResponse);
           client.Send(response.GetPacket());
           UserManager.Save();
         }
@@ -308,45 +309,44 @@ namespace FlowEngineCore.Administration
 
     private static void ProcessSecurityProfilesGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      SecurityProfilesGetResponse response = new SecurityProfilesGetResponse(packet.PacketId, SecurityProfileManager.GetProfiles.ToArray());
+      SecurityProfilesGetResponse response = new(packet.PacketId, SecurityProfileManager.GetProfiles.ToArray());
       client.Send(response.GetPacket());
     }
 
     private static void ProcessSecurityProfileAdd(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      SecurityProfileAdd data = new SecurityProfileAdd(packet);
+      SecurityProfileAdd data = new(packet);
       RECORD_RESULT result = SecurityProfileManager.Add(data);
-      BaseResponse response = new BaseResponse(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileAddResponse);
+      BaseResponse response = new(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileAddResponse);
       client.Send(response.GetPacket());
     }
 
     private static void ProcessSecurityProfileEdit(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      SecurityProfileEdit data = new SecurityProfileEdit(packet);
+      SecurityProfileEdit data = new(packet);
       RECORD_RESULT result = SecurityProfileManager.Edit(data);
-      BaseResponse response = new BaseResponse(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileEditResponse);
+      BaseResponse response = new(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileEditResponse);
       client.Send(response.GetPacket());
     }
 
     private static void ProcessSecurityProfileDelete(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      SecurityProfileDelete data = new SecurityProfileDelete(packet);
+      SecurityProfileDelete data = new(packet);
       RECORD_RESULT result = SecurityProfileManager.Delete(data);
-      BaseResponse response = new BaseResponse(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileDeleteResponse);
+      BaseResponse response = new(packet.PacketId, result, Packet.PACKET_TYPE.SecurityProfileDeleteResponse);
       client.Send(response.GetPacket());
     }
     private static void ProcessFlowsGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      FlowsGet data = new FlowsGet(packet);
       string path = Options.GetFullPath(Options.GetSettings.SettingGetAsString("FlowPath"));
       string relativePath = "";
-      Xml xml = new Xml();
+      Xml xml = new();
       xml.WriteMemoryNew();
       xml.WriteTagStart("Directories");
       WriteSubDirectory(path, relativePath, xml, 0);
       xml.WriteTagEnd("Directories");
       string flowsXml = xml.ReadMemory();
-      FlowsGetResponse response = new FlowsGetResponse(packet.PacketId, flowsXml);
+      FlowsGetResponse response = new(packet.PacketId, flowsXml);
       client.Send(response.GetPacket());
     }
 
@@ -358,7 +358,7 @@ namespace FlowEngineCore.Administration
       string[] files = Directory.GetFiles(path, "*.flow");
       for (int y = 0; y < files.Length; y++)
       {
-        Flow flow = new Flow();
+        Flow flow = new();
         flow.XmlReadFile(files[y], Flow.READ_TIL.TilSteps);
         xml.WriteTagStart("File");
         xml.WriteTagAndContents("FileName", Path.GetFileName(files[y]));
@@ -383,8 +383,7 @@ namespace FlowEngineCore.Administration
 
     private static void ProcessFlowSave(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      FlowSave data = new FlowSave(packet);
-      string xmlData = data.FlowXml;
+      FlowSave data = new(packet);
       
       RESPONSE_CODE responseCode = RESPONSE_CODE.Success;
 
@@ -405,15 +404,9 @@ namespace FlowEngineCore.Administration
         }
       }
       if (data.FileName.Contains(".") == true && data.FileName.ToLower().Contains(".flow") == false)
-      {
         responseCode = RESPONSE_CODE.BadRequest;
-        return;
-      }
       if (data.FileName.ToLower().EndsWith(".flow") == false)
-      {
         responseCode = RESPONSE_CODE.BadRequest;
-        return;
-      }
 
 
       if (responseCode == RESPONSE_CODE.Success)
@@ -433,14 +426,14 @@ namespace FlowEngineCore.Administration
         }
       }
 
-      BaseResponse response = new BaseResponse(packet.PacketId, responseCode, Packet.PACKET_TYPE.FlowSaveResponse);
+      BaseResponse response = new(packet.PacketId, responseCode, Packet.PACKET_TYPE.FlowSaveResponse);
       client.Send(response.GetPacket());
     }
 
 
     private static void ProcessFlowOpen(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      FlowOpen data = new FlowOpen(packet);
+      FlowOpen data = new(packet);
 
       RESPONSE_CODE responseCode = RESPONSE_CODE.Success;
 
@@ -483,26 +476,26 @@ namespace FlowEngineCore.Administration
         }
       }
 
-      FlowOpenResponse response = new FlowOpenResponse(packet.PacketId, responseCode, data.FileName, flowXml);
+      FlowOpenResponse response = new(packet.PacketId, responseCode, data.FileName, flowXml);
       client.Send(response.GetPacket());
     }
 
 
     private static void ProcessFlowDebug(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      FlowDebug data = new FlowDebug(packet);
+      FlowDebug data = new(packet);
       string xmlData = data.FlowXml;
 
       if (Options.GetSettings.SettingGetAsString("ServerType") != Options.SERVER_TYPE.Development.ToString())
       {
-        BaseResponse response = new BaseResponse(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, Packet.PACKET_TYPE.FlowDebugResponse);
+        BaseResponse response = new(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, Packet.PACKET_TYPE.FlowDebugResponse);
         client.Send(response.GetPacket());
         return;
       }
 
       try
       {
-        Flow flow = new Flow();
+        Flow flow = new();
         User? user = UserManager.FindByTcpConnection(client);
         if (user is null)
           return;
@@ -511,14 +504,14 @@ namespace FlowEngineCore.Administration
         DebuggerManager.Add(user, packet.PacketId, flow.FileName);
         if (flow.StartPlugin is null && data.StartType == FlowRequest.START_TYPE.WaitForEvent)
         {
-          BaseResponse response = new BaseResponse(packet.PacketId, RESPONSE_CODE.NoStartPluginDefined, Packet.PACKET_TYPE.FlowDebugResponse);
+          BaseResponse response = new(packet.PacketId, RESPONSE_CODE.NoStartPluginDefined, Packet.PACKET_TYPE.FlowDebugResponse);
           client.Send(response.GetPacket());
           return;
         }
 
         if (data.StartType == FlowRequest.START_TYPE.Now)
         {
-          FlowRequest fr = new FlowRequest(null, flow.StartPlugin, flow, FlowRequest.START_TYPE.Now, FlowRequest.CLONE_FLOW.DoNotCloneFlow);
+          FlowRequest fr = new(null, flow.StartPlugin, flow, FlowRequest.START_TYPE.Now, FlowRequest.CLONE_FLOW.DoNotCloneFlow);
           FlowEngine.StartFlow(fr);
         }
         else if (flow.StartPlugin is not null && data.StartType == FlowRequest.START_TYPE.WaitForEvent)
@@ -535,11 +528,9 @@ namespace FlowEngineCore.Administration
 
     private static void ProcessFlowDebugAlways(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      FlowDebugAlways data = new FlowDebugAlways(packet);
-
       if (Options.GetSettings.SettingGetAsString("ServerType") != Options.SERVER_TYPE.Development.ToString()) //TODO: Change this, I hate it, comparing strings...
       {
-        BaseResponse response = new BaseResponse(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, Packet.PACKET_TYPE.FlowDebugResponse);
+        BaseResponse response = new(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, Packet.PACKET_TYPE.FlowDebugResponse);
         client.Send(response.GetPacket());
         return;
       }
@@ -568,17 +559,17 @@ namespace FlowEngineCore.Administration
     {
       string path = Options.GetFullPath(Options.SettingsPath);
       string xml = System.IO.File.ReadAllText(path);
-      ServerSettingsGetResponse response = new ServerSettingsGetResponse(packet.PacketId, RESPONSE_CODE.Success, xml);
+      ServerSettingsGetResponse response = new(packet.PacketId, RESPONSE_CODE.Success, xml);
       client.Send(response.GetPacket());
     }
 
 
     private static void ProcessServerSettingsEdit(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      string path = Options.GetFullPath(Options.SettingsPath);
-      string xml = System.IO.File.ReadAllText(path);
-      ServerSettingsGetResponse response = new ServerSettingsGetResponse(packet.PacketId, RESPONSE_CODE.Success, xml);
-      client.Send(response.GetPacket());
+      //string path = Options.GetFullPath(Options.SettingsPath);
+      //string xml = System.IO.File.ReadAllText(path);
+      //ServerSettingsGetResponse response = new ServerSettingsGetResponse(packet.PacketId, RESPONSE_CODE.Success, xml);
+      //client.Send(response.GetPacket());
     }
   }
 }

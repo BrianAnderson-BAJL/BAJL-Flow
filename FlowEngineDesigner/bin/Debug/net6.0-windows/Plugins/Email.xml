@@ -1,0 +1,44 @@
+﻿<Settings>
+	<Setting>
+		<GroupName>Default</GroupName>
+		<DataType>String</DataType>
+		<Key>Mail Server Url</Key>
+		<Value>mail.bajlllc.com</Value>
+	</Setting>
+	<Setting>
+		<GroupName>Default</GroupName>
+		<DataType>Integer</DataType>
+		<Key>Mail Server Port</Key>
+		<Value>587</Value>
+	</Setting>
+	<Setting>
+		<GroupName>Default</GroupName>
+		<DataType>String</DataType>
+		<Key>Mail Server User name</Key>
+		<Value>noreply@bajlllc.com</Value>
+	</Setting>
+	<Setting>
+		<GroupName>Default</GroupName>
+		<DataType>String</DataType>
+		<Key>Mail Server Password</Key>
+		<Value>gv52hT?IKHx+</Value>
+	</Setting>
+	<Setting>
+		<GroupName>Designer</GroupName>
+		<DataType>Color</DataType>
+		<Key>BackgroundColor</Key>
+		<Value>{R:255 G:255 B:255 A:0}</Value>
+	</Setting>
+	<Setting>
+		<GroupName>Designer</GroupName>
+		<DataType>Color</DataType>
+		<Key>BorderColor</Key>
+		<Value>{R:128 G:128 B:255 A:255}</Value>
+	</Setting>
+	<Setting>
+		<GroupName>Designer</GroupName>
+		<DataType>Color</DataType>
+		<Key>FontColor</Key>
+		<Value>{R:255 G:255 B:255 A:255}</Value>
+	</Setting>
+</Settings>

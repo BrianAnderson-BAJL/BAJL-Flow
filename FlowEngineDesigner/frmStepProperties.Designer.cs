@@ -200,6 +200,7 @@
       Controls.Add(txtType);
       Controls.Add(label1);
       Name = "frmStepProperties";
+      StartPosition = FormStartPosition.Manual;
       Text = "Step properties";
       Load += frmStepProperties_Load;
       gbParameters.ResumeLayout(false);

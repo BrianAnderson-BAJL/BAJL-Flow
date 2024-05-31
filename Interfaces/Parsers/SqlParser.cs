@@ -269,7 +269,7 @@ namespace FlowEngineCore.Parsers
             ReadNextUnit(ref sql, parent, isAs);
         }
       }
-      else if (word.Equals("AS", StringComparison.OrdinalIgnoreCase) == false)
+      else// if (word.Equals("AS", StringComparison.OrdinalIgnoreCase) == false)
       {
         Units.Add(unit);
         if (delimiterId >= 0)
@@ -278,14 +278,14 @@ namespace FlowEngineCore.Parsers
           Units.Add(unit);
         }
       }
-      else if (word.Length > 0) //word == AS
-      {
-        if (PreviousParsedUnit is not null) //Someone might of typed 'AS' as the first thing for some reason
-        {
-          PreviousParsedUnit.SubUnits.Add(unit);
-          ReadNextUnit(ref sql, PreviousParsedUnit, true);
-        }
-      }
+      //else if (word.Length > 0) //word == AS
+      //{
+      //  if (PreviousParsedUnit is not null) //Someone might of typed 'AS' as the first thing for some reason
+      //  {
+      //    PreviousParsedUnit.SubUnits.Add(unit);
+      //    ReadNextUnit(ref sql, PreviousParsedUnit, true);
+      //  }
+      //}
 
       if (word == "(")
       {

@@ -8,8 +8,8 @@ namespace FlowEngineCore
 {
   internal class DebuggerManager
   {
-    private static List<Debugger> Debuggers = new List<Debugger>(8);
-    private static object CriticalSection = new object();
+    private static List<Debugger> Debuggers = new(8);
+    private static object CriticalSection = new();
 
     public static Debugger Add(User user, int debugMessagePacketId = 0, string flowName = "")
     {

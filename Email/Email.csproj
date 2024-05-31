@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MailKit" Version="4.6.0" />
+    <PackageReference Include="MimeKit" Version="4.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Interfaces\FlowEngineCore.csproj" />
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(BaseOutputPath)$(Configuration)\net6.0\$(TargetName)$(TargetExt)&quot; &quot;$(SolutionDir)FlowEngineDesigner\bin\$(Configuration)\net6.0-windows\Plugins&quot; /s /i /y&#xD;&#xA;xcopy &quot;$(BaseOutputPath)\$(Configuration)\net6.0\$(TargetName)$(TargetExt)&quot; &quot;D:\Pi&quot; /s /i /y" />
+  </Target>
+
+</Project>

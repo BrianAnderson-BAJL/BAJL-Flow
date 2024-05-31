@@ -59,12 +59,13 @@ namespace FlowEngineCore.Administration
       ServerSettingsGetResponse,
       ServerSettingsEdit,
       ServerSettingsEditResponse,
+      zMaxValue,
     }
     private static int NextPacketId = 0;
     public PACKET_TYPE PacketType = PACKET_TYPE._Unknown;
     private int mReadPosition;
     private byte[] ReceiveData = { };
-    private List<byte> SendData = new List<byte>(1024);
+    private List<byte> SendData = new(1024);
     public int PacketId { get; private set; } = 0;
     public static bool ReversePacketId = false;
 
@@ -121,8 +122,7 @@ namespace FlowEngineCore.Administration
 
     public BaseResponse.RESPONSE_CODE PeekResponseCode()
     {
-      int Val;
-      PeekData(out Val);
+      PeekData(out int Val);
       return (BaseResponse.RESPONSE_CODE)Val;
     }
 
@@ -150,7 +150,13 @@ namespace FlowEngineCore.Administration
         int length = BinaryPrimitives.ReadInt32BigEndian(temp);
         ReceiveData = new byte[length];
         stream.ReadTimeout = 5000; //If we don't receive the rest of the packet within 5 seconds the connection will be killed
-        stream.Read(ReceiveData, 0, length);
+        int totalReceiveAmount = 0;
+        do
+        {
+          int rcvAmount = stream.Read(ReceiveData, totalReceiveAmount, length);
+          length -= rcvAmount;
+          totalReceiveAmount += rcvAmount;
+        } while (length > 0);
         GetData(out PacketType);
         GetData(out int val); //Can't put 'PacketId' property here, gives an error about using properties in out or ref parameters
         PacketId = val;
@@ -336,7 +342,6 @@ namespace FlowEngineCore.Administration
     
     public void GetData(out string Val)
     {
-      Val = "";
       GetData(out int Len);
       Val = Encoding.UTF8.GetString(ReceiveData, mReadPosition, Len);
       mReadPosition += Len;

@@ -71,6 +71,7 @@
       Controls.Add(txtComment);
       Controls.Add(label1);
       Name = "frmCommentProperties";
+      StartPosition = FormStartPosition.Manual;
       Text = "Comment properties";
       Load += frmCommentProperties_Load;
       ResumeLayout(false);

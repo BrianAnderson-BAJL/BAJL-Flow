@@ -23,7 +23,7 @@ namespace FlowEngineCore.Administration
     /// This event will be triggered from a seperate thread, so be sure to protect it using lock.
     /// </summary>
     public event EventHandler<EventArgsPacket>? NewPacket;
-    private List<TcpClient> mClients = new List<TcpClient>(32);
+    private List<TcpClient> mClients = new(32);
     private int mPort;
     private object mCriticalSection = new object();
     private bool mContinue = true;
@@ -34,7 +34,7 @@ namespace FlowEngineCore.Administration
     {
       if (ConnectionClosed is not null)
       {
-        EventArgsTcpClient EA = new EventArgsTcpClient(Client);
+        EventArgsTcpClient EA = new(Client);
         ConnectionClosed(this, EA);
       }
     }
@@ -43,7 +43,7 @@ namespace FlowEngineCore.Administration
     {
       if (NewPacket is not null)
       {
-        EventArgsPacket EA = new EventArgsPacket(Packet, Client);
+        EventArgsPacket EA = new(Packet, Client);
         NewPacket(this, EA);
       }
       Client.OnNewPacket(Packet, Client);
@@ -53,7 +53,7 @@ namespace FlowEngineCore.Administration
     {
       if (NewConnection is not null)
       {
-        EventArgsTcpClient EA = new EventArgsTcpClient(Client);
+        EventArgsTcpClient EA = new(Client);
         NewConnection(this, EA);
       }
     }
@@ -66,7 +66,7 @@ namespace FlowEngineCore.Administration
     public void Start(int PortNumber)
     {
       mPort = PortNumber;
-      Thread T = new Thread(ListenThread);
+      Thread T = new(ListenThread);
       T.Start();
     }
 
@@ -74,8 +74,7 @@ namespace FlowEngineCore.Administration
     {
       mContinue = false;
 
-      if (Listener is not null)
-        Listener.Stop();
+      Listener?.Stop();
 
       lock (mCriticalSection)
       {
@@ -102,7 +101,7 @@ namespace FlowEngineCore.Administration
               System.Net.Sockets.TcpClient Client = Listener.AcceptTcpClient(); //This is getting the low level TcpClient
               TcpClient C = ClientAdd(Client);
               C.NewPacket += this.NewPacket;
-              Thread T = new Thread(new ParameterizedThreadStart(C.ReadPacketsThread!));
+              Thread T = new(new ParameterizedThreadStart(C.ReadPacketsThread!));
               T.Start(C);
             }
           }
@@ -122,7 +121,7 @@ namespace FlowEngineCore.Administration
 
     private TcpClient ClientAdd(System.Net.Sockets.TcpClient Client)
     {
-      TcpClient C = new TcpClient(Client);
+      TcpClient C = new(Client);
 
       lock (mCriticalSection)
       {

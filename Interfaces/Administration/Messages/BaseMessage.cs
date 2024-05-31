@@ -34,7 +34,7 @@ namespace FlowEngineCore.Administration.Messages
 
     public virtual FlowEngineCore.Administration.Packet GetPacket()
     {
-      Packet p = new Packet(PacketType);
+      Packet p = new(PacketType);
       p.AddData(ServerKey);
       p.AddData(SessionKey);
       return p;

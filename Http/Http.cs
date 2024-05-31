@@ -438,16 +438,20 @@ namespace Http
       if (responseCode < 0)
         return RESP.SetError(1, $"Http response code invalid value [{responseCode}], original value[{tempStr}]");
 
+      HttpListenerResponse response = context.Response;
+      response.Headers.Clear();
+
       string rawData = "";
       if (dataformat == PARM_DATA_FORMAT_JSON)
+      {
         rawData = data.ToJson();
+        response.Headers.Add("Content-Type", "application/json");
+      }
       else if (dataformat == PARM_DATA_FORMAT_XML)
         throw new NotImplementedException(PARM_DATA_FORMAT_XML + " is not implemented yet");
       else if (dataformat == PARM_DATA_FORMAT_RAW)
         rawData = data.Value;
 
-      HttpListenerResponse response = context.Response;
-      response.Headers.Clear();
       response.StatusCode = responseCode;
       byte[] outputData = System.Text.Encoding.UTF8.GetBytes(rawData);
       response.ContentLength64 = outputData.Length;

@@ -160,6 +160,7 @@
       Controls.Add(txtFileName);
       Controls.Add(splitContainer1);
       Name = "frmAdministrationFile";
+      StartPosition = FormStartPosition.Manual;
       Text = "Server Files";
       Activated += frmAdministrationFile_Activated;
       Load += frmAdministrationFile_Load;

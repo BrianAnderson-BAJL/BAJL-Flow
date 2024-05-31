@@ -80,7 +80,7 @@ namespace FlowEngineCore
 
     public void LinkAdd(Flow f, Output o, Input i)
     {
-      LinkOutputs.Add(new Link(f.getNextId(), o, i));
+      LinkOutputs.Add(new Link(f.GetNextId(), o, i));
       
     }
 
@@ -151,7 +151,7 @@ namespace FlowEngineCore
         Variable parameters = new Variable("parms");
         for (int x = 0; x < vars.Length; x++)
         {
-          parameters.SubVariables.Add(vars[x]);
+          parameters.SubVariableAdd(vars[x]);
         }
         var.SubVariables.Add(parameters);
       }

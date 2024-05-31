@@ -243,6 +243,7 @@
       Controls.Add(label1);
       MaximizeBox = false;
       Name = "frmFlowProperties";
+      StartPosition = FormStartPosition.Manual;
       Text = "Flow Properties";
       Load += frmFlowProperties_Load;
       groupBox2.ResumeLayout(false);

@@ -57,16 +57,16 @@ namespace FlowEngineCore.Administration
       FlowEngineCore.Administration.TcpTlsClient? returnClient = null;
       try
       {
-        System.Net.Sockets.TcpClient client = new System.Net.Sockets.TcpClient();
+        System.Net.Sockets.TcpClient client = new();
         if (client.ConnectAsync(hostUrl, port).Wait(connectTimeout) == false)
         {
           Global.WriteToConsoleDebug($"Could not connect to url [{hostUrl}], port [{port}]");
           return null; //Couldn't connect within the connectTimeout period, return null (failure)
         }
-        SslStream stream = new SslStream(client.GetStream(), false, ValidateServerCertificate!);
+        SslStream stream = new(client.GetStream(), false, ValidateServerCertificate!);
         stream.AuthenticateAsClient(hostUrl);
-        returnClient = new TcpTlsClient(client, stream);
-        Thread T = new Thread(new ParameterizedThreadStart(returnClient.ReadTlsPacketsThread!));
+        returnClient = new(client, stream);
+        Thread T = new(new ParameterizedThreadStart(returnClient.ReadTlsPacketsThread!));
         T.Start(returnClient);
       }
       catch (Exception ex)
@@ -109,9 +109,12 @@ namespace FlowEngineCore.Administration
               //if (Br is null)
                 //Br = new BinaryReader(NS);
               
-              Packet Packet = new Packet();
+              Packet Packet = new();
               //Packet.ReadAllData(Br);
               Packet.ReadAllTlsData(Client.mStream);
+              if ((int)Packet.PacketType < (int)Packet.PACKET_TYPE._Unknown || (int)Packet.PacketType >= (int)Packet.PACKET_TYPE.zMaxValue)
+                throw new Exception("UNKNOWN PacketType TCP message is corrupted");
+
               if (Packet.PacketType != Packet.PACKET_TYPE._Unknown)
                 OnNewPacket(Packet, Client);
             }

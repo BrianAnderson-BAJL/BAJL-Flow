@@ -19,22 +19,22 @@ namespace FlowEngineCore
     public const string VAR_DATA = "data";
     protected int FileVersion = 0;
     protected RESP? resp;
-    protected List<FunctionStep> functionSteps = new List<FunctionStep>(32);
+    protected List<FunctionStep> functionSteps = new(32);
     protected FunctionStep? start = null;
     public string FileName = "";
     protected DateTime mCreatedDateTime = DateTime.MinValue;
     protected DateTime mModifiedLastDateTime = DateTime.MinValue;
-    protected List<User> previousUsers = new List<User>(10);
-    public Dictionary<string, Variable> Variables = new Dictionary<string, Variable>();
+    protected List<User> previousUsers = new(10);
+    public Dictionary<string, Variable> Variables = new();
     public Plugin? StartPlugin;
-    public PARM_VARS StartCommands = new PARM_VARS(); //Used so the flow engine knows when to start this flow.
+    public PARM_VARS StartCommands = new(); //Used so the flow engine knows when to start this flow.
     public string SampleData = "";
     public DATA_FORMAT SampleDataFormat = DATA_FORMAT._None;
-    public List<Comment> Comments = new List<Comment>(4);
+    public List<Comment> Comments = new(4);
 
     public FlowRequest.START_TYPE DebugStartType;
-    public TimeElapsed DebugFlowStartTime = new TimeElapsed();
-    public TimeElapsed DebugStepTime = new TimeElapsed();
+    public TimeElapsed DebugFlowStartTime = new();
+    public TimeElapsed DebugStepTime = new();
 
     private int currentId = 1;
 
@@ -46,7 +46,7 @@ namespace FlowEngineCore
 
     public Flow Clone()
     {
-      Flow flow = new Flow();
+      Flow flow = new();
       flow.FileName = FileName; 
       flow.FileVersion = FileVersion; 
       flow.StartPlugin = StartPlugin; //Don't need to clone, it is only read, not writen to
@@ -105,7 +105,7 @@ namespace FlowEngineCore
     }
 
 
-    public int getNextId()
+    public int GetNextId()
     {
       return currentId++;
     }
@@ -126,7 +126,7 @@ namespace FlowEngineCore
           return;
       }
       //Find all the links between steps, we need to insert a trace step between each of these links
-      List<Link> links = new List<Link>(functionSteps.Count * 3); //About how many outbound links are in each step, good starting point
+      List<Link> links = new(functionSteps.Count * 3); //About how many outbound links are in each step, good starting point
       for (int x = 0; x < functionSteps.Count; x++)
       {
         links.AddRange(functionSteps[x].LinkOutputs);
@@ -140,11 +140,11 @@ namespace FlowEngineCore
         if (oldInputStep is null || oldInputStep.Function.Input is null)
           continue; //Not linked to another step, skip it
 
-        FunctionStep stepTrace = new FunctionStep(this, getNextId(), "FlowCore.Trace", Vector2.Zero);
+        FunctionStep stepTrace = new(this, GetNextId(), "FlowCore.Trace", Vector2.Zero);
         link.Input.Step = stepTrace;
         Output outputNew = stepTrace.Function.Outputs[0].Clone(stepTrace);
         Input inputNew = oldInputStep.Function.Input.Clone(oldInputStep);
-        stepTrace.LinkOutputs.Add(new Link(getNextId(), outputNew, inputNew));
+        stepTrace.LinkOutputs.Add(new Link(GetNextId(), outputNew, inputNew));
         stepTrace.ParmVars.Add(new PARM_VAR(stepTrace.Function.Parms[0], new VarRef(VAR_NAME_PREVIOUS_STEP)));
         this.functionSteps.Add(stepTrace);
       }
@@ -164,7 +164,7 @@ namespace FlowEngineCore
       start.Execute(this);
       //start.RuntimeParms = start.parms.Clone();
       List<FunctionStep> nextSteps = GetNextSteps(start);
-      List<FunctionStep> nextNextSteps = new List<FunctionStep>(16);
+      List<FunctionStep> nextNextSteps = new(16);
       FunctionStep? lastStep = null;
       do
       {
@@ -199,7 +199,7 @@ namespace FlowEngineCore
       long executionTicks = this.DebugFlowStartTime.End().Ticks;
       bool success = true;
 
-      Xml xml = new Xml();
+      Xml xml = new();
       xml.WriteMemoryNew();
       xml.WriteTagStart("DebugResults");
 
@@ -225,7 +225,7 @@ namespace FlowEngineCore
 
       xml.WriteTagEnd("DebugResults");
 
-      TraceResponse flowDebugResponse = new TraceResponse(0, "FlowCore.Stop", xml.ReadMemory(), executionTicks, success);
+      TraceResponse flowDebugResponse = new(0, "FlowCore.Stop", xml.ReadMemory(), executionTicks, success);
       DebuggerManager.SendToAllDebuggers(flowDebugResponse.GetPacket());
     }
 
@@ -237,7 +237,7 @@ namespace FlowEngineCore
         return;
       }
 
-      Xml xml = new Xml();
+      Xml xml = new();
       xml.WriteMemoryNew();
       xml.WriteTagStart("Trace");
       xml.WriteTagAndContents("FileName", Options.GetFlowFileNameRelativePath(this.FileName));
@@ -288,13 +288,13 @@ namespace FlowEngineCore
       xml.WriteTagEnd("Trace");
       string xmlStr = xml.ReadMemory();
       previousStep.DebugTraceXml = xmlStr;
-      FlowEngineCore.Administration.Messages.TraceResponse trace = new FlowEngineCore.Administration.Messages.TraceResponse(previousStep.Id, previousStep.Name, xmlStr, ticks, resp.Success);
+      FlowEngineCore.Administration.Messages.TraceResponse trace = new(previousStep.Id, previousStep.Name, xmlStr, ticks, resp.Success);
       DebuggerManager.SendToAllDebuggers(trace.GetPacket());
     }
 
     protected virtual List<FunctionStep> ExecuteSteps(List<FunctionStep> steps)
     {
-      List<FunctionStep> nextSteps = new List<FunctionStep>(16);
+      List<FunctionStep> nextSteps = new(16);
       for (int x = 0; x < steps.Count; x++)
       {
         FunctionStep step = steps[x];
@@ -310,14 +310,14 @@ namespace FlowEngineCore
 
     public virtual List<FunctionStep> GetPreviousSteps(FunctionStep step)
     {
-      List<FunctionStep> steps = new List<FunctionStep>(16);
+      List<FunctionStep> steps = new(16);
 
       return steps;
     }
 
     protected virtual List<FunctionStep> GetNextSteps(FunctionStep step)
     {
-      List<FunctionStep> nextSteps = new List<FunctionStep>(16);
+      List<FunctionStep> nextSteps = new(16);
       for (int x = 0; x < step.LinkOutputs.Count; x++)
       {
         FunctionStep? s = step.LinkOutputs[x].Input.Step;
@@ -543,7 +543,7 @@ namespace FlowEngineCore
     {
       functionSteps.Clear();
       FileName = fileName;
-      Xml xml = new Xml();
+      Xml xml = new();
       string content = xml.FileRead(FileName);
       XmlRead(ref content, til);
     }
@@ -575,7 +575,7 @@ namespace FlowEngineCore
         userXml = Xml.GetXMLChunk(ref usersData, "User");
         if (userXml != "")
         {
-          User u = new User();
+          User u = new();
           u.FromXml(ref userXml);
           previousUsers.Add(u);
         }
@@ -615,7 +615,7 @@ namespace FlowEngineCore
           string saveRespVarName = Xml.GetXMLChunk(ref step, "SaveResponseVariableName");
           string links = Xml.GetXMLChunk(ref step, "Links"); //Can't fully parse the links here since we haven't loaded all the steps yet
           string vars = Xml.GetXMLChunk(ref step, "Variables");
-          FunctionStep fs = new FunctionStep(this, stepId, pluginName, functionName, stepPos, links); //Store the links XML with the step for now so we can link the steps together below
+          FunctionStep fs = new(this, stepId, pluginName, functionName, stepPos, links); //Store the links XML with the step for now so we can link the steps together below
           fs.SaveResponseVariable = saveRespVar;
           fs.RespNames.Name = saveRespVarName;
           string tempValidatorName = Xml.GetXMLChunk(ref step, "ValidatorName");
@@ -631,7 +631,7 @@ namespace FlowEngineCore
         comment = Xml.GetXMLChunk(ref comments, "Comment");
         if (comment.Length > 0)
         {
-          Comment c = new Comment();
+          Comment c = new();
           c.Id = Xml.GetXMLChunkAsInt(ref comment, "Id");
           if (c.Id >= currentId)
             currentId = c.Id + 1;
@@ -700,6 +700,10 @@ namespace FlowEngineCore
             string value = Xml.GetXMLChunk(ref var, "Value", Xml.BAJL_ENCODE.Base64Encoding); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
             pv = new PARM_VAR(p, value);
           }
+          else if (dataType == "Various")
+          {
+            pv = new PARM_VAR(p, "");
+          }
           else
           {
             throw new ExceptionFlowLoad($"Unknown Datatype [{dataType}] for parameter [{name}] in flow [{this.FileName}]");
@@ -714,7 +718,14 @@ namespace FlowEngineCore
         parmVars.Add(pv);
       } while (var.Length > 0) ;
 
-      //TODO: Check that all required parameters have been assigned to
+      for (int x = parmVars.Count; x < parms.Count; x++)
+      {
+        if (parms[x].Required == PARM.PARM_REQUIRED.Yes)
+        {
+          parmVars.Add(parms[x].ToParmVar());
+        }
+      }
+      
     }
 
     private void ParseLinks(FunctionStep function)
@@ -764,7 +775,7 @@ namespace FlowEngineCore
 
     public string ToJson() //JSON_ROOT_BLOCK_OPTIONS options = JSON_ROOT_BLOCK_OPTIONS.None, int TabIndents = 0
     {
-      string json = new string('\t', 0);
+      string json = new('\t', 0);
 
       json += "\"flow\"";
       json += ": {";

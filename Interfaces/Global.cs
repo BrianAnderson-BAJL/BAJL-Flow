@@ -64,7 +64,8 @@ namespace FlowEngineCore
     //-1 to -1000 = FunctionValidator errors
     FV_MustHaveOneRecord = -1,
     _NoError = 0, //SUCCESS
-    FlowCoreErrorMin = 1,
+    NotImplemented = 1,
+    FlowCoreErrorMin = 1000,
     FlowCoreErrorMax = 1999,
     DatabaseErrorMin = 2000,
     DatabaseErrorMax = 2999,
@@ -76,6 +77,8 @@ namespace FlowEngineCore
     SessionErrorMax = 5999,
     ValidationErrorMin = 6000,
     ValidationErrorMax = 6999,
+    EmailErrorMin = 7000,
+    EmailErrorMax = 7999,
   }
 
   public class Global
@@ -83,6 +86,7 @@ namespace FlowEngineCore
     public static string[] IllegalFileNameCharacters = { "..", "*", "?", "#", "<", ">", "&", "{", "}", "\\\\", "$", "!", "'", "\"", ":", "`", "|", "=" };
     public static string[] IllegalFileNameStartCharacters = { " ", ".", "-", "_" };
 
+    public static string[] NUMERIC = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "+", "-", ".", ",", };
     public static int XmlDepthMax = 100;
     public static int JsonDepthMax = 100;
 
@@ -146,7 +150,7 @@ namespace FlowEngineCore
       }
       else if (ts.TotalDays >= 1)
       {
-        return ts.Days.ToString() + "d " + ts.Hours.ToString() + "h " + ts.Minutes.ToString() + "m";
+        return Math.Floor(ts.TotalDays).ToString() + "d " + ts.Hours.ToString() + "h " + ts.Minutes.ToString() + "m";
       }
       return ts.ToString();
     }

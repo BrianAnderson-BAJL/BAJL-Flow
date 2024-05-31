@@ -41,5 +41,13 @@ namespace Db
     {
       throw new NotImplementedException();
     }
+    public Variable SelectId(string SQL, params Variable[] vars)
+    {
+      throw new NotImplementedException();
+    }
+    public Variable SelectOneRecord(string SQL, params Variable[] vars)
+    {
+      throw new NotImplementedException();
+    }
   }
 }

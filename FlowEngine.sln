@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Session", "Session\Session.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation", "Validation\Validation.csproj", "{3C34896B-A6A1-4530-9F38-3C5052716B6A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Email", "Email\Email.csproj", "{73BB2E0B-365C-4614-82A7-FD215EBEEBD9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,10 @@ Global
 		{3C34896B-A6A1-4530-9F38-3C5052716B6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C34896B-A6A1-4530-9F38-3C5052716B6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C34896B-A6A1-4530-9F38-3C5052716B6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{73BB2E0B-365C-4614-82A7-FD215EBEEBD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{73BB2E0B-365C-4614-82A7-FD215EBEEBD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{73BB2E0B-365C-4614-82A7-FD215EBEEBD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{73BB2E0B-365C-4614-82A7-FD215EBEEBD9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

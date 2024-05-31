@@ -259,7 +259,7 @@ namespace FlowEngineDesigner
 
         //if (FlowWrapper is not null)
         //{
-        FlowWrapper = new cFlowWrapper();
+        FlowWrapper = new cFlowWrapper(cFlowWrapper.INCLUDE_START_STEP.EXCLUDE);
         FlowWrapper.XmlRead(ref flowXml);
         FlowWrapper.FileName = response.FileName;
 

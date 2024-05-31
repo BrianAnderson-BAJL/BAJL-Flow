@@ -24,9 +24,9 @@ namespace FlowEngineCore.Administration
     /// </summary>
     public event EventHandler<EventArgsPacket>? NewPacket;
     private X509Certificate mCertificate;
-    private List<TcpTlsClient> mClients = new List<TcpTlsClient>(32);
+    private List<TcpTlsClient> mClients = new(32);
     private int mPort;
-    private object mCriticalSection = new object();
+    private object mCriticalSection = new();
     private bool mContinue = true;
     private int mReadPacketTimeout = 5000;
 
@@ -34,7 +34,7 @@ namespace FlowEngineCore.Administration
     {
       if (ConnectionClosed is not null)
       {
-        EventArgsTcpClient EA = new EventArgsTcpClient(client);
+        EventArgsTcpClient EA = new(client);
         ConnectionClosed(this, EA);
       }
       client.OnConnectionClosed(client);
@@ -44,7 +44,7 @@ namespace FlowEngineCore.Administration
     {
       if (NewPacket is not null)
       {
-        EventArgsPacket EA = new EventArgsPacket(packet, client);
+        EventArgsPacket EA = new(packet, client);
         NewPacket(this, EA);
       }
       client.OnNewPacket(packet, client);
@@ -54,7 +54,7 @@ namespace FlowEngineCore.Administration
     {
       if (NewConnection is not null)
       {
-        EventArgsTcpClient EA = new EventArgsTcpClient(client);
+        EventArgsTcpClient EA = new(client);
         NewConnection(this, EA);
       }
     }
@@ -81,7 +81,7 @@ namespace FlowEngineCore.Administration
     public void Start(int PortNumber)
     {
       mPort = PortNumber;
-      Thread T = new Thread(ListenThread);
+      Thread T = new(ListenThread);
       T.Start();
     }
 
@@ -99,13 +99,13 @@ namespace FlowEngineCore.Administration
 
     private void ListenThread()
     {
-      Global.WriteToConsoleDebug("Initializing...Starting Administration TCP server");
+      FlowEngine.Log?.Write("Initializing...Starting Administration TCP server");
 
       try
       {
-        TcpListener Listener = new TcpListener(IPAddress.Any, mPort);
+        TcpListener Listener = new(IPAddress.Any, mPort);
         Listener.Start();
-        Global.WriteToConsoleDebug($"TcpTlsServer Listening on - [IpAddress.Any], [{mPort}]");
+        FlowEngine.Log?.Write($"TcpTlsServer Listening on - [IpAddress.Any], [{mPort}]");
 
         while (mContinue == true)
         {
@@ -113,15 +113,15 @@ namespace FlowEngineCore.Administration
           {
             if (Listener.Pending() == true)
             {
-              Global.WriteToConsoleDebug($"TcpTlsServer Waiting to accept connections");
+              FlowEngine.Log?.Write($"TcpTlsServer Waiting to accept connections");
               System.Net.Sockets.TcpClient Client = Listener.AcceptTcpClient();
-              Global.WriteToConsoleDebug($"TcpTlsServer accepted connection");
+              FlowEngine.Log?.Write($"TcpTlsServer accepted connection");
               Client.NoDelay = true;
               Client.LingerState = new LingerOption(false, 0);
               TcpTlsClient C = ClientAdd(Client);
               C.NewPacket += this.NewPacket;
               C.ConnectionClosed += this.ConnectionClosed;
-              Thread T = new Thread(new ParameterizedThreadStart(C.ReadTlsPacketsThread!));
+              Thread T = new(new ParameterizedThreadStart(C.ReadTlsPacketsThread!));
               T.Start(C);
             }
           }
@@ -135,7 +135,7 @@ namespace FlowEngineCore.Administration
       }
       catch (Exception ex)
       {
-        Global.WriteToConsoleDebug($"TcpTlsServer ERROR - [{ex.Message}]", LOG_TYPE.ERR);
+        FlowEngine.Log?.Write($"TcpTlsServer ERROR - [{ex.Message}]", LOG_TYPE.ERR);
       }
     }
 
@@ -146,9 +146,9 @@ namespace FlowEngineCore.Administration
 
     private TcpTlsClient ClientAdd(System.Net.Sockets.TcpClient Client)
     {
-      SslStream stream = new SslStream(Client.GetStream(), false);
+      SslStream stream = new(Client.GetStream(), false);
       stream.AuthenticateAsServer(mCertificate, false, SslProtocols.None, true); //SslProtocols.None means that the OS is allowed to decide which protocol to use, default is currently TLS 1.2, 1.3 is only available in Windows 11
-      TcpTlsClient C = new TcpTlsClient(Client, stream);
+      TcpTlsClient C = new(Client, stream);
 
       lock (mCriticalSection)
       {

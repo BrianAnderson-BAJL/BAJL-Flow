@@ -37,6 +37,7 @@
       simpleToolStripMenuItem = new ToolStripMenuItem();
       groupByHavingToolStripMenuItem = new ToolStripMenuItem();
       joinToLookUpToolStripMenuItem = new ToolStripMenuItem();
+      leftJoinMultipleTablesToolStripMenuItem = new ToolStripMenuItem();
       joinToolStripMenuItem = new ToolStripMenuItem();
       innerJoinToolStripMenuItem = new ToolStripMenuItem();
       leftJoinToolStripMenuItem = new ToolStripMenuItem();
@@ -51,6 +52,7 @@
       label1 = new Label();
       tvDatabase = new TreeView();
       btnOk = new Button();
+      testingToolStripMenuItem = new ToolStripMenuItem();
       menuStrip1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)scSql).BeginInit();
       scSql.Panel1.SuspendLayout();
@@ -77,14 +79,14 @@
       // openToolStripMenuItem
       // 
       openToolStripMenuItem.Name = "openToolStripMenuItem";
-      openToolStripMenuItem.Size = new Size(114, 22);
+      openToolStripMenuItem.Size = new Size(180, 22);
       openToolStripMenuItem.Text = "&Open";
       openToolStripMenuItem.Click += openToolStripMenuItem_Click;
       // 
       // saveAsToolStripMenuItem
       // 
       saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-      saveAsToolStripMenuItem.Size = new Size(114, 22);
+      saveAsToolStripMenuItem.Size = new Size(180, 22);
       saveAsToolStripMenuItem.Text = "Save &As";
       saveAsToolStripMenuItem.Click += saveAsToolStripMenuItem_Click;
       // 
@@ -93,43 +95,50 @@
       samplesToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { selectToolStripMenuItem, joinToolStripMenuItem });
       samplesToolStripMenuItem.Name = "samplesToolStripMenuItem";
       samplesToolStripMenuItem.Size = new Size(95, 20);
-      samplesToolStripMenuItem.Text = "Insert Samples";
+      samplesToolStripMenuItem.Text = "&Insert Samples";
       samplesToolStripMenuItem.Click += samplesToolStripMenuItem_Click;
       // 
       // selectToolStripMenuItem
       // 
-      selectToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { simpleToolStripMenuItem, groupByHavingToolStripMenuItem, joinToLookUpToolStripMenuItem });
+      selectToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { simpleToolStripMenuItem, groupByHavingToolStripMenuItem, joinToLookUpToolStripMenuItem, leftJoinMultipleTablesToolStripMenuItem });
       selectToolStripMenuItem.Name = "selectToolStripMenuItem";
       selectToolStripMenuItem.Size = new Size(105, 22);
-      selectToolStripMenuItem.Text = "Select";
+      selectToolStripMenuItem.Text = "&Select";
       // 
       // simpleToolStripMenuItem
       // 
       simpleToolStripMenuItem.Name = "simpleToolStripMenuItem";
-      simpleToolStripMenuItem.Size = new Size(172, 22);
-      simpleToolStripMenuItem.Text = "Simple";
+      simpleToolStripMenuItem.Size = new Size(199, 22);
+      simpleToolStripMenuItem.Text = "&Simple";
       simpleToolStripMenuItem.Click += simpleToolStripMenuItem_Click;
       // 
       // groupByHavingToolStripMenuItem
       // 
       groupByHavingToolStripMenuItem.Name = "groupByHavingToolStripMenuItem";
-      groupByHavingToolStripMenuItem.Size = new Size(172, 22);
-      groupByHavingToolStripMenuItem.Text = "Group by / Having";
+      groupByHavingToolStripMenuItem.Size = new Size(199, 22);
+      groupByHavingToolStripMenuItem.Text = "&Group by / Having";
       groupByHavingToolStripMenuItem.Click += groupByHavingToolStripMenuItem_Click;
       // 
       // joinToLookUpToolStripMenuItem
       // 
       joinToLookUpToolStripMenuItem.Name = "joinToLookUpToolStripMenuItem";
-      joinToLookUpToolStripMenuItem.Size = new Size(172, 22);
-      joinToLookUpToolStripMenuItem.Text = "Join to Look up";
+      joinToLookUpToolStripMenuItem.Size = new Size(199, 22);
+      joinToLookUpToolStripMenuItem.Text = "&Join to Look up";
       joinToLookUpToolStripMenuItem.Click += joinToLookUpToolStripMenuItem_Click;
+      // 
+      // leftJoinMultipleTablesToolStripMenuItem
+      // 
+      leftJoinMultipleTablesToolStripMenuItem.Name = "leftJoinMultipleTablesToolStripMenuItem";
+      leftJoinMultipleTablesToolStripMenuItem.Size = new Size(199, 22);
+      leftJoinMultipleTablesToolStripMenuItem.Text = "&Left Join multiple tables";
+      leftJoinMultipleTablesToolStripMenuItem.Click += leftJoinMultipleTablesToolStripMenuItem_Click;
       // 
       // joinToolStripMenuItem
       // 
       joinToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { innerJoinToolStripMenuItem, leftJoinToolStripMenuItem, rightJoinToolStripMenuItem, fullJoinFullOuterJoinToolStripMenuItem });
       joinToolStripMenuItem.Name = "joinToolStripMenuItem";
       joinToolStripMenuItem.Size = new Size(105, 22);
-      joinToolStripMenuItem.Text = "Join";
+      joinToolStripMenuItem.Text = "&Join";
       // 
       // innerJoinToolStripMenuItem
       // 
@@ -161,18 +170,18 @@
       // 
       // viewToolStripMenuItem
       // 
-      viewToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { showDatabaseToolStripMenuItem });
+      viewToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { showDatabaseToolStripMenuItem, testingToolStripMenuItem });
       viewToolStripMenuItem.Name = "viewToolStripMenuItem";
       viewToolStripMenuItem.Size = new Size(44, 20);
-      viewToolStripMenuItem.Text = "View";
+      viewToolStripMenuItem.Text = "&View";
       // 
       // showDatabaseToolStripMenuItem
       // 
       showDatabaseToolStripMenuItem.Checked = true;
       showDatabaseToolStripMenuItem.CheckState = CheckState.Checked;
       showDatabaseToolStripMenuItem.Name = "showDatabaseToolStripMenuItem";
-      showDatabaseToolStripMenuItem.Size = new Size(154, 22);
-      showDatabaseToolStripMenuItem.Text = "Show Database";
+      showDatabaseToolStripMenuItem.Size = new Size(180, 22);
+      showDatabaseToolStripMenuItem.Text = "&Show Database";
       showDatabaseToolStripMenuItem.Click += showDatabaseToolStripMenuItem_Click;
       // 
       // openFileDialog1
@@ -193,7 +202,7 @@
       // 
       scSql.Panel2.Controls.Add(label1);
       scSql.Panel2.Controls.Add(tvDatabase);
-      scSql.Size = new Size(966, 554);
+      scSql.Size = new Size(966, 543);
       scSql.SplitterDistance = 672;
       scSql.TabIndex = 2;
       // 
@@ -203,7 +212,7 @@
       rtbSql.Font = new Font("Courier New", 12F, FontStyle.Regular, GraphicsUnit.Point);
       rtbSql.Location = new Point(0, 0);
       rtbSql.Name = "rtbSql";
-      rtbSql.Size = new Size(669, 551);
+      rtbSql.Size = new Size(669, 540);
       rtbSql.TabIndex = 1;
       rtbSql.Text = "";
       rtbSql.TextChanged += rtbSql_TextChanged;
@@ -223,7 +232,7 @@
       tvDatabase.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
       tvDatabase.Location = new Point(3, 27);
       tvDatabase.Name = "tvDatabase";
-      tvDatabase.Size = new Size(284, 524);
+      tvDatabase.Size = new Size(284, 513);
       tvDatabase.TabIndex = 0;
       tvDatabase.BeforeCollapse += tvDatabase_BeforeCollapse;
       tvDatabase.NodeMouseDoubleClick += tvDatabase_NodeMouseDoubleClick;
@@ -232,7 +241,7 @@
       // btnOk
       // 
       btnOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      btnOk.Location = new Point(880, 587);
+      btnOk.Location = new Point(880, 576);
       btnOk.Name = "btnOk";
       btnOk.Size = new Size(83, 36);
       btnOk.TabIndex = 3;
@@ -240,11 +249,17 @@
       btnOk.UseVisualStyleBackColor = true;
       btnOk.Click += btnOk_Click;
       // 
+      // testingToolStripMenuItem
+      // 
+      testingToolStripMenuItem.Name = "testingToolStripMenuItem";
+      testingToolStripMenuItem.Size = new Size(180, 22);
+      testingToolStripMenuItem.Text = "&Testing";
+      // 
       // frmSqlEditor
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(966, 630);
+      ClientSize = new Size(966, 619);
       Controls.Add(btnOk);
       Controls.Add(scSql);
       Controls.Add(menuStrip1);
@@ -289,5 +304,7 @@
     private Label label1;
     private TreeView tvDatabase;
     private Button btnOk;
+    private ToolStripMenuItem leftJoinMultipleTablesToolStripMenuItem;
+    private ToolStripMenuItem testingToolStripMenuItem;
   }
 }

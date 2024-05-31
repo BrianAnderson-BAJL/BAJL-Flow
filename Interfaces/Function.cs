@@ -108,18 +108,26 @@ namespace FlowEngineCore
     /// <param name="pos"></param>
     public void OutputAdd(string label)
     {
-      mOutputs.Add(new Output(label, Output.TYPE.Success));
+      mOutputs.Add(new Output(label, (Output.TYPE)mOutputs.Count));
     }
 
-    public void OutputAddSuccess()
+    public void OutputAddSuccess(string outputLabel = Output.SUCCESS_LABEL)
     {
       mOutputs.Clear();
-      mOutputs.Add(new Output(Output.SUCCESS_LABEL, Output.TYPE.Success));
+      mOutputs.Add(new Output(outputLabel, Output.TYPE.Success));
     }
 
     public void OutputAddError()
     {
       mOutputs.Add(new Output(Output.ERROR_LABEL, Output.TYPE.Error));
+    }
+    public void UpdateSuccessOutputLabel(string label)
+    {
+      Output? output = FindOutputByType(Output.TYPE.Success);
+      if (output is null)
+        throw new Exception("Unable to find Output.Type == Error");
+
+      output.Label = label;
     }
 
     public void UpdateErrorOutputLabel(string label)

@@ -34,6 +34,7 @@
       txtKey = new TextBox();
       cmbDataType = new ComboBox();
       nudNumber = new NumericUpDown();
+      lblDescription = new LinkLabel();
       ((System.ComponentModel.ISupportInitialize)nudNumber).BeginInit();
       SuspendLayout();
       // 
@@ -65,13 +66,14 @@
       txtValue.Size = new Size(246, 23);
       txtValue.TabIndex = 17;
       txtValue.Visible = false;
+      txtValue.TextChanged += txtValue_TextChanged;
       // 
       // txtKey
       // 
-      txtKey.Location = new Point(3, 3);
+      txtKey.Location = new Point(2, 3);
       txtKey.Name = "txtKey";
       txtKey.ReadOnly = true;
-      txtKey.Size = new Size(223, 23);
+      txtKey.Size = new Size(204, 23);
       txtKey.TabIndex = 15;
       txtKey.TabStop = false;
       txtKey.TextChanged += txtKey_TextChanged;
@@ -96,6 +98,17 @@
       nudNumber.TabIndex = 21;
       nudNumber.Visible = false;
       // 
+      // lblDescription
+      // 
+      lblDescription.AutoSize = true;
+      lblDescription.Location = new Point(214, 7);
+      lblDescription.Name = "lblDescription";
+      lblDescription.Size = new Size(18, 15);
+      lblDescription.TabIndex = 22;
+      lblDescription.TabStop = true;
+      lblDescription.Text = " ? ";
+      lblDescription.MouseClick += lblDescription_MouseClick;
+      // 
       // ucParameterVarious
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
@@ -106,6 +119,7 @@
       Controls.Add(txtValue);
       Controls.Add(txtKey);
       Controls.Add(nudNumber);
+      Controls.Add(lblDescription);
       Name = "ucParameterVarious";
       Size = new Size(609, 29);
       Load += ucParameterVarious_Load;
@@ -122,5 +136,6 @@
     public TextBox txtKey;
     private ComboBox cmbDataType;
     private NumericUpDown nudNumber;
+    private LinkLabel lblDescription;
   }
 }

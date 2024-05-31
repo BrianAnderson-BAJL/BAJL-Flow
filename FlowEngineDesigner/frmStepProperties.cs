@@ -88,6 +88,7 @@ namespace FlowEngineDesigner
           btnAddParameter.Visible = false;
         }
       }
+
       if (mStep.ParmVars.Count < mStep.Function.Parms.Count) //If a user has deleted the last 'multiple' parm_var then we need to have the 'Add Parameter' button visible
       {
         btnAddParameter.Visible = true;

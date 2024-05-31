@@ -18,9 +18,8 @@ namespace FlowEngineCore.Administration.Messages
     /// <param name="packet"></param>
     public SecurityProfileAdd(FlowEngineCore.Administration.Packet packet) : base(packet)
     {
-      int val;
       packet.GetData(out this.Name);
-      packet.GetData(out val);
+      packet.GetData(out int val);
       AdministrationUsers = (SecurityProfile.SECURITY_ACCESS_LEVEL)val;
       packet.GetData(out val);
       AdministrationSecurityProfiles = (SecurityProfile.SECURITY_ACCESS_LEVEL)val;

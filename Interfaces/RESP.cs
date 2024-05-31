@@ -42,7 +42,7 @@ namespace FlowEngineCore
     {
       RESP r = new RESP();
       r.mErrorNumber = errornumber;
-      r.mOutputType = Output.TYPE.Error;
+      r.mOutputType = (Output.TYPE)outputIndex;
       r.mErrorDescription = errorDescription;
       mLog?.Write(errorDescription, LOG_TYPE.DBG);
       return r;

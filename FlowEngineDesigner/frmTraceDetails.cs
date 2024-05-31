@@ -105,7 +105,7 @@ namespace FlowEngineDesigner
       {
         string flowXml = response.FlowXml;
 
-        cFlowWrapper flowWrapper = new cFlowWrapper(false);
+        cFlowWrapper flowWrapper = new cFlowWrapper(cFlowWrapper.INCLUDE_START_STEP.EXCLUDE);
         flowWrapper.FileName = txtFileName.Text;
         flowWrapper.XmlRead(ref flowXml);
         frmFlow f = new frmFlow(flowWrapper);

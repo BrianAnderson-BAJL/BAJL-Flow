@@ -91,5 +91,18 @@ namespace FlowEngineDesigner
       }
 
     }
+
+    private void txtValue_TextChanged(object sender, EventArgs e)
+    {
+      if (mStep is null)
+        return;
+
+      Variable? var = mFlow.FindVariableDesigner(txtValue.Text, mStep);
+      if (var is null)
+        txtValue.ForeColor = Color.Red;
+      else
+        txtValue.ForeColor = Color.Black;
+
+    }
   }
 }

@@ -52,7 +52,7 @@ namespace FlowEngineCore.Administration.Messages
 
     public virtual FlowEngineCore.Administration.Packet GetPacket()
     {
-      Packet packet = new Packet(PacketType, PacketId);
+      Packet packet = new(PacketType, PacketId);
       packet.AddData((int)ResponseCode);
       return packet;
     }
