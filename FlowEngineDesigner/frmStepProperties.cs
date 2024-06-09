@@ -111,30 +111,35 @@ namespace FlowEngineDesigner
     private ucParameter? CreateParameterInput(PARM_VAR pv)
     {
       ucParameter? uc = null;
-      if (pv.Parm.DataType == DATA_TYPE.Integer)
+      if (pv.Parm.DataType == DATA_TYPE.String && pv.Parm.StringSubType == STRING_SUB_TYPE.DropDownList)
       {
-        uc = new ucParameterInteger(pv, mStep, mFlow);
-      }
-      else if ((pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.Object) && pv.Parm.StringSubType == STRING_SUB_TYPE._None)
-      {
-        uc = new ucParameterString(pv, mStep, mFlow);
+        uc = new ucParameterDropDownList(pv);
       }
       else if (pv.Parm.DataType == DATA_TYPE.String && pv.Parm.StringSubType == STRING_SUB_TYPE.Sql)
       {
         uc = new ucParameterStringSql(pv, mStep, mFlow);
       }
-      else if (pv.Parm.DataType == DATA_TYPE.String && pv.Parm.StringSubType == STRING_SUB_TYPE.DropDownList)
-      {
-        uc = new ucParameterDropDownList(pv);
-      }
-      else if (pv.Parm.DataType == DATA_TYPE.Various)
+      else
       {
         uc = new ucParameterVarious(pv, mStep, mFlow);
       }
-      else if (pv.Parm.DataType == DATA_TYPE.Decimal)
-      {
 
-      }
+      //if (pv.Parm.DataType == DATA_TYPE.Integer)
+      //{
+      //  uc = new ucParameterInteger(pv, mStep, mFlow);
+      //}
+      //else if ((pv.Parm.DataType == DATA_TYPE.String || pv.Parm.DataType == DATA_TYPE.Object) && pv.Parm.StringSubType == STRING_SUB_TYPE._None)
+      //{
+      //  uc = new ucParameterString(pv, mStep, mFlow);
+      //}
+      //else if (pv.Parm.DataType == DATA_TYPE.Various)
+      //{
+      //  uc = new ucParameterVarious(pv, mStep, mFlow);
+      //}
+      //else if (pv.Parm.DataType == DATA_TYPE.Decimal)
+      //{
+
+      //}
       return uc;
     }
 

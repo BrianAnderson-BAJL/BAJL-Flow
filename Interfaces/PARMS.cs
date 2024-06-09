@@ -34,6 +34,17 @@ namespace FlowEngineCore
       return parmVars;
     }
 
+    public int CountOfRequiredParms()
+    {
+      int count = 0;
+      for (int x = 0; x < this.Count; x++)
+      {
+        if (this[x].Required == PARM_REQUIRED.Yes)
+          count++;
+      }
+      return count;
+    }
+
     public PARM Add(string name, DATA_TYPE dataType, PARM.PARM_REQUIRED required = PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE allowMultiple = PARM.PARM_ALLOW_MULTIPLE.Single, PARM_RESOLVE_VARIABLES resolveVariables = PARM_RESOLVE_VARIABLES.Yes)
     {
       PARM val = new PARM(name, dataType, required, allowMultiple, resolveVariables);

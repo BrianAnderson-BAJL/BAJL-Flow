@@ -70,7 +70,7 @@ namespace FlowEngineCore
     protected object mFlowsCriticalSection = new object();
 
 
-    public void FlowAdd(FlowEngineCore.Flow flow)
+    public virtual void FlowAdd(FlowEngineCore.Flow flow)
     {
       lock (mFlowsCriticalSection)
       {
@@ -83,7 +83,7 @@ namespace FlowEngineCore
       }
     }
 
-    public void FlowRemove(string fileName)
+    public virtual void FlowRemove(string fileName)
     {
       lock (mFlowsCriticalSection)
       {

@@ -102,31 +102,6 @@ namespace FlowEngineDesigner
         PARM_VAR parmVar = Flow.StartCommands[x];
 
 
-        if (parmVar.Parm.DataType == DATA_TYPE.Integer)
-        {
-          ucParameterInteger uc = new ucParameterInteger(parmVar, null, Flow);
-          uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-          uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
-          gbStartOptions.Controls.Add(uc);
-          userControls.Add(uc);
-        }
-        if ((parmVar.Parm.DataType == DATA_TYPE.String && parmVar.Parm.StringSubType != STRING_SUB_TYPE.DropDownList) || parmVar.Parm.DataType == DATA_TYPE.Object)
-        {
-          ucParameterString uc = new ucParameterString(parmVar, null, Flow);
-          uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-          uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
-          gbStartOptions.Controls.Add(uc);
-          userControls.Add(uc);
-
-        }
-        if (parmVar.Parm.DataType == DATA_TYPE.Decimal)
-        {
-          //txtValue.Text = ParmDec.Value.ToString();
-        }
-        if (parmVar.Parm.DataType == DATA_TYPE.Boolean)
-        {
-
-        }
         if (parmVar.Parm.DataType == DATA_TYPE.String && parmVar.Parm.StringSubType == STRING_SUB_TYPE.DropDownList)
         {
           ucParameterDropDownList uc = new ucParameterDropDownList(parmVar);
@@ -135,6 +110,39 @@ namespace FlowEngineDesigner
           gbStartOptions.Controls.Add(uc);
           userControls.Add(uc);
         }
+        else
+        {
+          ucParameterVarious uc = new ucParameterVarious(parmVar, null, Flow);
+          uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+          uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
+          gbStartOptions.Controls.Add(uc);
+          userControls.Add(uc);
+        }
+        //if (parmVar.Parm.DataType == DATA_TYPE.Integer)
+        //{
+        //  ucParameterInteger uc = new ucParameterInteger(parmVar, null, Flow);
+        //  uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        //  uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
+        //  gbStartOptions.Controls.Add(uc);
+        //  userControls.Add(uc);
+        //}
+        //if ((parmVar.Parm.DataType == DATA_TYPE.String && parmVar.Parm.StringSubType != STRING_SUB_TYPE.DropDownList) || parmVar.Parm.DataType == DATA_TYPE.Object)
+        //{
+        //  ucParameterString uc = new ucParameterString(parmVar, null, Flow);
+        //  uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        //  uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
+        //  gbStartOptions.Controls.Add(uc);
+        //  userControls.Add(uc);
+
+        //}
+        //if (parmVar.Parm.DataType == DATA_TYPE.Decimal)
+        //{
+        //  //txtValue.Text = ParmDec.Value.ToString();
+        //}
+        //if (parmVar.Parm.DataType == DATA_TYPE.Boolean)
+        //{
+
+        //}
       }
     }
 

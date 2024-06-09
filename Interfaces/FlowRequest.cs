@@ -23,6 +23,7 @@ namespace FlowEngineCore
     public Plugin? PluginStartedFrom;
     public Flow FlowToStart;
     public string? OverrideThreadName;
+    public int ManagedThreadId;
     public START_TYPE StartType = START_TYPE.WaitForEvent;
     public CLONE_FLOW CloneFlow = CLONE_FLOW.CloneFlow;
 

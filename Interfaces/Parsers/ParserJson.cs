@@ -61,12 +61,26 @@ namespace FlowEngineCore.Parsers
 
     private void Parse(JArray ja, Variable parent)
     {
-      foreach (JValue item in ja)
+      for (int x = 0; x < ja.Count; x++)
       {
         Variable var = new Variable();
-        parent.SubVariableAdd(var);
-        Parse(item, var);
+        JObject? jo = ja[x] as JObject;
+        if (jo is not null)
+        {
+          Parse(jo, var);
+        }
+        JValue? jv = ja[x] as JValue;
+        if (jv is not null)
+        {
+          Parse(jv, var);
+        }
       }
+      //foreach (JValue item in ja)
+      //{
+      //  Variable var = new Variable();
+      //  parent.SubVariableAdd(var);
+      //  Parse(item, var);
+      //}
     }
 
     private void Parse(JObject? jo, Variable parent)

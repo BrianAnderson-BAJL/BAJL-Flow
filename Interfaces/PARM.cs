@@ -34,6 +34,9 @@ namespace FlowEngineCore
       NumberDefaultValue,
       NumberDecimalPlaces,
       NumberIncrement,
+      //Boolean
+      BooleanDefaultValue,
+
     }
 
     public enum PARM_RESOLVE_VARIABLES
@@ -104,6 +107,8 @@ namespace FlowEngineCore
         throw new Exception($"DataType [{DataType}] is not a sub type of 'DropDownList'");
       if (Options is null)
         Options = new List<string>();
+      if (Options.Contains(option))
+        return;
       Options.Add(option);
     }
 
@@ -118,8 +123,12 @@ namespace FlowEngineCore
     {
       Validators.Add(new ParmValidator(stringDefaultValue));
     }
+    public void ValidatorAdd(PARM_VALIDATION validator, bool boolDefaultValue)
+    {
+      Validators.Add(new ParmValidator(boolDefaultValue));
+    }
 
-    public void ValidatorGetValue(PARM_VALIDATION validator, out decimal val)
+    public void ValidatorGetValue(PARM_VALIDATION validator, out decimal val, decimal defaultValue = 0)
     {
       if (validator == PARM_VALIDATION.StringMaxLength)
         val = int.MaxValue;
@@ -130,7 +139,7 @@ namespace FlowEngineCore
       else if (validator == PARM_VALIDATION.NumberIncrement)
         val = 1;
       else
-        val = 0; //NumberDecimalPlaces, NumberDefaultValue both default to zero
+        val = defaultValue; //NumberDecimalPlaces, NumberDefaultValue both default to zero
       ParmValidator? pv = FindValidator(validator);
       if (pv is not null)
         val = pv.Value;
@@ -143,6 +152,20 @@ namespace FlowEngineCore
       ParmValidator? pv = FindValidator(PARM_VALIDATION.StringDefaultValue);
       if (pv is not null)
         val = pv.StringDefaultValue;
+    }
+
+    public void ValidatorGetValue(PARM_VALIDATION validator, out bool val)
+    {
+      val = false;
+
+      ParmValidator? pv = FindValidator(PARM_VALIDATION.BooleanDefaultValue);
+      if (pv is not null)
+      {
+        if (pv.Value == 1)
+          val = true;
+        else
+          val = false;
+      }
     }
 
     private ParmValidator? FindValidator(PARM_VALIDATION validator)
@@ -172,6 +195,13 @@ namespace FlowEngineCore
     {
       this.Validator = PARM.PARM_VALIDATION.StringDefaultValue;
       StringDefaultValue = defaultValue;
+    }
+    public ParmValidator(bool defaultValue)
+    {
+      if (defaultValue == true)
+        Value = 1;
+      else
+        Value = 0;
     }
   }
 

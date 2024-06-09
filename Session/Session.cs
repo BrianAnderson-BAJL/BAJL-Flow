@@ -22,6 +22,7 @@ namespace Session
     private const int ERROR_DB = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 6;
     private const int ERROR_ACCOUNT_LOCKED_OUT = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 7;
     private const int ERROR_NO_DB_CONNECTION = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 8;
+    private const int ERROR_PASSWORD_RESET_BAD_LOGIN_CODE = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 9;
 
     Random rand = new Random();
     private const string RESET_PASSWORD_CHARACTERS = "ABCDEFGHJKLMNPQRSTWXYZ23456789"; //removed letters/numbers 'I', '1', 'O', '0' so people don't get confused
@@ -58,7 +59,7 @@ namespace Session
       function.DefaultSaveResponseVariable = true;
       function.RespNames = sessionInfo;
       Functions.Add(function);
-      
+
       function = new Function("User Logout", this, UserLogout);
       function.Parms.Add("SessionToken", DATA_TYPE.String);
       Functions.Add(function);
@@ -82,6 +83,8 @@ namespace Session
 
       function = new Function("Check Device", this, CheckDevice);
       function.Parms.Add("DeviceToken", DATA_TYPE.String);
+      function.DefaultSaveResponseVariable= true;
+      function.RespNames.Name = "deviceId";
       Functions.Add(function);
 
       function = new Function("Check Session", this, CheckSession);
@@ -101,9 +104,19 @@ namespace Session
 
       function = new Function("User Forgot Password", this, UserForgotPassword);
       function.Parms.Add("LoginId", DATA_TYPE.String);
-      function.DefaultSaveResponseVariable= true;
+      function.DefaultSaveResponseVariable = true;
       function.RespNames.Name = "PasswordResetCode";
       Functions.Add(function);
+
+      function = new Function("User Password Reset", this, UserPasswordReset, "Set a new password with code", "Used to reset a users password after they receive the reset code provided by 'User Forgot Password'");
+      function.Parms.Add("LoginId", DATA_TYPE.String);
+      function.Parms.Add("Code", DATA_TYPE.String);
+      function.Parms.Add("New Password", DATA_TYPE.String);
+      function.Parms.Add("Device", DATA_TYPE.Various);
+      function.DefaultSaveResponseVariable = true;
+      function.RespNames.Name = "sessionInfo";
+      Functions.Add(function);
+
       //SETTINGS
       {
         mSettings.SettingAdd(new Setting("LoginAttemptsBeforeLock", 3));
@@ -137,6 +150,81 @@ namespace Session
     {
     }
 
+    public RESP UserPasswordReset(FlowEngineCore.Flow flow, Variable[] vars)
+    {
+      if (Database is null)
+        return RESP.SetError(ERROR_NO_DB_CONNECTION, "No active database connection");
+
+      string? deviceToken = null;
+      long? deviceId = null;
+
+      Variable loginId = vars[0].CloneWithNewName("@LoginId");
+      Variable code = vars[1].CloneWithNewName("@Code");
+      Variable newPassword = vars[2].CloneWithNewName("@NewPassword");
+
+      if (vars[3].DataType == DATA_TYPE.String) //It must be a device token straight from the request data
+      {
+        vars[3].GetValue(out deviceToken);
+      }
+      else if (vars[3].DataType == DATA_TYPE.Integer)
+      {
+        vars[3].GetValue(out long tempDeviceId);
+        deviceId = tempDeviceId;
+      }
+      else
+      {
+        return RESP.SetError(ERROR_INVALID_DEVICE_TOKEN, "'Device' Variable is not set");
+      }
+
+
+      Variable dbUserId = Database.SelectId("SELECT UserId FROM UserForgotPasswordReset WHERE Expiration > NOW() AND LoginId = @LoginId AND Code = @Code", loginId, code);
+      if (dbUserId.Value <= 0)
+        return RESP.SetError(ERROR_PASSWORD_RESET_BAD_LOGIN_CODE, "Could not find password reset entry with provided LoginId and Code.");
+      dbUserId.Name = "@UserId";
+
+      if (deviceId is not null)
+      {
+        Variable deviceIdVar = new("@UserDeviceID", deviceId);
+        Database.Execute("UPDATE UserDevices SET UserId = @UserId WHERE UserDeviceId = @UserDeviceID", dbUserId, deviceIdVar);
+        Variable token = Database.SelectId("SELECT DeviceToken FROM UserDevices WHERE UserDeviceId = @UserDeviceID", deviceIdVar);
+        if (token.DataType == DATA_TYPE.String)
+          deviceToken = token.Value;
+      }
+      else if (deviceToken is not null)
+      {
+        Variable deviceTokenVar = new("@DeviceToken", deviceToken);
+        Database.Execute("UPDATE UserDevices SET UserId = @UserId WHERE DeviceToken = @DeviceToken", dbUserId, deviceTokenVar);
+        Variable id = Database.SelectId("SELECT UserDeviceId FROM UserDevices WHERE DeviceToken = @DeviceToken", deviceTokenVar);
+        if (id.DataType == DATA_TYPE.Integer)
+          deviceId = id.Value;
+      }
+
+
+      //Remove all the existing user sessions, this
+      Variable recordsAffected = Database.Execute("DELETE FROM UserSessions WHERE UserId = @UserId", dbUserId);
+      if (recordsAffected.Value > 0)
+        mLog?.Write($"Deleted [{recordsAffected.Value}] session User duplicates from UserSessions with UserId [{dbUserId.GetValueAsString()}], only one user can be signed into a device");
+
+      string sessionToken = SecureHasherV1.SessionIdCreate();
+      recordsAffected = Database.Execute("INSERT INTO UserSessions (UserId, DeviceId, SessionToken) VALUES (@UserId, @DeviceId, @SessionToken)", dbUserId, new Variable("@DeviceId", deviceId!), new Variable("@SessionToken", sessionToken));
+      if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
+        return RESP.SetError(ERROR_INSERT_DB, "Failed to insert session into database");
+
+      Variable? varSession = CheckSessionInternal(Database, new Variable("", sessionToken));
+      if (varSession is null)
+        return RESP.SetError(ERROR_DB, "Failed to retrieve session from database");
+
+      Variable sessionInfo = new Variable("sessionInfo");
+      sessionInfo.SubVariableAdd(new Variable("loginId", varSession[1].Value));
+      sessionInfo.SubVariableAdd(new Variable("statusId", varSession[2].Value));
+      sessionInfo.SubVariableAdd(new Variable("sessionToken", sessionToken));
+      sessionInfo.SubVariableAdd(new Variable("sessionExpiration", varSession[4].Value));
+      sessionInfo.SubVariableAdd(new Variable("deviceToken", deviceToken!));
+
+
+      return RESP.SetSuccess(sessionInfo);
+    }
+
     /// <summary>
     /// User forgot their password, so we will send them a code to their verified communication channel (email or text message).
     /// </summary>
@@ -153,7 +241,7 @@ namespace Session
       //Check if the loginid exists
       Variable records = Database.Select("SELECT UserId FROM Users Where LoginId = @LoginId", loginId);
       if (records.SubVariables.Count == 0)
-        return RESP.SetError(1, "LoginId does not exist");
+        return RESP.SetError(ERROR_BAD_CREDENTIALS, "LoginId does not exist");
 
       int codeLength = mSettings.SettingGetAsInt("ForgotPasswordCodeLength");
       int codeMinutes = mSettings.SettingGetAsInt("ForgotPasswordCodeMinutes");
@@ -170,7 +258,7 @@ namespace Session
       Variable recordsAffected = Database.Execute("DELETE FROM UserForgotPasswordReset WHERE LoginId = @LoginId", loginId);
       recordsAffected = Database.Execute($"INSERT INTO UserForgotPasswordReset (LoginId, Code, Expiration) VALUES (@LoginId, @Code, (current_timestamp() + interval {codeMinutes} minute))", loginId, new Variable("@Code", code));
       if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
-        return RESP.SetError(ERROR_INSERT_DB, "Failed to insert user into database");
+        return RESP.SetError(ERROR_INSERT_DB, "Failed to insert user password reset into database");
 
       return RESP.SetSuccess(new Variable("PasswordResetCode", code));
     }
@@ -205,7 +293,7 @@ namespace Session
       }
       else
       {
-        return RESP.SetError(ERROR_DB, "'Device' Variable is not set");
+        return RESP.SetError(ERROR_INVALID_DEVICE_TOKEN, "'Device' Variable is not set");
       }
 
       //Check if the LoginId already exists in the database
@@ -558,7 +646,7 @@ namespace Session
       }
       mLog?.Write($"Session.CheckDevice - Valid device token [{varDeviceToken.GetValueAsString()}]", LOG_TYPE.INF);
 
-      return RESP.SetSuccess();
+      return RESP.SetSuccess(new Variable("deviceId", records[0][0].Value));
     }
 
 

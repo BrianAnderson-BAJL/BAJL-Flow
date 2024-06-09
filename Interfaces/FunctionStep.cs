@@ -98,7 +98,7 @@ namespace FlowEngineCore
       Variable var = new Variable(Flow.VAR_NAME_PREVIOUS_STEP);
       Variable[] vars = new Variable[ParmVars.Count];
 
-      if (ParmVars.Count < Function.Parms.Count) //ParmVars could have more parameters than Function.Parms if one of them is multiple
+      if (ParmVars.Count < Function.Parms.CountOfRequiredParms()) //ParmVars could have more parameters than Function.Parms if one of them is multiple
       {
         resps = RESP.SetError(1, "Not enough parameters to execute step");
         goto GotoResults;
@@ -115,7 +115,9 @@ namespace FlowEngineCore
             goto GotoResults;
           }
           if (pv.Parm.NameChangeable == true) //Database.Select you can set the parameter names for the SQL parameters, these values will be used in the SQL statement
-            pvVar.Name = pv.ParmName;
+          {
+            pvVar = pvVar.CloneWithNewName(pv.ParmName);
+          }
           vars[x] = pvVar;
         }
         else

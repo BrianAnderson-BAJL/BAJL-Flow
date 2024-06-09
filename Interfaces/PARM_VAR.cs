@@ -60,11 +60,20 @@ namespace FlowEngineCore
       ParmLiteralOrVariable = PARM_L_OR_V.Variable;
     }
 
+    public void SetDataTypeToNone()
+    {
+      VarName = null;
+      mVar = new Variable();
+      ParmLiteralOrVariable = PARM_L_OR_V.Literal;
+    }
+
+
     public void SetVariableLiteral(string val)
     {
       if (Parm.DataType != DATA_TYPE.String && Parm.StringSubType != STRING_SUB_TYPE.DropDownList && Parm.DataType != DATA_TYPE.Various)
         throw new ArgumentException("PARM_VAR.SetVariableLiteral(string) -  DataType is not a String");
       mVar = new Variable(Parm.Name, val);
+      ParmLiteralOrVariable = PARM_L_OR_V.Literal;
     }
 
     public void SetVariableLiteral(long val)
@@ -72,12 +81,21 @@ namespace FlowEngineCore
       if (Parm.DataType != DATA_TYPE.Integer && Parm.DataType != DATA_TYPE.Various)
         throw new ArgumentException("PARM_VAR.SetVariableLiteral(long) -  DataType is not an Integer");
       mVar = new Variable(Parm.Name, val);
+      ParmLiteralOrVariable = PARM_L_OR_V.Literal;
+    }
+    public void SetVariableLiteral(bool val)
+    {
+      if (Parm.DataType != DATA_TYPE.Boolean && Parm.DataType != DATA_TYPE.Various)
+        throw new ArgumentException("PARM_VAR.SetVariableLiteral(long) -  DataType is not a Boolean");
+      mVar = new Variable(Parm.Name, val);
+      ParmLiteralOrVariable = PARM_L_OR_V.Literal;
     }
     public void SetVariableLiteral(decimal val)
     {
       if (Parm.DataType != DATA_TYPE.Decimal && Parm.DataType != DATA_TYPE.Various)
         throw new ArgumentException("PARM_VAR.SetVariableLiteral(decimal) -  DataType is not an Decimal");
       mVar = new Variable(Parm.Name, val);
+      ParmLiteralOrVariable = PARM_L_OR_V.Literal;
     }
 
     public void SetVariableLiteral(Variable var)

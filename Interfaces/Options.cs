@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Enumeration;
 using System.Linq;
 using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -223,15 +224,26 @@ namespace FlowEngineCore
 
     public static string FixUrl(string url)
     {
-      if (true) //Core.Options.IgnoreEndingForwardSlash == 
+      if (url.Length > 0)
       {
-        if (url.Length > 0)
-        {
-          if (url[url.Length - 1] == '/')
-            url = url.Substring(0, url.Length - 1);
-        }
+        if (url[url.Length - 1] == '/')
+          url = url.Substring(0, url.Length - 1);
       }
       return url;
+    }
+
+    public static void FixUrl(ref string inboundUrl, ref string flowUrl)
+    {
+      //We need to strip off any parameters being used for a REST API
+      int lessThanPos = flowUrl.IndexOf('<');
+      if (lessThanPos > 0)
+      {
+        if (flowUrl[lessThanPos - 1] == '/')
+        {
+          flowUrl = flowUrl.Substring(0, lessThanPos - 1);
+          inboundUrl = inboundUrl.Substring(0, lessThanPos - 1);
+        }
+      }
     }
   }
 }

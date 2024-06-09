@@ -1,5 +1,6 @@
 ﻿using FlowEngineCore;
 using FlowEngineCore.Interfaces;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
@@ -7,15 +8,47 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Text;
 using static FlowEngineCore.PARM;
 
 namespace Http
 {
+  //Open AI secret key
+  //sk-proj-1HxfLxEFmjTuXjd2Z1iMT3BlbkFJpYp4zDYxX6GCVD7QUG42
+
   public class Http : FlowEngineCore.Plugin
   {
+    private class RestParameter
+    {
+      public int StartForwardSlashCount;
+      public DATA_TYPE DataType = DATA_TYPE.String;
+      public string Name;
+
+      public RestParameter(int startForwardSlashCount, DATA_TYPE dataType, string name)
+      {
+        StartForwardSlashCount = startForwardSlashCount;
+        DataType = dataType;
+        Name = name;
+      }
+    }
+
+    private class UrlParameter
+    {
+      public string Name;
+      public DATA_TYPE DataType;
+
+      public UrlParameter(string name, DATA_TYPE dataType)
+      {
+        Name = name;
+        DataType = dataType;
+      }
+    }
+
     private Thread? ListenerThread;
     private HttpListener? Listener;
+
+    private const string SETTING_URL_PARAMS_LOWERCASE = "Set all URL parameter keys to lowercase";
 
     private const string PARM_URL = "Url Path";
     private const string PARM_METHOD = "Method";
@@ -27,6 +60,9 @@ namespace Http
     private const string PARM_DATA_FORMAT_JSON = "JSON";
     private const string PARM_DATA_FORMAT_XML = "XML";
     private const string VAR_HEADERS = "headers";
+    private const string VAR_PARAMETERS = "parameters";
+    private const string REST_PARAMETERS = "rest_parameters";
+    private const string URL_PARAMETERS = "url_parameters";
 
 
     /// <summary>
@@ -41,6 +77,7 @@ namespace Http
         Setting s = new Setting("Uri", DATA_TYPE.String);
         s.Description = "The URIs this Http pluging should listen on, comma delimited. (http://*:80,http://*:443, ...)";
         mSettings.SettingAdd(s);
+        mSettings.SettingAdd(new Setting(SETTING_URL_PARAMS_LOWERCASE, true));
         mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
         mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Orange));
         mSettings.SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
@@ -77,6 +114,7 @@ namespace Http
           pddl.OptionAdd($"{val} - {name}");
         }
 
+        
         function.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String);
         pddl = new PARM(PARM_DATA_FORMAT, STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
         pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, PARM_DATA_FORMAT_JSON);
@@ -150,9 +188,11 @@ namespace Http
 
         Variable root = new Variable(Flow.VAR_NAME_FLOW_START);
         //Variable request = new Variable(Flow.VAR_REQUEST);
-        root.SubVariableAdd(new Variable(PARM_CONNECTION_HANDLE, DATA_TYPE.Object));
+        root.SubVariableAdd(new Variable(PARM_CONNECTION_HANDLE));
         Variable headers = new Variable(VAR_HEADERS);
         root.SubVariableAdd(headers);
+        Variable parameters = new Variable(VAR_PARAMETERS);
+        root.SubVariableAdd(parameters);
         Variable data = new Variable(Flow.VAR_DATA);
         data.SubVariableAdd(new Variable("YOUR_SAMPLE_DATA", "GOES_HERE"));
         root.SubVariableAdd(data);
@@ -192,6 +232,7 @@ namespace Http
         mLog?.Write("Unable to start HTTP listening, no URIs to listen on", LOG_TYPE.WAR);
         return;
       }
+      bool queryStringLowercase = mSettings.SettingGetAsBoolean(SETTING_URL_PARAMS_LOWERCASE);
       int index = -1;
       string[] urisString = { };
       if (uris.Value is null)
@@ -273,17 +314,53 @@ namespace Http
             baseVar.SubVariableAdd(new Variable(PARM_CONNECTION_HANDLE, context));
             //requestVar.Add();
             baseVar.SubVariableAdd(GetHeaders(request));
+            
             if (request.ContentType == "application/json" && data is not null && data.Length > 0)
             {
               Variable? v = Variable.JsonParse(ref data, "data");
               baseVar.SubVariableAdd(v);
               //string junk = v.SubVariables[0].JsonCreate();
             }
-            for (int i = 0; i < flows.Count; i++)
+            //baseVar.SubVariableAdd(new Variable(VAR_PARAMETERS));
+
+            if (flows.Count > 0)
             {
-              string? threadName = FlowEngine.GetNextThreadName();
-              mLog?.Write($"HTTP received a request [{data}]", LOG_TYPE.INF, threadName);
-              FlowEngine.StartFlow(new FlowRequest(baseVar, this, flows[i], FlowRequest.START_TYPE.WaitForEvent, FlowRequest.CLONE_FLOW.CloneFlow, threadName));
+              for (int flowIndex = 0; flowIndex < flows.Count; flowIndex++)
+              {
+                Variable varParam = GetRestParameters(flows[flowIndex], request);
+
+
+                for (int x = 0; x < request.QueryString.Count; x++)
+                {
+                  string? key = request.QueryString.GetKey(x);
+                  string[]? values = request.QueryString.GetValues(x);
+                  if (key is null || values is null || values.Length == 0)
+                    continue;
+                  if (queryStringLowercase == true)
+                    key = key.ToLower();
+
+                  Variable queryVar = new Variable(key);
+                  if (values.Length > 1)
+                  {
+                    queryVar.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
+                    queryVar.SubVariableAdd(new Variable("", values[0]));
+                  }
+                  else
+                  {
+                    queryVar.Value = values[0];
+                    queryVar.DataType = DATA_TYPE.String;
+                  }
+                  varParam.SubVariableAdd(queryVar);
+                }
+                
+                string ? threadName = FlowEngine.GetNextThreadName();
+                mLog?.Write($"HTTP received a request [{data}]", LOG_TYPE.INF, threadName);
+                Variable var = baseVar;
+                var.SubVariableAdd(varParam);
+                if (flowIndex > 1) //If we have more than one flow, we need to clone the variable
+                  var = baseVar.Clone();
+                FlowEngine.StartFlow(new FlowRequest(var, this, flows[flowIndex], FlowRequest.START_TYPE.WaitForEvent, FlowRequest.CLONE_FLOW.CloneFlow, threadName));
+              }
             }
           }
           catch
@@ -301,6 +378,115 @@ namespace Http
           mLog?.Write(ex);
         }
       };
+    }
+
+    private Variable GetRestParameters(Flow flow, HttpListenerRequest request)
+    {
+      Variable param = new Variable(VAR_PARAMETERS);
+
+      if (request.Url is null)
+        return param;
+
+
+      List<RestParameter>? restParam = flow.ExtraValues[VAR_PARAMETERS] as List<RestParameter>;
+      if (restParam is null)
+        return param;
+
+      //PARM_VAR? pUrl = flow.StartCommands.FindByParmName(PARM_URL);
+      //if (pUrl is null)
+      //  return param;
+
+      string url = request.Url.ToString();
+
+
+      int index = -1;
+      int count = 0;
+      //Variable? paramSubVariable;
+      do
+      {
+        index = url.IndexOf('/', index + 1);
+        if (index == -1)
+          break;
+        count++;
+        for (int x = 0; x < restParam.Count; x++)
+        {
+          if (count == restParam[x].StartForwardSlashCount)
+          {
+            int endPos = url.IndexOf('/', index + 1);
+            if (endPos == -1)
+              endPos = url.IndexOf('?', index + 1);
+            if (endPos == -1)
+              endPos = url.Length;
+            string val = url.Substring(index + 1, endPos - index - 1);
+            param.SubVariableAdd(new Variable(restParam[x].Name, val));
+          }
+        }
+      } while (index > 0);
+
+      return param;
+    }
+
+    //private Variable? FindNextParameter(ref string paramUrl, string actualUrl)
+    //{
+    //  Variable? found = null;
+    //  int startPos = paramUrl.IndexOf('<');
+    //  int endPos = paramUrl.IndexOf('>');
+    //  if (startPos > -1 && endPos > startPos)
+    //  {
+    //    int forwardSlashesToSkip = CountOfBefore(paramUrl, startPos);
+    //    string paramName = paramUrl.Substring(startPos, endPos - startPos);
+
+    //    found = new Variable(paramName);
+    //  }
+    //  return found;
+    //}
+
+    private RestParameter? FindNextParameterDefinition(ref string paramUrl)
+    {
+      RestParameter? found = null;
+      int startPos = paramUrl.IndexOf('<');
+      int endPos = paramUrl.IndexOf('>');
+      bool queryStringLowercase = mSettings.SettingGetAsBoolean(SETTING_URL_PARAMS_LOWERCASE);
+
+      if (startPos <= -1)
+        return null;
+      if (endPos <= startPos)
+        return null;
+
+      int forwardSlashesToSkip = CountOfBefore(paramUrl, startPos);
+      forwardSlashesToSkip += 2; //Need to add 2 for the 2 forward slashes in 'HTTPS://'
+      string paramDataTypeAndName = paramUrl.Substring(startPos + 1, endPos - (startPos + 1));
+      string left = paramUrl.Substring(0, startPos);
+      paramUrl = left + paramUrl.Substring(endPos + 1);
+      string[] paramDataTypeAndNameSplit = paramDataTypeAndName.Split(':', StringSplitOptions.TrimEntries);
+      if (paramDataTypeAndNameSplit.Length == 2)
+      {
+        string dataTypeStr = paramDataTypeAndNameSplit[0];
+        string name = paramDataTypeAndNameSplit[1];
+        if (queryStringLowercase == true)
+          name = name.ToLower();
+        DATA_TYPE dataType = Enum.Parse<DATA_TYPE>(dataTypeStr);
+        found = new RestParameter(forwardSlashesToSkip, dataType, name);
+      }
+      else if (paramDataTypeAndNameSplit.Length == 1)
+      {
+        //If data type isn't defined then it defaults to String.
+        string name = paramDataTypeAndNameSplit[0];
+        if (queryStringLowercase == true)
+          name = name.ToLower();
+        found = new RestParameter(forwardSlashesToSkip, DATA_TYPE.String, name);
+      }
+      return found;
+    }
+    private int CountOfBefore(string paramUrl, int beforeCharIndex, char charToCount = '/')
+    {
+      int count = 0;
+      for (int x = 0; x < beforeCharIndex; x++)
+      {
+        if (paramUrl[x] == charToCount)
+          count++;
+      }
+      return count;
     }
 
     private Variable GetHeaders(HttpListenerRequest request)
@@ -339,18 +525,19 @@ namespace Http
       {
         for (int x = 0; x < Flows.Count; x++)
         {
-          Flow f = Flows[x];
-          PARM_VAR? pUrl = f.StartCommands.FindByParmName(PARM_URL);
-          PARM_VAR? pMethod = f.StartCommands.FindByParmName(PARM_METHOD);
-          PARM_VAR? pHost = f.StartCommands.FindByParmName(PARM_HOST);
+          Flow flow = Flows[x];
+          PARM_VAR? pUrl = flow.StartCommands.FindByParmName(PARM_URL);
+          PARM_VAR? pMethod = flow.StartCommands.FindByParmName(PARM_METHOD);
+          PARM_VAR? pHost = flow.StartCommands.FindByParmName(PARM_HOST);
           if (pUrl is not null && pMethod is not null && pHost is not null)
           {
-            pUrl.GetValue(out string flowUrl, f);
-            pMethod.GetValue(out string flowMethod, f);
-            pHost.GetValue(out string flowHost, f);
-            if (Options.FixUrl(flowUrl) == url && flowMethod == method && HostsMatch(flowHost, host) == true)
+            pUrl.GetValue(out string flowUrl, flow);
+            pMethod.GetValue(out string flowMethod, flow);
+            pHost.GetValue(out string flowHost, flow);
+            Options.FixUrl(ref url, ref flowUrl); //May need to chop off parameters for checking
+            if (flowUrl == url && flowMethod == method && HostsMatch(flowHost, host) == true)
             {
-              result.Add(f);
+              result.Add(flow);
             }
           }
         }
@@ -382,9 +569,33 @@ namespace Http
       return match;
     }
 
+    public override void FlowAdd(Flow flow)
+    {
+      PARM_VAR? pUrl = flow.StartCommands.FindByParmName(PARM_URL);
+      if (pUrl is null)
+        return;
+
+      string paramUrl = pUrl.Var.GetValueAsString();
+      List<RestParameter> restParameters = new List<RestParameter>();
+      RestParameter? restParam;
+      do
+      {
+        restParam = FindNextParameterDefinition(ref paramUrl);
+        if (restParam is not null)
+          restParameters.Add(restParam);
+      } while (restParam is not null);
+      flow.ExtraValues.Add(VAR_PARAMETERS, restParameters);
+      base.FlowAdd(flow);
+    }
+
     public override void StartPlugin(Dictionary<string, object> GlobalPluginValues)
     {
       base.StartPlugin(GlobalPluginValues);
+
+
+
+
+
       ListenerThread = new Thread(ListenerThreadRuntime);
       ListenerThread.Start();
     }

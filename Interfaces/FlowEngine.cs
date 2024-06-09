@@ -8,6 +8,7 @@ using FlowEngineCore.Administration.Messages;
 using FlowEngineCore.Administration;
 using FlowEngineCore.Administration.Packets;
 using FlowEngineCore.Interfaces;
+using FlowEngineCore.Statistics;
 
 namespace FlowEngineCore
 {
@@ -212,6 +213,9 @@ namespace FlowEngineCore
       if (flowRequest is null)
         return;
 
+      flowRequest.ManagedThreadId = Thread.CurrentThread.ManagedThreadId;
+      StatisticsManager.RequestStarted(flowRequest);
+
       if (flowRequest.OverrideThreadName is null)
         Thread.CurrentThread.Name = GetNextThreadName();
       else
@@ -226,6 +230,8 @@ namespace FlowEngineCore
       }
 
       flowRequest.FlowToStart.Execute();
+      StatisticsManager.RequestFinished(flowRequest);
+
     }
 
 

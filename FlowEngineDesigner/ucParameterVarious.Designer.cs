@@ -35,6 +35,7 @@
       cmbDataType = new ComboBox();
       nudNumber = new NumericUpDown();
       lblDescription = new LinkLabel();
+      chkValue = new CheckBox();
       ((System.ComponentModel.ISupportInitialize)nudNumber).BeginInit();
       SuspendLayout();
       // 
@@ -82,7 +83,7 @@
       // 
       cmbDataType.DropDownStyle = ComboBoxStyle.DropDownList;
       cmbDataType.FormattingEnabled = true;
-      cmbDataType.Items.AddRange(new object[] { "String", "Integer", "Decimal", "Boolean", "Variable" });
+      cmbDataType.Items.AddRange(new object[] { "String", "Integer", "Decimal", "Boolean", "Variable", "NONE" });
       cmbDataType.Location = new Point(232, 3);
       cmbDataType.Name = "cmbDataType";
       cmbDataType.Size = new Size(83, 23);
@@ -109,10 +110,21 @@
       lblDescription.Text = " ? ";
       lblDescription.MouseClick += lblDescription_MouseClick;
       // 
+      // chkValue
+      // 
+      chkValue.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+      chkValue.CheckAlign = ContentAlignment.MiddleCenter;
+      chkValue.Location = new Point(321, 5);
+      chkValue.Name = "chkValue";
+      chkValue.Size = new Size(243, 21);
+      chkValue.TabIndex = 23;
+      chkValue.UseVisualStyleBackColor = true;
+      // 
       // ucParameterVarious
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
+      Controls.Add(chkValue);
       Controls.Add(cmbDataType);
       Controls.Add(txtDataType);
       Controls.Add(btnSelectVariable);
@@ -137,5 +149,6 @@
     private ComboBox cmbDataType;
     private NumericUpDown nudNumber;
     private LinkLabel lblDescription;
+    private CheckBox chkValue;
   }
 }

@@ -31,6 +31,8 @@ namespace FlowEngineCore
     public string SampleData = "";
     public DATA_FORMAT SampleDataFormat = DATA_FORMAT._None;
     public List<Comment> Comments = new(4);
+    public Dictionary<string, object> ExtraValues = new Dictionary<string, object>(); 
+
 
     public FlowRequest.START_TYPE DebugStartType;
     public TimeElapsed DebugFlowStartTime = new();
@@ -703,6 +705,11 @@ namespace FlowEngineCore
           else if (dataType == "Various")
           {
             pv = new PARM_VAR(p, "");
+          }
+          else if (dataType == "_None")
+          {
+            pv = new PARM_VAR(p, "");
+            pv.Var.DataType = DATA_TYPE._None;
           }
           else
           {
