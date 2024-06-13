@@ -62,6 +62,7 @@ namespace FlowEngineCore
           xml.WriteTagAndContents("AdministrationUsers", sp.AdministrationUsers);
           xml.WriteTagAndContents("AdministrationSecurityProfiles", sp.AdministrationSecurityProfiles);
           xml.WriteTagAndContents("AdministrationFlows", sp.AdministrationFlows);
+          xml.WriteTagAndContents("Statistics", sp.Statistics);
           xml.WriteTagEnd("Profile");
         }
       }
@@ -75,7 +76,7 @@ namespace FlowEngineCore
       string profiles = xml.FileRead(Options.GetFullPath(Options.GetSettings.SettingGetAsString("SecurityProfilesPath")));
       profiles = Xml.GetXMLChunk(ref profiles, "Profiles");
       string profileXml = Xml.GetXMLChunk(ref profiles, "Profile");
-      List<SecurityProfile> spList = new List<SecurityProfile>(128);
+      List<SecurityProfile> spList = new List<SecurityProfile>(32);
       while (profileXml.Length > 0)
       {
         SecurityProfile sp = new SecurityProfile();
@@ -86,6 +87,8 @@ namespace FlowEngineCore
         Enum.TryParse<SecurityProfile.SECURITY_ACCESS_LEVEL>(temp, true, out sp.AdministrationSecurityProfiles);
         temp = Xml.GetXMLChunk(ref profileXml, "AdministrationFlows");
         Enum.TryParse<SecurityProfile.SECURITY_ACCESS_LEVEL>(temp, true, out sp.AdministrationFlows);
+        temp = Xml.GetXMLChunk(ref profileXml, "Statistics");
+        Enum.TryParse<SecurityProfile.SECURITY_ACCESS_SIMPLE>(temp, true, out sp.Statistics);
 
         spList.Add(sp);
         profileXml = Xml.GetXMLChunk(ref profiles, "Profile");
@@ -111,6 +114,7 @@ namespace FlowEngineCore
       sp.AdministrationUsers = spa.AdministrationUsers;
       sp.AdministrationSecurityProfiles = spa.AdministrationSecurityProfiles;
       sp.AdministrationFlows = spa.AdministrationFlows;
+      sp.Statistics = spa.Statistics;
 
       lock (mCriticalSection)
       {
@@ -130,6 +134,7 @@ namespace FlowEngineCore
       sp.AdministrationUsers = spe.AdministrationUsers;
       sp.AdministrationSecurityProfiles = spe.AdministrationSecurityProfiles;
       sp.AdministrationFlows = spe.AdministrationFlows;
+      sp.Statistics = spe.Statistics;
 
       Save();
       return RECORD_RESULT.Success;

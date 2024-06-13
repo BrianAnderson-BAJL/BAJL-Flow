@@ -22,6 +22,7 @@ namespace FlowEngineCore
     protected List<FunctionStep> functionSteps = new(32);
     protected FunctionStep? start = null;
     public string FileName = "";
+    public string FileNameRelative = "";  //Just the path of the flow with the flow directory removed.
     protected DateTime mCreatedDateTime = DateTime.MinValue;
     protected DateTime mModifiedLastDateTime = DateTime.MinValue;
     protected List<User> previousUsers = new(10);
@@ -49,7 +50,8 @@ namespace FlowEngineCore
     public Flow Clone()
     {
       Flow flow = new();
-      flow.FileName = FileName; 
+      flow.FileName = FileName;
+      flow.FileNameRelative = FileNameRelative;
       flow.FileVersion = FileVersion; 
       flow.StartPlugin = StartPlugin; //Don't need to clone, it is only read, not writen to
       flow.StartCommands = StartCommands; //Don't need to clone, it is only read, not writen to
@@ -205,7 +207,7 @@ namespace FlowEngineCore
       xml.WriteMemoryNew();
       xml.WriteTagStart("DebugResults");
 
-      xml.WriteTagAndContents("FileName", Options.GetFlowFileNameRelativePath(this.FileName));
+      xml.WriteTagAndContents("FileName", this.FileNameRelative);
       xml.WriteTagAndContents("FileVersion", this.FileVersion);
       xml.WriteTagAndContents("CreatedDateTime", this.CreateDateTime);
       xml.WriteTagAndContents("ModifiedLastDateTime", this.ModifiedLastDateTime);
@@ -242,7 +244,7 @@ namespace FlowEngineCore
       Xml xml = new();
       xml.WriteMemoryNew();
       xml.WriteTagStart("Trace");
-      xml.WriteTagAndContents("FileName", Options.GetFlowFileNameRelativePath(this.FileName));
+      xml.WriteTagAndContents("FileName", this.FileNameRelative);
       xml.WriteTagAndContents("FileVersion", this.FileVersion);
       xml.WriteTagAndContents("CreatedDateTime", this.CreateDateTime);
       xml.WriteTagAndContents("ModifiedLastDateTime", this.ModifiedLastDateTime);
@@ -545,6 +547,7 @@ namespace FlowEngineCore
     {
       functionSteps.Clear();
       FileName = fileName;
+      FileNameRelative = Options.GetFlowFileNameRelativePath(FileName);
       Xml xml = new();
       string content = xml.FileRead(FileName);
       XmlRead(ref content, til);

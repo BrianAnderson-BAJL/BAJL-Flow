@@ -38,6 +38,8 @@
       cmbFlows = new ComboBox();
       label3 = new Label();
       cmbSecurityProfiles = new ComboBox();
+      label4 = new Label();
+      cmbStatistics = new ComboBox();
       SuspendLayout();
       // 
       // lblDuplicate
@@ -129,11 +131,31 @@
       cmbSecurityProfiles.Size = new Size(225, 23);
       cmbSecurityProfiles.TabIndex = 28;
       // 
+      // label4
+      // 
+      label4.AutoSize = true;
+      label4.Location = new Point(58, 152);
+      label4.Name = "label4";
+      label4.Size = new Size(56, 15);
+      label4.TabIndex = 31;
+      label4.Text = "Statistics:";
+      // 
+      // cmbStatistics
+      // 
+      cmbStatistics.DropDownStyle = ComboBoxStyle.DropDownList;
+      cmbStatistics.FormattingEnabled = true;
+      cmbStatistics.Location = new Point(131, 149);
+      cmbStatistics.Name = "cmbStatistics";
+      cmbStatistics.Size = new Size(225, 23);
+      cmbStatistics.TabIndex = 30;
+      // 
       // frmAdministrationSecurityProfileProperties
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
       ClientSize = new Size(570, 287);
+      Controls.Add(label4);
+      Controls.Add(cmbStatistics);
       Controls.Add(label3);
       Controls.Add(cmbSecurityProfiles);
       Controls.Add(label1);
@@ -163,5 +185,7 @@
     private ComboBox cmbFlows;
     private Label label3;
     private ComboBox cmbSecurityProfiles;
+    private Label label4;
+    private ComboBox cmbStatistics;
   }
 }

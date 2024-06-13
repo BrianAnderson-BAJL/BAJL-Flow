@@ -16,6 +16,7 @@ namespace FlowEngineCore.Administration
   public class TcpTlsClient : TcpClientBase
   {
     public SslStream mStream;
+    private object CriticalSection = new object(); //Had to add a critical section for the SslStream, it doesn't handle sending and receiving at the same time from differnet threads
     //private X509Certificate Certificate;
 
 
@@ -28,7 +29,7 @@ namespace FlowEngineCore.Administration
       {
         this.Client = client;
         this.mStream = stream;
-        
+
       }
       catch //(AuthenticationException ex)
       {
@@ -47,7 +48,7 @@ namespace FlowEngineCore.Administration
     {
       get
       {
-       
+
         return mStream;
       }
     }
@@ -107,16 +108,20 @@ namespace FlowEngineCore.Administration
             if (Client.mStream.CanRead)
             {
               //if (Br is null)
-                //Br = new BinaryReader(NS);
-              
+              //Br = new BinaryReader(NS);
+
               Packet Packet = new();
               //Packet.ReadAllData(Br);
-              Packet.ReadAllTlsData(Client.mStream);
+              lock (CriticalSection)
+              {
+                Packet.ReadAllTlsData(Client.mStream);
+              }
               if ((int)Packet.PacketType < (int)Packet.PACKET_TYPE._Unknown || (int)Packet.PacketType >= (int)Packet.PACKET_TYPE.zMaxValue)
                 throw new Exception("UNKNOWN PacketType TCP message is corrupted");
 
               if (Packet.PacketType != Packet.PACKET_TYPE._Unknown)
                 OnNewPacket(Packet, Client);
+
             }
             Thread.Sleep(1);
           }
@@ -134,8 +139,8 @@ namespace FlowEngineCore.Administration
           catch (IOException ex)
           {
             //No Data
-            Global.WriteToConsoleDebug(ex.Message);
-            break;
+            //Global.WriteToConsoleDebug(ex.Message);
+            //break;
           }
           catch (Exception ex)
           {
@@ -154,17 +159,20 @@ namespace FlowEngineCore.Administration
         Global.WriteToConsoleDebug(e.Message);
       }
     }
-  
 
-  public override bool Send(Packet Packet)
+
+    public override bool Send(Packet Packet)
     {
       bool Rc = false;
       try
       {
-        
+
         Packet.FinalizePacketBeforeSending();
-        mStream.Write(Packet.DataToSend, 0, Packet.SendLength); //Need to add the 4 byte header to the length being sent
-        mStream.Flush();
+        lock (CriticalSection)
+        {
+          mStream.Write(Packet.DataToSend, 0, Packet.SendLength); //Need to add the 4 byte header to the length being sent
+          mStream.Flush();
+        }
         Rc = true;
       }
       catch (Exception ex)

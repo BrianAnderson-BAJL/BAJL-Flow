@@ -27,6 +27,7 @@ namespace FlowEngineCore
       get {return mSettings;}
     }
 
+    public static SERVER_TYPE ServerType = SERVER_TYPE.Production;
     //public const int SettingsFileVersionExpected = 10; //Increment this when you make changes to the settings options, the settings.xml file will be recreated with the new values.
     //public static int SettingsFileVersion = 0;
     public static string SettingsPath = "./settings_newFormat.xml";
@@ -176,6 +177,9 @@ namespace FlowEngineCore
 
       mSettings.LoadSettingsFromFile(SettingsPath);
       mSettings.SaveSettings(SettingsPath); //I save the settings here again during development to write out any new <Setting> blocks
+
+      string serverTypeStr = mSettings.SettingGetAsString("ServerType");
+      Options.ServerType = Enum.Parse<SERVER_TYPE>(serverTypeStr);
     }
 
 
@@ -236,13 +240,20 @@ namespace FlowEngineCore
     {
       //We need to strip off any parameters being used for a REST API
       int lessThanPos = flowUrl.IndexOf('<');
-      if (lessThanPos > 0)
+      if (lessThanPos < 0)
+        return;
+      if (lessThanPos >= inboundUrl.Length)
+        return; //The start position of the '<' is after the end of the inbound requested url
+      for (int x = 0; x < lessThanPos; x++)
       {
-        if (flowUrl[lessThanPos - 1] == '/')
-        {
-          flowUrl = flowUrl.Substring(0, lessThanPos - 1);
-          inboundUrl = inboundUrl.Substring(0, lessThanPos - 1);
-        }
+        if (inboundUrl[x] != flowUrl[x])
+          return; //They are not requesting this flow
+      }
+
+      if (flowUrl[lessThanPos - 1] == '/')
+      {
+        flowUrl = flowUrl.Substring(0, lessThanPos - 1);
+        inboundUrl = inboundUrl.Substring(0, lessThanPos - 1);
       }
     }
   }

@@ -81,6 +81,7 @@
       Controls.Add(txtValue);
       Controls.Add(txtDescription);
       Controls.Add(lblName);
+      FormBorderStyle = FormBorderStyle.Fixed3D;
       Name = "frmSettingString";
       Text = "Setting - ";
       Load += frmSettingString_Load;

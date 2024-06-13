@@ -64,7 +64,7 @@ namespace FlowEngineCore
       SecurityProfileManager.Load();
       UserManager.Load();
       MessageProcessor.Init(PluginManager.GlobalPluginValues);
-
+      StatisticsManager.Start();
       ThreadPool.GetMaxThreads(out int threads, out int compThreads);
       Log?.Write($"Threads in Pool, worker [{threads}], I/O threads [{compThreads}]");
 
@@ -120,6 +120,7 @@ namespace FlowEngineCore
       Log?.Write("Flow Engine Stopping");
       tcpServer!.Stop();
       PluginManager.StopPlugins();
+      StatisticsManager.Stop();
       Log?.Write("Flow Engine exiting");
     }
 

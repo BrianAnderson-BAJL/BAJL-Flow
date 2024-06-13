@@ -301,6 +301,7 @@ namespace Logger
     /// </summary>
     private void LogThreadRuntime()
     {
+      
       Thread.CurrentThread.Name = "Logger Plugin";
       mLastLogRollTimeCheck = GetDateTime();
       List<LogEntry> localLogs = new List<LogEntry>(128);
@@ -317,7 +318,8 @@ namespace Logger
         {
           string temp = localLogs[x].Format();
           sb.Append(temp + Environment.NewLine);
-          Log.WriteToConsole(temp, localLogs[x].LogType);
+          if (Options.ServerType == Options.SERVER_TYPE.Development)
+            Log.WriteToConsole(temp, localLogs[x].LogType);
         }
         File.AppendAllText(LogFileName, sb.ToString());
         CheckForLogRoll();

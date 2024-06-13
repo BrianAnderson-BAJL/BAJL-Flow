@@ -55,7 +55,7 @@
 			<SubSetting>
 				<DataType>Integer</DataType>
 				<Key>MaxFileSizeInBytes</Key>
-				<Value>1024000</Value>
+				<Value>10240000</Value>
 			</SubSetting>
 		</SubSettings>
 	</Setting>

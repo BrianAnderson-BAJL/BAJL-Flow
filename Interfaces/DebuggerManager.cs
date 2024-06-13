@@ -10,7 +10,6 @@ namespace FlowEngineCore
   {
     private static List<Debugger> Debuggers = new(8);
     private static object CriticalSection = new();
-
     public static Debugger Add(User user, int debugMessagePacketId = 0, string flowName = "")
     {
 
@@ -97,6 +96,7 @@ namespace FlowEngineCore
       for (int x = 0; x < copy.Count; x++)
       {
         Debugger debug = copy[x];
+
         if (debug.DebugUser is not null && debug.DebugUser.TcpClientConnection is not null)
         {
           debug.DebugUser.TcpClientConnection.Send(packet);

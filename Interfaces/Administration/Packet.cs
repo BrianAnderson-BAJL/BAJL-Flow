@@ -59,6 +59,11 @@ namespace FlowEngineCore.Administration
       ServerSettingsGetResponse,
       ServerSettingsEdit,
       ServerSettingsEditResponse,
+      StatisticsRegister,
+      StatisticsRegisterResponse,
+      StatisticsData,
+      StatisticsDeregister,
+      StatisticsDeregisterResponse,
       zMaxValue,
     }
     private static int NextPacketId = 0;
@@ -143,7 +148,7 @@ namespace FlowEngineCore.Administration
     public void ReadAllTlsData(SslStream stream)
     {
       byte[] temp = new byte[sizeof(int)];
-      stream.ReadTimeout = System.Threading.Timeout.Infinite; //No timeout when waiting for the first 4 bytes
+      stream.ReadTimeout = 1; //System.Threading.Timeout.Infinite; //No timeout when waiting for the first 4 bytes
       int dataRead = stream.Read(temp, 0, sizeof(int));
       if (dataRead == 4)
       {
@@ -220,6 +225,10 @@ namespace FlowEngineCore.Administration
       AddData(Val.Ticks);
     }
 
+    public void AddData(TimeSpan Val)
+    {
+      AddData(Val.Ticks);
+    }
     /// <summary>
     /// decimals are stored in 4 32 bit integers internally, so lets treat them as 4 ints
     /// </summary>
@@ -322,6 +331,11 @@ namespace FlowEngineCore.Administration
     {
       GetData(out long ticks);
       Val = new DateTime(ticks);
+    }
+    public void GetData(out TimeSpan Val)
+    {
+      GetData(out long ticks);
+      Val = TimeSpan.FromTicks(ticks);
     }
 
     public void GetData(out decimal Val)

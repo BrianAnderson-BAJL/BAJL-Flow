@@ -12,6 +12,7 @@ namespace FlowEngineCore.Administration.Messages
     public SecurityProfile.SECURITY_ACCESS_LEVEL AdministrationUsers;
     public SecurityProfile.SECURITY_ACCESS_LEVEL AdministrationSecurityProfiles;
     public SecurityProfile.SECURITY_ACCESS_LEVEL AdministrationFlows;
+    public SecurityProfile.SECURITY_ACCESS_SIMPLE Statistics;
     /// <summary>
     /// Used when parsing a response from a client
     /// </summary>
@@ -25,13 +26,16 @@ namespace FlowEngineCore.Administration.Messages
       AdministrationSecurityProfiles = (SecurityProfile.SECURITY_ACCESS_LEVEL)val;
       packet.GetData(out val);
       AdministrationFlows = (SecurityProfile.SECURITY_ACCESS_LEVEL)val;
+      packet.GetData(out val);
+      Statistics = (SecurityProfile.SECURITY_ACCESS_SIMPLE)val;
     }
-    public SecurityProfileAdd(string serverKey, string sessionKey, string name, SecurityProfile.SECURITY_ACCESS_LEVEL administrationUsers, SecurityProfile.SECURITY_ACCESS_LEVEL administrationSecurityProfiles, SecurityProfile.SECURITY_ACCESS_LEVEL administrationFlows) : base(serverKey, sessionKey, Packet.PACKET_TYPE.SecurityProfileAdd)
+    public SecurityProfileAdd(string serverKey, string sessionKey, string name, SecurityProfile.SECURITY_ACCESS_LEVEL administrationUsers, SecurityProfile.SECURITY_ACCESS_LEVEL administrationSecurityProfiles, SecurityProfile.SECURITY_ACCESS_LEVEL administrationFlows, SecurityProfile.SECURITY_ACCESS_SIMPLE statistics) : base(serverKey, sessionKey, Packet.PACKET_TYPE.SecurityProfileAdd)
     {
       this.Name = name;
       this.AdministrationUsers = administrationUsers;
       this.AdministrationSecurityProfiles = administrationSecurityProfiles;
       this.AdministrationFlows = administrationFlows;
+      this.Statistics = statistics;
     }
 
     public override FlowEngineCore.Administration.Packet GetPacket()
@@ -41,6 +45,7 @@ namespace FlowEngineCore.Administration.Messages
       packet.AddData(this.AdministrationUsers);
       packet.AddData(this.AdministrationSecurityProfiles);
       packet.AddData(this.AdministrationFlows);
+      packet.AddData(this.Statistics);
       return packet;
     }
 

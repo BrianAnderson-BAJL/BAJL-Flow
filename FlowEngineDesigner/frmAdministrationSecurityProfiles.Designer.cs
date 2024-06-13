@@ -36,6 +36,7 @@
       chUsers = new ColumnHeader();
       chSecurityProfiles = new ColumnHeader();
       chFlows = new ColumnHeader();
+      chStatistics = new ColumnHeader();
       SuspendLayout();
       // 
       // btnDelete
@@ -74,7 +75,7 @@
       // lstData
       // 
       lstData.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      lstData.Columns.AddRange(new ColumnHeader[] { chName, chUsers, chSecurityProfiles, chFlows });
+      lstData.Columns.AddRange(new ColumnHeader[] { chName, chUsers, chSecurityProfiles, chFlows, chStatistics });
       lstData.FullRowSelect = true;
       lstData.GridLines = true;
       lstData.Location = new Point(12, 12);
@@ -105,6 +106,11 @@
       chFlows.Text = "Flows";
       chFlows.Width = 120;
       // 
+      // chStatistics
+      // 
+      chStatistics.Text = "Statistics";
+      chStatistics.Width = 120;
+      // 
       // frmAdministrationSecurityProfiles
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
@@ -131,5 +137,6 @@
     private ColumnHeader chUsers;
     private ColumnHeader chFlows;
     private ColumnHeader chSecurityProfiles;
+    private ColumnHeader chStatistics;
   }
 }

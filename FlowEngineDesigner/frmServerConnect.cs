@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static FlowEngineCore.Administration.Messages.FlowDebugAlways;
 
 namespace FlowEngineDesigner
 {
@@ -53,7 +54,11 @@ namespace FlowEngineDesigner
 
       cServer.RefreshSecurityProfiles();
 
-      Global.FormMain.debugAlwaysToolStripMenuItem.Checked = cOptions.AdministrationDebugAlways;
+      if (cOptions.AdministrationDebugAlways == true)
+      {
+        FlowDebugAlways flowDebugAlways = new FlowDebugAlways(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, FlowDebugAlways.DEBUG_ALWAYS.Yes);
+        cServer.SendAndResponse(flowDebugAlways.GetPacket(), Global.FormMain.Callback_FlowDebugAlways);
+      }
     }
 
     private void frmServerConnect_Load(object sender, EventArgs e)

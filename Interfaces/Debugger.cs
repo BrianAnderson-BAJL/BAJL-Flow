@@ -12,7 +12,7 @@ namespace FlowEngineCore
     public User DebugUser;
     public int DebugMessagePacketId = 0;  //IF the user is debugging a specific flow this will be assigned so the client can map up the response to the original request
     public string FlowFileName = "";
-
+    public object CritialSection = new object();
     public Debugger(User debugUser, int debugMessagePacketId = 0, string flowName = "")
     {
       DebugUser = debugUser;

@@ -17,11 +17,18 @@ namespace FlowEngineCore
       Full = 3,
     }
 
+    public enum SECURITY_ACCESS_SIMPLE
+    {
+      None,
+      Access,
+    }
+
     public enum SECURITY_AREA
     {
       Users,
       SecurityProfiles,
       Flows,
+      Statistics,
     }
 
 
@@ -31,6 +38,7 @@ namespace FlowEngineCore
     public SECURITY_ACCESS_LEVEL AdministrationSecurityProfiles = SECURITY_ACCESS_LEVEL.None;
     public SECURITY_ACCESS_LEVEL AdministrationFlows = SECURITY_ACCESS_LEVEL.None;
     public SECURITY_ACCESS_LEVEL ServerSettings = SECURITY_ACCESS_LEVEL.None;
+    public SECURITY_ACCESS_SIMPLE Statistics = SECURITY_ACCESS_SIMPLE.None;
 
     /// <summary>
     /// Returns a blank SecurityProfile with no access to anything.
@@ -91,6 +99,9 @@ namespace FlowEngineCore
           rc = ServerSettings >= SECURITY_ACCESS_LEVEL.Readonly; break;
         case Packet.PACKET_TYPE.ServerSettingsEdit:
           rc = ServerSettings >= SECURITY_ACCESS_LEVEL.Edit; break;
+        case Packet.PACKET_TYPE.StatisticsRegister:
+        case Packet.PACKET_TYPE.StatisticsDeregister:
+          rc = Statistics >= SECURITY_ACCESS_SIMPLE.Access; break;
         default:
           rc = false;
           break;
@@ -107,8 +118,18 @@ namespace FlowEngineCore
         return AdministrationSecurityProfiles;
       if (securityArea == SECURITY_AREA.Flows)
         return AdministrationFlows;
+      if (securityArea == SECURITY_AREA.Statistics)
+        return ConvertToLevel(Statistics);
 
       return SECURITY_ACCESS_LEVEL.None;
+    }
+
+    private SECURITY_ACCESS_LEVEL ConvertToLevel(SECURITY_ACCESS_SIMPLE access)
+    {
+      if (access == SECURITY_ACCESS_SIMPLE.Access)
+        return SECURITY_ACCESS_LEVEL.Full;
+      else
+        return SECURITY_ACCESS_LEVEL.None;
     }
   }
 }

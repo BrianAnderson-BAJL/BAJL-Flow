@@ -20,7 +20,7 @@ namespace FlowEngineDesigner
 
     private void frmTracer_Load(object sender, EventArgs e)
     {
-      cEventManager.Tracer += CEventManager_Tracer;
+      cEventManager.TracerHandler += CEventManager_Tracer;
     }
 
     private void CEventManager_Tracer(object? sender, TracerEventArgs e)

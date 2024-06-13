@@ -134,11 +134,15 @@ namespace FlowEngineCore
       return ConvertToString(TimeSpan.FromTicks(ticks));
     }
 
-    public static string ConvertToString(TimeSpan ts)
+
+    public static string ConvertToString(TimeSpan ts, bool includeNanoseconds = true)
     {
       if (ts.TotalSeconds < 1)
       {
-        return ts.TotalMilliseconds.ToString() + "ms";
+        if (includeNanoseconds == true)
+          return ts.TotalMilliseconds.ToString() + "ms";
+        else
+          return ts.TotalMilliseconds.ToString("0") + "ms";
       }
       else if (ts.TotalMinutes < 1)
       {

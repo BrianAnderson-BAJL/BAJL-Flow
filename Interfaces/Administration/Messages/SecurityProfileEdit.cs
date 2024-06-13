@@ -19,7 +19,7 @@ namespace FlowEngineCore.Administration.Messages
       packet.GetData(out this.OldName);
     }
 
-    public SecurityProfileEdit(string serverKey, string sessionKey, string oldName, string name, SecurityProfile.SECURITY_ACCESS_LEVEL administrationUsers, SecurityProfile.SECURITY_ACCESS_LEVEL administrationSecurityProfiles, SecurityProfile.SECURITY_ACCESS_LEVEL administrationFlows) : base(serverKey, sessionKey, name, administrationUsers, administrationSecurityProfiles, administrationFlows)
+    public SecurityProfileEdit(string serverKey, string sessionKey, string oldName, string name, SecurityProfile.SECURITY_ACCESS_LEVEL administrationUsers, SecurityProfile.SECURITY_ACCESS_LEVEL administrationSecurityProfiles, SecurityProfile.SECURITY_ACCESS_LEVEL administrationFlows, SecurityProfile.SECURITY_ACCESS_SIMPLE statistics) : base(serverKey, sessionKey, name, administrationUsers, administrationSecurityProfiles, administrationFlows, statistics)
   {
       this.PacketType = Packet.PACKET_TYPE.SecurityProfileEdit;
       this.OldName = oldName;

@@ -83,6 +83,7 @@
       Controls.Add(btnOk);
       Controls.Add(txtDescription);
       Controls.Add(lblName);
+      FormBorderStyle = FormBorderStyle.Fixed3D;
       Name = "frmSettingNumber";
       Text = "frmSettingNumber";
       Load += frmSettingNumber_Load;

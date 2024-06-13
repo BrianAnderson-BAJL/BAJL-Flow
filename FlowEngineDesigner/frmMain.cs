@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static FlowEngineCore.Administration.Messages.FlowDebugAlways;
 
 namespace FlowEngineDesigner
 {
@@ -231,21 +232,32 @@ namespace FlowEngineDesigner
 
     private void debugAlwaysToolStripMenuItem_CheckStateChanged(object sender, EventArgs e)
     {
-      if (cOptions.AdministrationDebugAlways == true && cServer.IsConnectedToServer == true)
-      {
-        FlowDebugAlways flowDebugAlways = new FlowDebugAlways(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
-        cServer.SendAndResponse(flowDebugAlways.GetPacket(), Callback_FlowDebugAlways);
-      }
     }
 
 
-    private void Callback_FlowDebugAlways(FlowEngineCore.Administration.EventArgsPacket e)
+    public void Callback_FlowDebugAlways(FlowEngineCore.Administration.EventArgsPacket e)
     {
+      if (e.Packet.PeekResponseCode() == BaseResponse.RESPONSE_CODE.Success)
+      {
+        FlowDebugAlwaysResponse response = new FlowDebugAlwaysResponse(e.Packet);
+        if (response.DebugAlways == DEBUG_ALWAYS.Yes)
+          cOptions.AdministrationDebugAlways = true;
+        else
+          cOptions.AdministrationDebugAlways = false;
+
+        debugAlwaysToolStripMenuItem.Checked = cOptions.AdministrationDebugAlways;
+      }
     }
 
     private void debugAlwaysToolStripMenuItem_Click(object sender, EventArgs e)
     {
+      FlowDebugAlways.DEBUG_ALWAYS debugAlways = FlowDebugAlways.DEBUG_ALWAYS.No;
 
+      if (cOptions.AdministrationDebugAlways == true)
+        debugAlways = FlowDebugAlways.DEBUG_ALWAYS.Yes;
+
+      FlowDebugAlways flowDebugAlways = new FlowDebugAlways(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, debugAlways);
+      cServer.SendAndResponse(flowDebugAlways.GetPacket(), Callback_FlowDebugAlways);
     }
 
     private void settingsToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -254,6 +266,20 @@ namespace FlowEngineDesigner
 
       frmSettings f = new frmSettings(Options.GetSettings, "Server settings");
       f.Show();
+    }
+
+    private void statisticsToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      Form? found = Global.FindOpenFormByTitleText("Statistics");
+      if (found is not null)
+      {
+        found.BringToFront();
+      }
+      else
+      {
+        frmStatistics f = new frmStatistics();
+        f.Show();
+      }
     }
   }
 }

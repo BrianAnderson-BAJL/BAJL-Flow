@@ -44,6 +44,7 @@
       connectToolStripMenuItem = new ToolStripMenuItem();
       disconnectToolStripMenuItem = new ToolStripMenuItem();
       connectRecentToolStripMenuItem = new ToolStripMenuItem();
+      settingsToolStripMenuItem1 = new ToolStripMenuItem();
       administrationToolStripMenuItem = new ToolStripMenuItem();
       usersToolStripMenuItem1 = new ToolStripMenuItem();
       securityProfilesToolStripMenuItem = new ToolStripMenuItem();
@@ -55,7 +56,7 @@
       toolStripStatusLabel1 = new ToolStripStatusLabel();
       tsLoggedInAs = new ToolStripStatusLabel();
       openFileDialog1 = new OpenFileDialog();
-      settingsToolStripMenuItem1 = new ToolStripMenuItem();
+      statisticsToolStripMenuItem = new ToolStripMenuItem();
       menuStrip1.SuspendLayout();
       statusStrip1.SuspendLayout();
       SuspendLayout();
@@ -148,7 +149,7 @@
       // 
       // serverToolStripMenuItem
       // 
-      serverToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { connectToolStripMenuItem, disconnectToolStripMenuItem, connectRecentToolStripMenuItem, settingsToolStripMenuItem1, administrationToolStripMenuItem });
+      serverToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { connectToolStripMenuItem, disconnectToolStripMenuItem, connectRecentToolStripMenuItem, statisticsToolStripMenuItem, settingsToolStripMenuItem1, administrationToolStripMenuItem });
       serverToolStripMenuItem.Name = "serverToolStripMenuItem";
       serverToolStripMenuItem.Size = new Size(51, 20);
       serverToolStripMenuItem.Text = "&Server";
@@ -175,6 +176,13 @@
       connectRecentToolStripMenuItem.Size = new Size(180, 22);
       connectRecentToolStripMenuItem.Text = "Connect &Recent...";
       // 
+      // settingsToolStripMenuItem1
+      // 
+      settingsToolStripMenuItem1.Name = "settingsToolStripMenuItem1";
+      settingsToolStripMenuItem1.Size = new Size(180, 22);
+      settingsToolStripMenuItem1.Text = "&Settings";
+      settingsToolStripMenuItem1.Click += settingsToolStripMenuItem1_Click;
+      // 
       // administrationToolStripMenuItem
       // 
       administrationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem1, securityProfilesToolStripMenuItem, changePasswordToolStripMenuItem, flowOpenToolStripMenuItem, debugAlwaysToolStripMenuItem });
@@ -185,35 +193,35 @@
       // usersToolStripMenuItem1
       // 
       usersToolStripMenuItem1.Name = "usersToolStripMenuItem1";
-      usersToolStripMenuItem1.Size = new Size(180, 22);
+      usersToolStripMenuItem1.Size = new Size(168, 22);
       usersToolStripMenuItem1.Text = "&Users...";
       usersToolStripMenuItem1.Click += usersToolStripMenuItem1_Click;
       // 
       // securityProfilesToolStripMenuItem
       // 
       securityProfilesToolStripMenuItem.Name = "securityProfilesToolStripMenuItem";
-      securityProfilesToolStripMenuItem.Size = new Size(180, 22);
+      securityProfilesToolStripMenuItem.Size = new Size(168, 22);
       securityProfilesToolStripMenuItem.Text = "Security Profiles...";
       securityProfilesToolStripMenuItem.Click += securityProfilesToolStripMenuItem_Click;
       // 
       // changePasswordToolStripMenuItem
       // 
       changePasswordToolStripMenuItem.Name = "changePasswordToolStripMenuItem";
-      changePasswordToolStripMenuItem.Size = new Size(180, 22);
+      changePasswordToolStripMenuItem.Size = new Size(168, 22);
       changePasswordToolStripMenuItem.Text = "Change &Password";
       changePasswordToolStripMenuItem.Click += changePasswordToolStripMenuItem_Click;
       // 
       // flowOpenToolStripMenuItem
       // 
       flowOpenToolStripMenuItem.Name = "flowOpenToolStripMenuItem";
-      flowOpenToolStripMenuItem.Size = new Size(180, 22);
+      flowOpenToolStripMenuItem.Size = new Size(168, 22);
       flowOpenToolStripMenuItem.Text = "Flow Open...";
       flowOpenToolStripMenuItem.Click += flowOpenToolStripMenuItem_Click;
       // 
       // debugAlwaysToolStripMenuItem
       // 
       debugAlwaysToolStripMenuItem.Name = "debugAlwaysToolStripMenuItem";
-      debugAlwaysToolStripMenuItem.Size = new Size(180, 22);
+      debugAlwaysToolStripMenuItem.Size = new Size(168, 22);
       debugAlwaysToolStripMenuItem.Text = "Debug Always";
       debugAlwaysToolStripMenuItem.CheckStateChanged += debugAlwaysToolStripMenuItem_CheckStateChanged;
       debugAlwaysToolStripMenuItem.Click += debugAlwaysToolStripMenuItem_Click;
@@ -251,12 +259,12 @@
       // 
       openFileDialog1.FileName = "openFileDialog1";
       // 
-      // settingsToolStripMenuItem1
+      // statisticsToolStripMenuItem
       // 
-      settingsToolStripMenuItem1.Name = "settingsToolStripMenuItem1";
-      settingsToolStripMenuItem1.Size = new Size(180, 22);
-      settingsToolStripMenuItem1.Text = "&Settings";
-      settingsToolStripMenuItem1.Click += settingsToolStripMenuItem1_Click;
+      statisticsToolStripMenuItem.Name = "statisticsToolStripMenuItem";
+      statisticsToolStripMenuItem.Size = new Size(180, 22);
+      statisticsToolStripMenuItem.Text = "S&tatistics";
+      statisticsToolStripMenuItem.Click += statisticsToolStripMenuItem_Click;
       // 
       // frmMain
       // 
@@ -309,5 +317,6 @@
     private OpenFileDialog openFileDialog1;
     public ToolStripMenuItem debugAlwaysToolStripMenuItem;
     private ToolStripMenuItem settingsToolStripMenuItem1;
+    private ToolStripMenuItem statisticsToolStripMenuItem;
   }
 }

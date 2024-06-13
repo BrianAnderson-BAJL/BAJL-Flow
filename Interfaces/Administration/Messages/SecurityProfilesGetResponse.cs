@@ -23,11 +23,13 @@ namespace FlowEngineCore.Administration.Messages
         packet.GetData(out int adminUsers);
         packet.GetData(out int adminSecurityProfile);
         packet.GetData(out int adminFlows);
+        packet.GetData(out int statistics);
         SecurityProfile profile = new();
         profile.Name = name;
         profile.AdministrationUsers = (SecurityProfile.SECURITY_ACCESS_LEVEL)adminUsers;
         profile.AdministrationSecurityProfiles = (SecurityProfile.SECURITY_ACCESS_LEVEL)adminSecurityProfile;
         profile.AdministrationFlows = (SecurityProfile.SECURITY_ACCESS_LEVEL)adminFlows;
+        profile.Statistics = (SecurityProfile.SECURITY_ACCESS_SIMPLE)statistics;
         Profiles.Add(profile);
       }
     }
@@ -46,6 +48,7 @@ namespace FlowEngineCore.Administration.Messages
         packet.AddData(Profiles[x].AdministrationUsers);
         packet.AddData(Profiles[x].AdministrationSecurityProfiles);
         packet.AddData(Profiles[x].AdministrationFlows);
+        packet.AddData(Profiles[x].Statistics);
       }
       return packet;
     }

@@ -188,6 +188,10 @@ namespace FlowEngineDesigner
         //Trace trace = new Trace(packet);
         cEventManager.RaiseEventTracer(packet);
       }
+      else if (packet.PacketType == Packet.PACKET_TYPE.StatisticsData)
+      {
+        cEventManager.RaiseEventStatistics(packet);
+      }
 
     }
 

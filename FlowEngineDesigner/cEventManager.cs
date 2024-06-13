@@ -23,7 +23,8 @@ namespace FlowEngineDesigner
       FlowEngineServer,
     }
 
-    public static event EventHandler<TracerEventArgs>? Tracer;
+    public static event EventHandler<TracerEventArgs>? TracerHandler;
+    public static event EventHandler<FlowEngineCore.Administration.Packet>? StatisticsHandler;
 
     public static void RaiseEventTracer(SENDER sender, string data, BaseResponse.RESPONSE_CODE response, long ticks = 0)
     {
@@ -37,9 +38,9 @@ namespace FlowEngineDesigner
 
     public static void RaiseEventTracer(SENDER sender, string data, TRACER_TYPE tracerType = TRACER_TYPE.Information, long ticks = 0, string xmlData = "")
     {
-      if (Tracer is not null)
+      if (TracerHandler is not null)
       {
-        Tracer(sender, new TracerEventArgs(data, tracerType, xmlData, ticks));
+        TracerHandler(sender, new TracerEventArgs(data, tracerType, xmlData, ticks));
       }
     }
 
@@ -53,6 +54,17 @@ namespace FlowEngineDesigner
       if (trace.Success == false)
         type = TRACER_TYPE.Error;
       RaiseEventTracer(SENDER.FlowDebug, trace.PreviousStepName, type, trace.ExecutionTicks, trace.ResponseXml);
+    }
+
+    public static void RaiseEventStatistics(FlowEngineCore.Administration.Packet packet)
+    {
+      if (packet.PacketType != FlowEngineCore.Administration.Packet.PACKET_TYPE.StatisticsData)
+        return;
+
+      if (StatisticsHandler is null)
+        return;
+
+      StatisticsHandler(SENDER.FlowEngineServer, packet);
     }
   }
 
@@ -70,4 +82,5 @@ namespace FlowEngineDesigner
       Ticks = ticks;
     }
   }
+ 
 }

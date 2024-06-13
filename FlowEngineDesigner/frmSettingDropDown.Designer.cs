@@ -70,7 +70,7 @@
       Controls.Add(btnOk);
       Controls.Add(cmbDropDown);
       Controls.Add(lblLabel);
-      FormBorderStyle = FormBorderStyle.FixedToolWindow;
+      FormBorderStyle = FormBorderStyle.Fixed3D;
       Name = "frmSettingDropDown";
       Text = "frmSettingDropDown";
       Load += frmSettingDropDown_Load;

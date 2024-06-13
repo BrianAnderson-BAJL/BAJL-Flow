@@ -1,6 +1,7 @@
 ﻿using FlowEngineCore.Administration.Messages;
 using FlowEngineCore.Administration.Packets;
 using FlowEngineCore.Interfaces;
+using FlowEngineCore.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -45,6 +46,8 @@ namespace FlowEngineCore.Administration
       Processors.Add(Packet.PACKET_TYPE.FlowDebugAlways, ProcessFlowDebugAlways);
       Processors.Add(Packet.PACKET_TYPE.ServerSettingsGet, ProcessServerSettingsGet);
       Processors.Add(Packet.PACKET_TYPE.ServerSettingsEdit, ProcessServerSettingsEdit);
+      Processors.Add(Packet.PACKET_TYPE.StatisticsRegister, ProcessStatisticsRegister);
+      Processors.Add(Packet.PACKET_TYPE.StatisticsDeregister, ProcessStatisticsDeregister);
 
 
       if (GlobalPluginValues.ContainsKey("log") == true)
@@ -528,24 +531,32 @@ namespace FlowEngineCore.Administration
 
     private static void ProcessFlowDebugAlways(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      if (Options.GetSettings.SettingGetAsString("ServerType") != Options.SERVER_TYPE.Development.ToString()) //TODO: Change this, I hate it, comparing strings...
+      FlowDebugAlways data = new FlowDebugAlways(packet);
+
+      //TODO: Change this, I hate it, comparing strings...
+      if (Options.GetSettings.SettingGetAsString("ServerType") != Options.SERVER_TYPE.Development.ToString()) 
       {
-        BaseResponse response = new(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, Packet.PACKET_TYPE.FlowDebugResponse);
-        client.Send(response.GetPacket());
+        FlowDebugAlwaysResponse response1 = new(packet.PacketId, RESPONSE_CODE.DebugOnlyAllowedInDevelopmentServer, data.DebugAlways);
+        client.Send(response1.GetPacket());
         return;
       }
 
-      try
+      if (data.DebugAlways == FlowDebugAlways.DEBUG_ALWAYS.Yes)
       {
         User? user = UserManager.FindByTcpConnection(client);
         if (user is null)
           return;
         DebuggerManager.Add(user);
       }
-      catch (Exception ex)
+      else
       {
-        mLog?.Write("ProcessFlowDebugAlways Execution error", ex, LOG_TYPE.ERR);
+        User? user = UserManager.FindByTcpConnection(client);
+        if (user is null)
+          return;
+        DebuggerManager.RemoveByUser(user);
       }
+      FlowDebugAlwaysResponse response2 = new(packet.PacketId, RESPONSE_CODE.Success, data.DebugAlways);
+      client.Send(response2.GetPacket());
 
     }
     private static void ProcessCloseConnection(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
@@ -555,6 +566,7 @@ namespace FlowEngineCore.Administration
 #endif
     }
 
+    //TODO: Implement server settings modification via server GET
     private static void ProcessServerSettingsGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       string path = Options.GetFullPath(Options.SettingsPath);
@@ -564,12 +576,27 @@ namespace FlowEngineCore.Administration
     }
 
 
+    //TODO: Implement server settings modification via server EDIT
     private static void ProcessServerSettingsEdit(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       //string path = Options.GetFullPath(Options.SettingsPath);
       //string xml = System.IO.File.ReadAllText(path);
       //ServerSettingsGetResponse response = new ServerSettingsGetResponse(packet.PacketId, RESPONSE_CODE.Success, xml);
       //client.Send(response.GetPacket());
+    }
+
+    private static void ProcessStatisticsRegister(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
+    {
+      StatisticsRegister data = new StatisticsRegister(packet);
+      StatisticsManager.UserRegister(client, data.Frequency);
+      BaseResponse response = new(packet.PacketId, RESPONSE_CODE.Success, Packet.PACKET_TYPE.StatisticsRegisterResponse);
+      client.Send(response.GetPacket());
+    }
+    private static void ProcessStatisticsDeregister(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
+    {
+      StatisticsManager.UserDeregister(client);
+      BaseResponse response = new(packet.PacketId, RESPONSE_CODE.Success, Packet.PACKET_TYPE.StatisticsDeregisterResponse);
+      client.Send(response.GetPacket());
     }
   }
 }

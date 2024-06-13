@@ -34,6 +34,8 @@ namespace FlowEngineDesigner
         cmbSecurityProfiles.Items.Add(vals[x].ToString());
         cmbFlows.Items.Add(vals[x].ToString());
       }
+      cmbStatistics.Items.Add(SecurityProfile.SECURITY_ACCESS_SIMPLE.None.ToString());
+      cmbStatistics.Items.Add(SecurityProfile.SECURITY_ACCESS_SIMPLE.Access.ToString());
 
       if (Profile is not null)
       {
@@ -42,6 +44,7 @@ namespace FlowEngineDesigner
         Global.ComboBoxSetIndex(cmbUsers, Profile.AdministrationUsers.ToString());
         Global.ComboBoxSetIndex(cmbSecurityProfiles, Profile.AdministrationSecurityProfiles.ToString());
         Global.ComboBoxSetIndex(cmbFlows, Profile.AdministrationFlows.ToString());
+        Global.ComboBoxSetIndex(cmbStatistics, Profile.Statistics.ToString());
       }
 
       if (Mode == FORM_MODE.ReadOnly || Mode == FORM_MODE.Delete)
@@ -50,6 +53,7 @@ namespace FlowEngineDesigner
         cmbUsers.Enabled = false;
         cmbSecurityProfiles.Enabled = false;
         cmbFlows.Enabled = false;
+        cmbStatistics.Enabled = false;
       }
 
       if (Mode == FORM_MODE.Delete)
@@ -79,15 +83,16 @@ namespace FlowEngineDesigner
       SecurityProfile.SECURITY_ACCESS_LEVEL users = Enum.Parse<SecurityProfile.SECURITY_ACCESS_LEVEL>(cmbUsers.Text);
       SecurityProfile.SECURITY_ACCESS_LEVEL sp = Enum.Parse<SecurityProfile.SECURITY_ACCESS_LEVEL>(cmbSecurityProfiles.Text);
       SecurityProfile.SECURITY_ACCESS_LEVEL flows = Enum.Parse<SecurityProfile.SECURITY_ACCESS_LEVEL>(cmbFlows.Text);
+      SecurityProfile.SECURITY_ACCESS_SIMPLE stats = Enum.Parse<SecurityProfile.SECURITY_ACCESS_SIMPLE>(cmbStatistics.Text);
 
       if (Mode == FORM_MODE.Add)
       {
-        FlowEngineCore.Administration.Messages.SecurityProfileAdd u = new FlowEngineCore.Administration.Messages.SecurityProfileAdd(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text, users, sp, flows);
+        FlowEngineCore.Administration.Messages.SecurityProfileAdd u = new FlowEngineCore.Administration.Messages.SecurityProfileAdd(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text, users, sp, flows, stats);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.Edit)
       {
-        FlowEngineCore.Administration.Messages.SecurityProfileEdit u = new FlowEngineCore.Administration.Messages.SecurityProfileEdit(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, OldName, txtName.Text, users, sp, flows);
+        FlowEngineCore.Administration.Messages.SecurityProfileEdit u = new FlowEngineCore.Administration.Messages.SecurityProfileEdit(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, OldName, txtName.Text, users, sp, flows, stats);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.Delete)

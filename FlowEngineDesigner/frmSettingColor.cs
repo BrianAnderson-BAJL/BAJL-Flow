@@ -38,6 +38,9 @@ namespace FlowEngineDesigner
 
     private void frmSettingColor_Load(object sender, EventArgs e)
     {
+      this.Text = "Setting [" + mSetting.Key + "]";
+      lblName.Text = mSetting.Key;
+      txtDescription.Text = mSetting.Description;
 
     }
   }
