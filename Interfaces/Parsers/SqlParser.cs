@@ -64,8 +64,12 @@ namespace FlowEngineCore.Parsers
       /// <returns></returns>
       public string GetRtfText()
       {
+        if (Value == "")
+          return "";
+
         if (Value == "\n")
-          Value = "\\par ";
+          return "\\par ";
+
         string val = Color + Value;
 
         return val;
@@ -209,7 +213,7 @@ namespace FlowEngineCore.Parsers
     //TODO: These keywords and functions are for MySql, later I will need to pull these values from the Database plugin using the IDatabase interface. That way I can get different keywords based on the database type (MySQl, SQL Server, Oracle, ...)
     private static readonly string[] Keywords = { "SELECT", "UPDATE", "INSERT", "DELETE", "FROM", "WHERE", "HAVING", "VALUES", "IN", "BETWEEN", "INNER", "LEFT", "RIGHT", "JOIN", "ON", "INTO", "GROUP", "ORDER", "BY", "AS", "WITH", "AND", "OR", "DESC", "ASC" };
     private static readonly string[] Functions = { "COUNT", "MAX", "MIN", "AVG", "SUM", "MONTHNAME", "MONTH", "DAY", "YEAR", "CURRENT_TIMESTAMP" };
-    private static readonly string[] Delimiters = { ",", " ", "(", ")", "\n", "\t", "=", "<=", ">=", "<", ">"};
+    private static readonly string[] Delimiters = { ",", " ", "(", ")", "\r\n", "\n", "\t", "=", "<=", ">=", "<", ">"};
     private static readonly string[] Comparer = { "=", "<=", ">=", "<", ">" };
 
     private static Color KeywordColor = Color.Blue;
@@ -256,11 +260,13 @@ namespace FlowEngineCore.Parsers
         ReadNextUnit(ref sql, parent, isAs);
         return;
       }
+      
       unit = new ParsedUnit(word, BeforeFrom);
 
       if (parent is not null)
       {
-        parent.SubUnits.Add(unit);
+        if (unit.Value != "")
+          parent.SubUnits.Add(unit);
         if (delimiterId >= 0)
         {
           unit = new ParsedUnit(Delimiters[delimiterId], BeforeFrom);
@@ -271,7 +277,8 @@ namespace FlowEngineCore.Parsers
       }
       else// if (word.Equals("AS", StringComparison.OrdinalIgnoreCase) == false)
       {
-        Units.Add(unit);
+        if (unit.Value != "")
+          Units.Add(unit);
         if (delimiterId >= 0)
         {
           unit = new ParsedUnit(Delimiters[delimiterId], BeforeFrom);
@@ -379,15 +386,24 @@ namespace FlowEngineCore.Parsers
       StringBuilder sb = new StringBuilder(4096);
 
       //This is text I pulled from Microsoft WordPad basic RTF document 
-      sb.AppendLine(@"{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil\fcharset0 Courier New;}}");
+      sb.AppendLine(@"{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang1033{\fonttbl{\f0\fnil Courier New;}}"); //\fcharset0
       sb.AppendLine(@"{\colortbl ;\red" + KeywordColor.R + @"\green" + KeywordColor.G + @"\blue" + KeywordColor.B + @";\red" + FunctionColor.R + @"\green" + FunctionColor.G + @"\blue" + FunctionColor.B + @";\red" + DelimiterColor.R + @"\green" + DelimiterColor.G + @"\blue" + DelimiterColor.B + @";\red" + ComparerColor.R + @"\green" + ComparerColor.G + @"\blue" + ComparerColor.B + @";\red" + ParenthesesColor.R + @"\green" + ParenthesesColor.G + @"\blue" + ParenthesesColor.B + @";\red" + ParamColor.R + @"\green" + ParamColor.G + @"\blue" + ParamColor.B + ";}");
       sb.AppendLine(@"{\*\generator Riched20 10.0.19041}\viewkind4\uc1 ");
+      sb.AppendLine(@"\pard\f0\fs24 ");
       //sb.AppendLine(@"\pard\sa200\sl276\slmult1\f0\fs22\lang9 "); //This line seems to control the line spacing, I didn't like it....
+      
       for (int x = 0; x < Units.Count; x++)
       {
-        sb.Append( Units[x].GetRtfText()); 
+        if (Units[x].Value == "\n" && Units.Count - 1 == x)
+        {
+          sb.Append("\\par\\par");
+        }
+        else
+        {
+          sb.Append(Units[x].GetRtfText());
+        }
       }
-
+      sb.AppendLine();
       sb.AppendLine(@"}");
       //string val = @"{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang14346{\fonttbl{\f0\fnil\fcharset0 Calibri;}} {\*\generator Riched20 10.0.10586}\viewkind4\uc1 \pard\sa200\sl276\slmult1\f0\fs22\lang10 Hello World.\par }";
       return sb.ToString();

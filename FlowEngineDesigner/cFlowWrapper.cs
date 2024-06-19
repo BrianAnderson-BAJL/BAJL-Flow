@@ -162,7 +162,7 @@ namespace FlowEngineDesigner
         PREV_STEP prevStep = allPreviousSteps[x];
         if (prevStep.Step.RespNames.Name != "" && prevStep.OutputType == Output.TYPE.Success && prevStep.Step.SaveResponseVariable == true)
         {
-          if (prevStep.Step.Name == "Database.Select")
+          if (prevStep.Step.Name == "Database.Select" || prevStep.Step.Name == "Database.Select Single")
           {
             Variable var = prevStep.Step.RespNames.Clone();
             PopulateVariablesFromSql(prevStep, ref var);
