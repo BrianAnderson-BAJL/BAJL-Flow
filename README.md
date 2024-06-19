@@ -25,6 +25,9 @@ Basic flow controls.
 #### Start sub flows either synchronously or asynchronously
 #### Core steps, Start, Stop, ...
 
+### Email plugin
+Send and receive emails. Load email templates from storage and and send customized emails to users.
+
 ### Log plugin
 Log flow events into a log file, includes archiving, rolling logs when they hit a size threshold, & deleting old logs.
 
@@ -48,14 +51,14 @@ Many of the below features are fleshed out in the code
 * Run on both Linux and Windows (.Net Core 6)
 * Users with Security profiles (Admin, developer, readonly, ...)
 * Engine running type profiles (Production, QA, development, ...)
-* Upload flows to server and have them update / added in real time, no reboot required
+* Upload flows to server and have them update / added in real time, no reboot/restart required
 * Trace log of code performance and inspect variables before and after each step (function)
 * Comments in flow
 * Designer Layouts. You can layout your desktop however you want and it will remember next time you start it.
+* Statistics regarding flows (Counts, avg time to execute, longest flow runtime, shortest flow runtime, ...)
 
 # Future features
 These are things that will be included sometime in the future
-* Statistics regarding flows (Counts, avg time to execute, longest flow runtime, shortest flow runtime, ...)
 * Support multiple database sources (currently only supports a single MySql/MariaDb Database)
 * Jump points (a way to link to other areas of a flow)
 * Compile flows, check flows for errors (missing connections, missing parameters, ...)
