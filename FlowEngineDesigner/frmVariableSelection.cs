@@ -71,6 +71,9 @@ namespace FlowEngineDesigner
         for (int x = 0; x < Flow.Variables.Count; x++)
         {
           KeyValuePair<string, Variable> kvp = Flow.Variables.ElementAt(x);
+          if (IsDuplicateNodeName(tvVariables.Nodes, kvp.Key))
+            continue;
+
           TreeNode tn = tvVariables.Nodes.Add(kvp.Key);
           tn.Tag = kvp.Value;
           LoadVariableSubNodes(tn, kvp.Value);
@@ -82,6 +85,9 @@ namespace FlowEngineDesigner
         List<Variable> vars = Flow.GetVariablesFromPreviousSteps(Step);
         for (int x = 0; x < vars.Count; x++)
         {
+          if (IsDuplicateNodeName(tvVariables.Nodes, vars[x].Name))
+            continue;
+
           TreeNode tn = tvVariables.Nodes.Add(vars[x].Name);
           tn.Tag = vars[x];
           LoadVariableSubNodes(tn, vars[x]);
@@ -99,10 +105,23 @@ namespace FlowEngineDesigner
       for (int y = 0; y < var.SubVariables.Count; y++)
       {
         Variable v = var.SubVariables[y];
+        if (IsDuplicateNodeName(tn.Nodes, v.Name)) 
+          continue;
+
         TreeNode SubNode = tn.Nodes.Add(v.Name);
         SubNode.Tag = v;
         LoadVariableSubNodes(SubNode, v);
       }
+    }
+
+    private bool IsDuplicateNodeName(TreeNodeCollection tnc, string newNodeName)
+    {
+      for (int x = 0; x < tnc.Count; x++)
+      {
+        if (tnc[x].Text == newNodeName)
+          return true;
+      }
+      return false;
     }
 
     private string GetSelectedVariableName()

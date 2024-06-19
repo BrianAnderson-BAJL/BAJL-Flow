@@ -21,6 +21,7 @@ namespace FlowEngineCore
     protected RESP? resp;
     protected List<FunctionStep> functionSteps = new(32);
     protected FunctionStep? start = null;
+    protected FunctionStep? errorStart = null;
     public string FileName = "";
     public string FileNameRelative = "";  //Just the path of the flow with the flow directory removed.
     protected DateTime mCreatedDateTime = DateTime.MinValue;
@@ -123,12 +124,15 @@ namespace FlowEngineCore
       if (Options.GetSettings.SettingGetAsString("ServerType") != Options.SERVER_TYPE.Development.ToString())
         return;
 
-        if (start is null)
+      if (start is null)
       {
         start = FindStepByName("flowcore", "start");
         if (start is null)
           return;
       }
+      if (errorStart is null)
+        errorStart = FindStepByName("flowcore", "error start");
+
       //Find all the links between steps, we need to insert a trace step between each of these links
       List<Link> links = new(functionSteps.Count * 3); //About how many outbound links are in each step, good starting point
       for (int x = 0; x < functionSteps.Count; x++)
@@ -164,10 +168,15 @@ namespace FlowEngineCore
           return RESP.SetError(1, "Flow is missing Start step"); ;
         }
       }
+      
+      return Execute(start);
+    }
 
-      start.Execute(this);
+    public virtual RESP? Execute(FunctionStep startStep)
+    {
+      startStep.Execute(this);
       //start.RuntimeParms = start.parms.Clone();
-      List<FunctionStep> nextSteps = GetNextSteps(start);
+      List<FunctionStep> nextSteps = GetNextSteps(startStep);
       List<FunctionStep> nextNextSteps = new(16);
       FunctionStep? lastStep = null;
       do
@@ -182,8 +191,18 @@ namespace FlowEngineCore
 
       if (Options.GetSettings.SettingGetAsString("ServerType") == Options.SERVER_TYPE.Development.ToString() && lastStep is not null)
       {
-        
+
         SendFlowDebugTraceStep(lastStep.resps, lastStep, new Variable("parms"), this.DebugFlowStartTime.End().Ticks);
+      }
+
+      //Error handling inside of flow. If the last step wasn't a 'Stop' step, the it must be an error
+      bool? isError = lastStep?.Name.Equals("FlowCore.Stop", StringComparison.InvariantCultureIgnoreCase) == false;
+      if (isError is not null && isError == true && startStep != errorStart) //check startStep != errorStep so we don't overflow the stack!
+      {
+        if (errorStart is null)
+          errorStart = this.FindStepByName("flowcore", "error start");
+        if (errorStart is not null)
+          Execute(errorStart);
       }
       return this.resp;
     }
@@ -196,7 +215,6 @@ namespace FlowEngineCore
     {
       if (DebuggerManager.AttachedDebuggersCount <= 0)
       {
-        Global.WriteToConsoleDebug("SendFlowDebugResponse - Could not find debugger!");
         return;
       }
 
@@ -237,7 +255,6 @@ namespace FlowEngineCore
     {
       if (DebuggerManager.AttachedDebuggersCount <= 0)
       {
-        Global.WriteToConsoleDebug("SendFlowDebugTraceStep - Could not find debugger!");
         return;
       }
 
@@ -347,9 +364,11 @@ namespace FlowEngineCore
 
     public FunctionStep? FindStepByName(string plugin, string function)
     {
+      string pluginLower = plugin.ToLower();
+      string functionLower = function.ToLower();
       for (int x = 0; x < functionSteps.Count; x++)
       {
-        if (functionSteps[x].Function.Plugin.Name.ToLower() == plugin.ToLower() && functionSteps[x].Function.Name.ToLower() == function.ToLower())
+        if (functionSteps[x].Function.Plugin.Name.ToLower() == pluginLower && functionSteps[x].Function.Name.ToLower() == functionLower)
           return functionSteps[x];
       }
       return null;

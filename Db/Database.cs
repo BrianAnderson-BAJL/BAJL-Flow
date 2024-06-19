@@ -20,7 +20,10 @@ namespace Db
     private const string DB_SHARE_WITH_PLUGINS = "ShareDatabaseConnWithOtherPlugins";
     public const string DB_TREAT_TINYINT_AS_BOOLEAN = "TreatTinyintAsBoolean";
     public const string DB_DATE_FORMAT = "DateFormat";
+
     private const int DB_ERROR = (int)STEP_ERROR_NUMBERS.DatabaseErrorMin;
+    private const int DB_ERROR_UNKNOWN = (int)STEP_ERROR_NUMBERS.DatabaseErrorMin + 1;
+    private const int DB_ERROR_ZERO_RECORDS = (int)STEP_ERROR_NUMBERS.DatabaseErrorMin + 2;
     public override void Init()
     {
       base.Init();
@@ -40,12 +43,23 @@ namespace Db
       func.DefaultSaveResponseVariable = true;
       Functions.Add(func);
 
+      func = new Function("Select Single", this, SelectSingle, "", "Select a single record only, if more than one record is found it will just return the first one selected.");
+      //func.Validators.Add(new ValidatorAtLeastOneRec());
+      //func.Validators.Add(new ValidatorZeroRecords());
+      func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
+      parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
+      func.Parms.Add(parm);
+      func.RespNames = new Variable("rec");
+      func.DefaultSaveResponseVariable = true;
+      Functions.Add(func);
+
 
       func = new Function("Execute", this, Execute);
       func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
       parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
       func.Parms.Add(parm);
-      func.RespNames.SubVariableAdd(new Variable("recordsInserted"));
+      func.RespNames.Name = "recordsAffected";
+      func.RespNames.SubVariableAdd(new Variable("lastInsertedId"));
       Functions.Add(func);
 
 
@@ -161,11 +175,46 @@ namespace Db
       }
       catch (Exception ex)
       {
-        return RESP.SetError(2001, ex.Message);
+        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
       }
       return RESP.SetSuccess(var);
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="flow"></param>
+    /// <param name="vars"></param>
+    /// <returns></returns>
+    public RESP SelectSingle(FlowEngineCore.Flow flow, Variable[] vars)
+    {
+      mLog?.Write("Db.Select", LOG_TYPE.DBG);
+      if (mDatabase is null)
+        return RESP.SetError(2000, "No active database connection");
+
+      vars[0].GetValue(out string sql);
+
+      Variable? var = null;
+      try
+      {
+        var = mDatabase.Select(sql, vars);
+      }
+      catch (Exception ex)
+      {
+        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
+      }
+      if (var.Count > 0)
+        return RESP.SetSuccess(var[0]);
+      else
+        return RESP.SetError(DB_ERROR_ZERO_RECORDS, "Zero records found");
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="flow"></param>
+    /// <param name="vars"></param>
+    /// <returns></returns>
     public RESP Execute(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Db.Execute", LOG_TYPE.DBG);
@@ -180,7 +229,7 @@ namespace Db
       }
       catch (Exception ex)
       {
-        return RESP.SetError(2003, ex.Message);
+        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
       }
       return RESP.SetSuccess(var);
     }

@@ -197,7 +197,7 @@ namespace FlowEngineDesigner
       DialogResult dr = openFileDialog1.ShowDialog();
       if (dr == DialogResult.OK)
       {
-        cFlowWrapper flow = new cFlowWrapper();
+        cFlowWrapper flow = new cFlowWrapper(cFlowWrapper.INCLUDE_START_STEP.EXCLUDE);
         flow.XmlReadFile(openFileDialog1.FileName);
         frmFlow f = new frmFlow(flow);
         Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
@@ -251,10 +251,10 @@ namespace FlowEngineDesigner
 
     private void debugAlwaysToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      FlowDebugAlways.DEBUG_ALWAYS debugAlways = FlowDebugAlways.DEBUG_ALWAYS.No;
+      FlowDebugAlways.DEBUG_ALWAYS debugAlways = FlowDebugAlways.DEBUG_ALWAYS.Yes;
 
-      if (cOptions.AdministrationDebugAlways == true)
-        debugAlways = FlowDebugAlways.DEBUG_ALWAYS.Yes;
+      if (cOptions.AdministrationDebugAlways == true) //If it is already Yes/true, we want to toggle it to false/No
+        debugAlways = FlowDebugAlways.DEBUG_ALWAYS.No;
 
       FlowDebugAlways flowDebugAlways = new FlowDebugAlways(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, debugAlways);
       cServer.SendAndResponse(flowDebugAlways.GetPacket(), Callback_FlowDebugAlways);

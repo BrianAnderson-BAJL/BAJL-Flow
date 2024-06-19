@@ -47,7 +47,7 @@ namespace FlowEngineCore
       Options.CreateAndLoadSettings();
       Options.ParseArgs(args); //Command line arguments always override the settings.xml file
       ThreadName = Options.GetSettings.SettingGetAsLong("ThreadNameStartingNumber");
-
+      Options.ForceLoadDlls();
       Global.WriteToConsoleDebug($"Initializing...Loading plugins from [{Options.GetFullPath(Options.GetSettings.SettingGetAsString("PluginPath"))}]");
       PluginManager.Load(Options.GetFullPath(Options.GetSettings.SettingGetAsString("PluginPath"))); //Open all the *.dlls and load them  //PluginManager.GlobalPluginValues is populated here
       if (PluginManager.GlobalPluginValues.ContainsKey("log") == true)

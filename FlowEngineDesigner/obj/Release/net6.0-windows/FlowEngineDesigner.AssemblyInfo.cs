@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FlowEngineDesigner")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+46f4bae2662ba602ff96b538dfcea54ea0f26f34")]
 [assembly: System.Reflection.AssemblyProductAttribute("FlowEngineDesigner")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FlowEngineDesigner")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

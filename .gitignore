@@ -1,6 +1,9 @@
 *.user
 *.cache
 *.xml
+*.dll
+*.exe
+*.pdb
 .vs/
 Db/bin/
 Db/obj/

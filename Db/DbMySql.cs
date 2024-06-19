@@ -65,7 +65,7 @@ namespace Db
     public Variable Execute(string SQL, params Variable[] vars)
     {
       FlowEngine.Log?.Write("DB - " + SQL, LOG_TYPE.DBG);
-      Variable root = new Variable("RecordsAffected", 0L);
+      Variable root = new Variable("recordsAffected", 0L);
       try
       {
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
@@ -77,7 +77,7 @@ namespace Db
             PopulateParameters(command, vars);
             long recordsAffected = command.ExecuteNonQuery();
             if (SQL.StartsWith("INSERT", StringComparison.InvariantCultureIgnoreCase) == true)
-              root.SubVariables.Add(new Variable("LastInsertedId", command.LastInsertedId));
+              root.SubVariables.Add(new Variable("lastInsertedId", command.LastInsertedId));
 
             root.Value = recordsAffected;
           }

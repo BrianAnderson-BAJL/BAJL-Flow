@@ -173,7 +173,7 @@ namespace FlowEngineDesigner
             variables.Add(prevStep.Step.RespNames);
           }
         }
-        else if (prevStep.OutputType != Output.TYPE.Success && prevStep.Depth == 0 && previousStepAdded == false)
+        else if (prevStep.OutputType != Output.TYPE.Success && prevStep.Depth == 0 && previousStepAdded == false)// || prevStep.Step.Name.ToLower() == "flowcore.error start")
         {
           Variable err = new Variable(Flow.VAR_NAME_PREVIOUS_STEP, "");
           err.SubVariableAdd(new Variable("ErrorNumber", 0L));
@@ -563,7 +563,7 @@ namespace FlowEngineDesigner
       Brush brush = new SolidBrush(cOptions.CommentColorTextDefault);
 
       float fontSize = 20f * camera.ZoomLevel;
-      using (Font font1 = new Font("Arial", fontSize, FontStyle.Regular, GraphicsUnit.Pixel))
+      using (Font font1 = new Font("Arial", Math.Max(fontSize, 4), FontStyle.Regular, GraphicsUnit.Pixel))
       {
         string[] split = comment.Text.Split(Environment.NewLine);
         Vector2 pos = camera.CreateDrawingPosition(comment.Position + new Vector2(15, 15));
@@ -742,6 +742,14 @@ namespace FlowEngineDesigner
         if (MaxY < p.Y)
           MaxY = p.Y;
       }
+
+      float height = (MaxY - MinY) + 500; //a 500 unit buffer around the edge
+      float heightPercent = pb.Height / height;
+      float width = (MaxX - MinX) + 500;
+      float widthPercent = pb.Width / width;
+      camera.ZoomLevel = Math.Min(heightPercent, widthPercent);
+      if (camera.ZoomLevel > 1 || camera.ZoomLevel < 0.1f)
+        camera.ZoomLevel = 1;
 
       float CenterX = ((MaxX - MinX) / 2) + MinX;
       float CenterY = ((MaxY - MinY) / 2) + MinY;

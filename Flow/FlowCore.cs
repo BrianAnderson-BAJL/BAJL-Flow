@@ -115,6 +115,7 @@ namespace FlowCore
       function.Parms.Add(pddl);
       function.RespNames.Name = "newVariable";
       function.DefaultSaveResponseVariable = true;
+      function.OutputAddSuccess("Continue");
       Functions.Add(function);
 
       function = new Function("Sub Variable Add", this, VariableSubVariableAdd);
@@ -122,10 +123,12 @@ namespace FlowCore
       parm = new PARM("Sub variable", DATA_TYPE.Various, PARM_REQUIRED.Yes, PARM_ALLOW_MULTIPLE.Multiple);
       parm.NameChangeable = true;
       function.Parms.Add(parm);
+      function.OutputAddSuccess("Continue");
       Functions.Add(function);
       
       function = new Function("Variables Delete", this, VariablesDelete);
       function.Parms.Add("Variable Name to delete", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Multiple, PARM.PARM_RESOLVE_VARIABLES.No); //We want raw variable names in this function so we can delete the actual variable objects
+      function.OutputAddSuccess("Continue");
       Functions.Add(function);
 
       function = new Function("Contains", this, VariableContains);
@@ -165,6 +168,13 @@ namespace FlowCore
       function.OutputAddSuccess();
       Functions.Add(function);
 
+      function = new Function("Error Start", this, ErrorStart);
+      function.OutputClear();
+      function.Input = null; //Just like the 'Start' step, no inputs
+      function.OutputAddSuccess("Error Start");
+      function.RespNames.Name = "errorInfo";
+      function.DefaultSaveResponseVariable = true;
+      Functions.Add(function);
 
       mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
       mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Green));
@@ -278,6 +288,21 @@ namespace FlowCore
       mLog?.Write("FlowCore.Stop", LOG_TYPE.DBG);
       return RESP.SetSuccess();
     }
+    private RESP ErrorStart(FlowEngineCore.Flow flow, Variable[] vars)
+    {
+      mLog?.Write("FlowCore.ErrorStart", LOG_TYPE.DBG);
+
+      Variable? stepWithError = flow.FindVariable(Flow.VAR_NAME_PREVIOUS_STEP);
+      if (stepWithError is null)
+        return RESP.SetSuccess();
+
+      Variable var = new Variable("errorInfo");
+      for (int x = 0; x < stepWithError.Count; x++)
+      {
+        var.SubVariableAdd(stepWithError[x].Clone());
+      }
+      return RESP.SetSuccess(var);
+    }
 
     private RESP Trace(FlowEngineCore.Flow flow, Variable[] vars)
     {
@@ -365,8 +390,7 @@ namespace FlowCore
       Variable newVar = new Variable();
       newVar.DataType = vars[0].DataType;
       newVar.Value = vars[0].Value;
-      if (Enum.TryParse<DATA_FORMAT_SUB_VARIABLES>(vars[1].GetValueAsString(), out DATA_FORMAT_SUB_VARIABLES subFormat) == false)
-        return RESP.SetError(1, $"Invalid Sub Variable data format [{vars[1].GetValueAsString()}]");
+      Enum.TryParse<DATA_FORMAT_SUB_VARIABLES>(vars[1].GetValueAsString(), out DATA_FORMAT_SUB_VARIABLES subFormat);
       newVar.SubVariablesFormat = subFormat;
       return RESP.SetSuccess(newVar);
     }
@@ -695,7 +719,7 @@ namespace FlowCore
       Variable var = vars[0];
       if (var.Count > 0)
       {
-        if (var.Name == "previous_step_resp")
+        if (var.Name == Flow.VAR_NAME_PREVIOUS_STEP || var.Name == "errorInfo")
         {
           var.SubVariableDeleteByName("resp");
           var.SubVariableDeleteByName("step");

@@ -164,7 +164,6 @@ namespace FlowEngineCore.Statistics
               if (packet is null)
                 packet = CreateStatisticsPacket(user);  //If we are sending data to multiple users (actually not very likely) then only create a single packet
               user.Send(packet);
-              FlowEngine.Log?.Write("Sending statistics to client");
             }
           }
         }

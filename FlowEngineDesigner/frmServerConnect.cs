@@ -51,7 +51,7 @@ namespace FlowEngineDesigner
         frmAdministrationUserChangePassword f = new frmAdministrationUserChangePassword();
         f.ShowDialog();
       }
-
+      cServer.GetServerSettings();
       cServer.RefreshSecurityProfiles();
 
       if (cOptions.AdministrationDebugAlways == true)

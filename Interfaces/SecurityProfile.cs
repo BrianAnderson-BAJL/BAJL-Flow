@@ -37,7 +37,7 @@ namespace FlowEngineCore
     public SECURITY_ACCESS_LEVEL AdministrationUsers = SECURITY_ACCESS_LEVEL.None;
     public SECURITY_ACCESS_LEVEL AdministrationSecurityProfiles = SECURITY_ACCESS_LEVEL.None;
     public SECURITY_ACCESS_LEVEL AdministrationFlows = SECURITY_ACCESS_LEVEL.None;
-    public SECURITY_ACCESS_LEVEL ServerSettings = SECURITY_ACCESS_LEVEL.None;
+    public SECURITY_ACCESS_LEVEL ServerSettings = SECURITY_ACCESS_LEVEL.Readonly;
     public SECURITY_ACCESS_SIMPLE Statistics = SECURITY_ACCESS_SIMPLE.None;
 
     /// <summary>

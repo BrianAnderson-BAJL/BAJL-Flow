@@ -561,7 +561,7 @@ namespace FlowEngineCore.Administration
     }
     private static void ProcessCloseConnection(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-#if DEBUG
+#if QUIT_CONNECTION_CLOSED
       FlowEngine.Instance.Stop(); //Stop the flow engine running after a disconnect for development purposes.
 #endif
     }

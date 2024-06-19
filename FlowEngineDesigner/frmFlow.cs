@@ -579,8 +579,8 @@ namespace FlowEngineDesigner
       Flow = flowWrapper;
       Flow.PopulateSampleVariablesFromPlugin();
       TitleText();
+      Flow.Center(this.Camera, pictureBox1);
       pictureBox1.Refresh();
-
     }
 
     private void tssCenterView_Click(object sender, EventArgs e)

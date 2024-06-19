@@ -679,7 +679,7 @@ namespace Session
     {
       string oldName = varSessionToken.Name;
       varSessionToken.Name = "@SessToken";
-      Variable record = database.SelectOneRecord("SELECT UserId, LoginId, StatusId, SessionToken, Expiration, DeviceToken FROM viewUserSession WHERE Expiration > current_timestamp() AND SessionToken = @SessToken", varSessionToken);
+      Variable record = database.SelectOneRecord("SELECT UserId as userId, LoginId as loginId, StatusId as statusId, SessionToken as sessionToken, Expiration as expiration, DeviceToken as deviceToken FROM viewUserSession WHERE Expiration > current_timestamp() AND SessionToken = @SessToken", varSessionToken);
       if (record.SubVariables.Count <= 0) //No record, means sessionToken was not found in the database
       {
         mLog?.Write($"Session.CheckSession - INVALID session [{varSessionToken.GetValueAsString()}]", LOG_TYPE.INF);

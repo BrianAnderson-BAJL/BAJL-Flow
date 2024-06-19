@@ -135,7 +135,10 @@ namespace FlowEngineCore
             break;
 
           Setting s = new(settingStr);
-          this.SettingUpdate(s);
+          if (this.SettingFind(s.Key) is null)
+            this.SettingAdd(s);
+          else
+            this.SettingUpdate(s);
         } while (xml.Length > 0);
 
       }

@@ -70,6 +70,22 @@ namespace FlowEngineDesigner
       }
     }
 
+    public static void GetServerSettings(ResponseDelegate? callback = null)
+    {
+      if (UserLoggedIn is null)
+        return;
+
+      ServerSettingsGet ssg = new ServerSettingsGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
+      cServer.SendAndResponse(ssg.GetPacket(), Callback_GetServerSettings, callback);
+    }
+
+    private static void Callback_GetServerSettings(FlowEngineCore.Administration.EventArgsPacket e)
+    {
+      ServerSettingsGetResponse ssgr = new ServerSettingsGetResponse(e.Packet);
+      string xmlData = ssgr.Xml;
+      Options.LoadSettingsFromXml(xmlData);
+    }
+
     public static void RefreshSecurityProfiles(ResponseDelegate? callback = null)
     {
       if (UserLoggedIn is null)

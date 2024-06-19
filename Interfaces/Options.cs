@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -30,7 +31,7 @@ namespace FlowEngineCore
     public static SERVER_TYPE ServerType = SERVER_TYPE.Production;
     //public const int SettingsFileVersionExpected = 10; //Increment this when you make changes to the settings options, the settings.xml file will be recreated with the new values.
     //public static int SettingsFileVersion = 0;
-    public static string SettingsPath = "./settings_newFormat.xml";
+    public static string SettingsPath = "./settings.xml";
     //public static string PluginPath = @"C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\Plugins";  //"./Plugins/";
     //public static string PluginGraphicsPath = "./Plugins/Graphics/";
     //public static string PluginStaticGraphicsPath = "./Plugins/StaticGraphics/";
@@ -145,6 +146,12 @@ namespace FlowEngineCore
         }
       }
     }
+
+    public static void LoadSettingsFromXml(string xml)
+    {
+      mSettings.LoadSettingsFromXml(xml);
+    }
+
     public static void CreateAndLoadSettings()
     {
       mSettings.SettingAdd(new Setting("PluginPath", "./Plugins"));
@@ -183,6 +190,12 @@ namespace FlowEngineCore
     }
 
 
+    public static void ForceLoadDlls()
+    {
+      JValue jv = new JValue(0); //Newtonsoft JSON
+
+    }
+
     public static string GetFullPath(string path, string fileName = "")
     {
       string FullPath = path;
@@ -217,7 +230,7 @@ namespace FlowEngineCore
     /// <returns></returns>
     public static string GetFlowFileNameRelativePath(string fileName)
     {
-      string flowPath = Options.GetSettings.SettingGetAsString("FlowPath");
+      string flowPath = Options.GetFullPath(mSettings.SettingGetAsString("FlowPath"));
       string temp = fileName;
       if (fileName.Length > flowPath.Length)
       {

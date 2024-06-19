@@ -10,6 +10,10 @@
     <AnalysisLevel>none</AnalysisLevel>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants);QUIT_CONNECTION_CLOSED</DefineConstants>
+  </PropertyGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="xcopy &quot;$(BaseOutputPath)\$(Configuration)\net6.0\$(TargetName)$(TargetExt)&quot; &quot;$(SolutionDir)\FlowEngineDesigner\bin\$(Configuration)\net6.0-windows\Plugins&quot; /s /i /y&#xD;&#xA;xcopy &quot;$(BaseOutputPath)\$(Configuration)\net6.0\$(TargetName)$(TargetExt)&quot; &quot;D:\Pi&quot; /s /i /y" />
   </Target>

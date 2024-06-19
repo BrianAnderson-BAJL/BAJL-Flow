@@ -45,6 +45,7 @@
       fullJoinFullOuterJoinToolStripMenuItem = new ToolStripMenuItem();
       viewToolStripMenuItem = new ToolStripMenuItem();
       showDatabaseToolStripMenuItem = new ToolStripMenuItem();
+      testingToolStripMenuItem = new ToolStripMenuItem();
       openFileDialog1 = new OpenFileDialog();
       saveFileDialog1 = new SaveFileDialog();
       scSql = new SplitContainer();
@@ -52,7 +53,6 @@
       label1 = new Label();
       tvDatabase = new TreeView();
       btnOk = new Button();
-      testingToolStripMenuItem = new ToolStripMenuItem();
       menuStrip1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)scSql).BeginInit();
       scSql.Panel1.SuspendLayout();
@@ -65,7 +65,7 @@
       menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, samplesToolStripMenuItem, viewToolStripMenuItem });
       menuStrip1.Location = new Point(0, 0);
       menuStrip1.Name = "menuStrip1";
-      menuStrip1.Size = new Size(966, 24);
+      menuStrip1.Size = new Size(1221, 24);
       menuStrip1.TabIndex = 1;
       menuStrip1.Text = "menuStrip1";
       // 
@@ -79,14 +79,14 @@
       // openToolStripMenuItem
       // 
       openToolStripMenuItem.Name = "openToolStripMenuItem";
-      openToolStripMenuItem.Size = new Size(180, 22);
+      openToolStripMenuItem.Size = new Size(114, 22);
       openToolStripMenuItem.Text = "&Open";
       openToolStripMenuItem.Click += openToolStripMenuItem_Click;
       // 
       // saveAsToolStripMenuItem
       // 
       saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-      saveAsToolStripMenuItem.Size = new Size(180, 22);
+      saveAsToolStripMenuItem.Size = new Size(114, 22);
       saveAsToolStripMenuItem.Text = "Save &As";
       saveAsToolStripMenuItem.Click += saveAsToolStripMenuItem_Click;
       // 
@@ -180,9 +180,15 @@
       showDatabaseToolStripMenuItem.Checked = true;
       showDatabaseToolStripMenuItem.CheckState = CheckState.Checked;
       showDatabaseToolStripMenuItem.Name = "showDatabaseToolStripMenuItem";
-      showDatabaseToolStripMenuItem.Size = new Size(180, 22);
+      showDatabaseToolStripMenuItem.Size = new Size(154, 22);
       showDatabaseToolStripMenuItem.Text = "&Show Database";
       showDatabaseToolStripMenuItem.Click += showDatabaseToolStripMenuItem_Click;
+      // 
+      // testingToolStripMenuItem
+      // 
+      testingToolStripMenuItem.Name = "testingToolStripMenuItem";
+      testingToolStripMenuItem.Size = new Size(154, 22);
+      testingToolStripMenuItem.Text = "&Testing";
       // 
       // openFileDialog1
       // 
@@ -202,8 +208,8 @@
       // 
       scSql.Panel2.Controls.Add(label1);
       scSql.Panel2.Controls.Add(tvDatabase);
-      scSql.Size = new Size(966, 543);
-      scSql.SplitterDistance = 672;
+      scSql.Size = new Size(1221, 596);
+      scSql.SplitterDistance = 928;
       scSql.TabIndex = 2;
       // 
       // rtbSql
@@ -212,7 +218,7 @@
       rtbSql.Font = new Font("Courier New", 12F, FontStyle.Regular, GraphicsUnit.Point);
       rtbSql.Location = new Point(0, 0);
       rtbSql.Name = "rtbSql";
-      rtbSql.Size = new Size(669, 540);
+      rtbSql.Size = new Size(925, 593);
       rtbSql.TabIndex = 1;
       rtbSql.Text = "";
       rtbSql.TextChanged += rtbSql_TextChanged;
@@ -232,7 +238,7 @@
       tvDatabase.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
       tvDatabase.Location = new Point(3, 27);
       tvDatabase.Name = "tvDatabase";
-      tvDatabase.Size = new Size(284, 513);
+      tvDatabase.Size = new Size(283, 566);
       tvDatabase.TabIndex = 0;
       tvDatabase.BeforeCollapse += tvDatabase_BeforeCollapse;
       tvDatabase.NodeMouseDoubleClick += tvDatabase_NodeMouseDoubleClick;
@@ -241,7 +247,7 @@
       // btnOk
       // 
       btnOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      btnOk.Location = new Point(880, 576);
+      btnOk.Location = new Point(1135, 629);
       btnOk.Name = "btnOk";
       btnOk.Size = new Size(83, 36);
       btnOk.TabIndex = 3;
@@ -249,17 +255,11 @@
       btnOk.UseVisualStyleBackColor = true;
       btnOk.Click += btnOk_Click;
       // 
-      // testingToolStripMenuItem
-      // 
-      testingToolStripMenuItem.Name = "testingToolStripMenuItem";
-      testingToolStripMenuItem.Size = new Size(180, 22);
-      testingToolStripMenuItem.Text = "&Testing";
-      // 
       // frmSqlEditor
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(966, 619);
+      ClientSize = new Size(1221, 672);
       Controls.Add(btnOk);
       Controls.Add(scSql);
       Controls.Add(menuStrip1);
