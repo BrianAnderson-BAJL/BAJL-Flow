@@ -12,6 +12,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
+
 namespace FlowEngineDesigner
 {
   public partial class frmSqlEditor : Form
@@ -22,7 +24,12 @@ namespace FlowEngineDesigner
     private static readonly string[] Delimiters = { ",", " ", "(", ")", "\n", "\t", "=", "<=", ">=", "<", ">", "." };
     private bool DoubleClickedNode = false;
     private bool Saved = true;
-    public frmSqlEditor(TextBox txtSql)
+    private IDatabase? Db = null;
+    private FunctionStep Step;
+    private ComboBox mComboBoxParameterDataType;
+    private TextBox mTextBoxParameterValue;
+    const int LIMIT_RECORDS = 100;
+    public frmSqlEditor(TextBox txtSql, FunctionStep step)
     {
       InitializeComponent();
       TxtSql = txtSql;
@@ -30,12 +37,53 @@ namespace FlowEngineDesigner
       ParseSql();
       rtbSql.SelectionStart = rtbSql.Text.Length;
       Saved = true;
+      Step = step;
+      lblErrorDescription.Text = "";
+      mTextBoxParameterValue = new TextBox();
+      mTextBoxParameterValue.TextChanged += mTextBoxParameterValue_TextChanged;
+      mComboBoxParameterDataType = new System.Windows.Forms.ComboBox();
+      mComboBoxParameterDataType.Items.Add("Integer");
+      mComboBoxParameterDataType.Items.Add("String");
+      mComboBoxParameterDataType.Items.Add("Boolean");
+      mComboBoxParameterDataType.Items.Add("Decimal");
+      mComboBoxParameterDataType.DropDownStyle = ComboBoxStyle.DropDownList;
+      mComboBoxParameterDataType.SelectedIndexChanged += mComboBox_SelectedIndexChanged;
+
+      if (Step.Name == "Database.Execute")
+      {
+        chkSeeResultRecords.Checked = false;
+        chkSeeResultRecords.Enabled = false;
+      }
+    }
+
+    private void mTextBoxParameterValue_TextChanged(object? sender, EventArgs e)
+    {
+      if (mTextBoxParameterValue.Tag is Tuple<int, int> cellPosition)
+      {
+        int rowIndex = cellPosition.Item1;
+        int colIndex = cellPosition.Item2;
+
+        lvParams.Items[rowIndex].SubItems[colIndex].Text = mTextBoxParameterValue.Text;
+      }
+    }
+
+    private void mComboBox_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+      if (mComboBoxParameterDataType.Tag is Tuple<int, int> cellPosition)
+      {
+        int rowIndex = cellPosition.Item1;
+        int colIndex = cellPosition.Item2;
+
+        // Update the ListView item with the selected ComboBox value
+        lvParams.Items[rowIndex].SubItems[colIndex].Text = mComboBoxParameterDataType.SelectedItem.ToString();
+      }
     }
 
     private void rtbSql_TextChanged(object sender, EventArgs e)
     {
       ParseSql();
       Saved = false;
+      lblTestSqlResults.Text = "";
     }
 
     private void ParseSql()
@@ -51,33 +99,55 @@ namespace FlowEngineDesigner
       rtbSql.Rtf = val;
       rtbSql.SelectionStart = start;
       Parsing = false;
+
+      List<string> parms = parser.GetListOf(SqlParser.ParsedUnit.UNIT_TYPE.Parameter);
+      lvParams.Items.Clear();
+      for (int x = 0; x < parms.Count; x++)
+      {
+        ListViewItem lvi = lvParams.Items.Add(parms[x]);
+        lvi.SubItems.Add("String");
+        lvi.SubItems.Add("");
+      }
     }
 
     private void frmSqlEditor_Load(object sender, EventArgs e)
     {
-      if (FlowEngineCore.PluginManager.GlobalPluginValues.ContainsKey("db") == true)
-      {
-        IDatabase? db = FlowEngineCore.PluginManager.GlobalPluginValues["db"] as IDatabase;
-        if (db is null)
-          return;
+      btnTestSql.Enabled = false;
+      lblTestSqlResults.Visible = false;
 
-        PopulateDatabase(db);
-      }
+      if (FlowEngineCore.PluginManager.GlobalPluginValues.ContainsKey("db") == true)
+        Db = FlowEngineCore.PluginManager.GlobalPluginValues["db"] as IDatabase;
+      if (Db is null)
+        return;
+
+      btnTestSql.Enabled = true;
+      lblTestSqlResults.Visible = true;
+      Task.Run(() => PopulateDatabase(Db));
     }
 
     private void PopulateDatabase(IDatabase db)
     {
       List<string> tableNames = db.GetTables();
       tableNames.Sort();
+      List<string> fieldNames = new List<string>();
       for (int x = 0; x < tableNames.Count; x++)
       {
-        TreeNode tn = tvDatabase.Nodes.Add(tableNames[x]);
-        List<string> fieldNames = db.GetFields(tableNames[x]);
-        for (int y = 0; y < fieldNames.Count; y++)
-        {
-          tn.Nodes.Add(fieldNames[y]);
-        }
+        fieldNames = db.GetFields(tableNames[x]);
       }
+
+
+      this.Invoke((MethodInvoker)delegate
+      {
+        for (int x = 0; x < tableNames.Count; x++)
+        {
+          TreeNode tn = tvDatabase.Nodes.Add(tableNames[x]);
+          for (int y = 0; y < fieldNames.Count; y++)
+          {
+            tn.Nodes.Add(fieldNames[y]);
+          }
+        }
+      });
+
     }
 
     private void openToolStripMenuItem_Click(object sender, EventArgs e)
@@ -283,6 +353,149 @@ namespace FlowEngineDesigner
     {
       rtbSql.SelectedText = "SELECT Users.LoginId, UserDevices.DeviceToken, UserSessions.SessionToken \r\nFROM ((Users LEFT JOIN UserSessions ON(Users.UserId = UserSessions.UserId)) \r\nLEFT JOIN UserDevices ON (Users.UserId = UserDevices.UserId))";
       ParseSql();
+    }
+
+    private void btnTestSql_Click(object sender, EventArgs e)
+    {
+      if (Db is null)
+        return;
+
+      Variable[] vars = new Variable[lvParams.Items.Count];
+      string lastParam = "";
+      try
+      {
+        for (int x = 0; x < lvParams.Items.Count; x++)
+        {
+          ListViewItem lvi = lvParams.Items[x];
+          lastParam = lvi.SubItems[0].Text;
+          Variable v = new Variable(lvi.SubItems[0].Text);
+          DATA_TYPE dataType = Enum.Parse<DATA_TYPE>(lvi.SubItems[1].Text);
+          v.DataType = dataType;
+          if (dataType == DATA_TYPE.Integer)
+            v.Value = Convert.ToInt64(lvi.SubItems[2].Text);
+          else if (dataType == DATA_TYPE.Decimal)
+            v.Value = Convert.ToDecimal(lvi.SubItems[2].Text);
+          else if (dataType == DATA_TYPE.Boolean)
+            v.Value = 1;
+          else
+            v.Value = lvi.SubItems[2].Text;
+          vars[x] = v;
+        }
+      }
+      catch (Exception ex)
+      {
+        lblTestSqlResults.Text = "FAILURE";
+        lblTestSqlResults.ForeColor = System.Drawing.Color.Red;
+        lblErrorDescription.Text = $"{lastParam} - {ex.Message}";
+        return;
+      }
+
+      if (Step.Name == "Database.Select" || Step.Name == "Database.Select Single")
+      {
+        try
+        {
+          string sql = rtbSql.Text;
+          sql = sql.Trim();
+          if (sql.Length > 0)
+          {
+            if (sql[sql.Length - 1] == ';')
+              sql = sql.Substring(0, sql.Length - 1) + " LIMIT " + LIMIT_RECORDS + ";";
+            else
+              sql = sql + " LIMIT " + LIMIT_RECORDS;
+          }
+          Variable recordset = Db.Select(sql, vars);
+          lblTestSqlResults.Text = "SUCCESS";
+          lblTestSqlResults.ForeColor = System.Drawing.Color.Green;
+          lblErrorDescription.Text = "";
+          if (chkSeeResultRecords.Checked == true)
+          {
+            frmSqlRecords f = new frmSqlRecords(recordset);
+            f.Show();
+          }
+        }
+        catch (Exception ex)
+        {
+          lblTestSqlResults.Text = "FAILURE";
+          lblTestSqlResults.ForeColor = System.Drawing.Color.Red;
+          if (ex.InnerException is not null)
+            lblErrorDescription.Text = ex.InnerException.Message;
+          else
+            lblErrorDescription.Text = ex.Message;
+        }
+      }
+      else
+      {
+        object conn = Db.TransactionBegin();
+        try
+        {
+          Db.Execute(conn, rtbSql.Text, vars);
+          lblTestSqlResults.Text = "SUCCESS";
+          lblTestSqlResults.ForeColor = System.Drawing.Color.Green;
+          lblErrorDescription.Text = "";
+        }
+        catch (Exception ex)
+        {
+          lblTestSqlResults.Text = "FAILURE";
+          lblTestSqlResults.ForeColor = System.Drawing.Color.Red;
+          if (ex.InnerException is not null)
+            lblErrorDescription.Text = ex.InnerException.Message;
+          else
+            lblErrorDescription.Text = ex.Message;
+        }
+        Db.TransactionRollback(conn);
+      }
+    }
+
+    private void lvParams_MouseClick(object sender, MouseEventArgs e)
+    {
+     
+    }
+
+    private void lvParams_MouseDown(object sender, MouseEventArgs e)
+    {
+      var hitTest = lvParams.HitTest(e.Location);
+      if (hitTest.Item != null && hitTest.SubItem != null)
+      {
+        int rowIndex = hitTest.Item.Index;
+        int colIndex = hitTest.Item.SubItems.IndexOf(hitTest.SubItem);
+        Rectangle rect = hitTest.SubItem.Bounds;
+        if (colIndex == 1) // Data Type combobox
+        {
+          lvParams.Controls.Remove(mTextBoxParameterValue);
+          mComboBoxParameterDataType.SetBounds(rect.X, rect.Y, rect.Width, rect.Height);
+          mComboBoxParameterDataType.Tag = new Tuple<int, int>(rowIndex, colIndex);
+          lvParams.Controls.Add(mComboBoxParameterDataType);
+          mComboBoxParameterDataType.BringToFront();
+          
+          Global.ComboBoxSetIndex(mComboBoxParameterDataType, hitTest.SubItem.Text);
+          return;
+        }
+        else if (colIndex == 2) // Value textbox
+        {
+          lvParams.Controls.Remove(mComboBoxParameterDataType);
+          mTextBoxParameterValue.Text = hitTest.SubItem.Text;
+          mTextBoxParameterValue.SetBounds(rect.X + 6, rect.Y + 2, rect.Width - 6, rect.Height - 2); //Cells seem to have a little padding
+          mTextBoxParameterValue.Visible = true;
+          mTextBoxParameterValue.BorderStyle = BorderStyle.None;
+          mTextBoxParameterValue.Tag = new Tuple<int, int>(rowIndex, colIndex);
+          lvParams.Controls.Add(mTextBoxParameterValue);
+          mTextBoxParameterValue.BringToFront();
+          this.ActiveControl = mTextBoxParameterValue;
+          //Ugly hack to get the control to activate, doesn't seem to activate otherwise when a control is newly added, don't know why
+          Task.Delay(100).ContinueWith(_ =>
+          {
+            this.Invoke(new Action(() =>
+            {
+              mTextBoxParameterValue.Focus();
+            }));
+          });
+          return;
+        }
+      }
+
+      //If we fell through then we didn't add a edit control
+      lvParams.Controls.Remove(mComboBoxParameterDataType);
+      lvParams.Controls.Remove(mTextBoxParameterValue);
     }
   }
 }

@@ -145,12 +145,9 @@ namespace FlowEngineCore.Administration
       }
     }
 
-    public void ReadAllTlsData(SslStream stream)
+    public void ReadAllTlsData(SslStream stream, byte[] temp)
     {
-      byte[] temp = new byte[sizeof(int)];
-      stream.ReadTimeout = 1; //System.Threading.Timeout.Infinite; //No timeout when waiting for the first 4 bytes
-      int dataRead = stream.Read(temp, 0, sizeof(int));
-      if (dataRead == 4)
+      if (temp.Length == 4)
       {
         int length = BinaryPrimitives.ReadInt32BigEndian(temp);
         ReceiveData = new byte[length];

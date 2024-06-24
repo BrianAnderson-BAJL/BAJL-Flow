@@ -10,6 +10,7 @@ namespace FlowEngineCore.Interfaces
   {
     void Connect(string connectionString);
     Variable Execute(string SQL, params Variable[] vars);
+    Variable Execute(object transaction, string SQL, params Variable[] vars);
     Variable Select(string SQL, params Variable[] vars);
 
     Variable SelectId(string SQL, params Variable[] vars);
@@ -17,5 +18,10 @@ namespace FlowEngineCore.Interfaces
 
     List<string> GetTables();
     List<string> GetFields(string tableName);
+    object TransactionBegin();
+    void TransactionRollback(object transaction);
+    void TransactionCommit(object transaction);
+
+    bool TestSql(string sql, params Variable[] vars);
   }
 }

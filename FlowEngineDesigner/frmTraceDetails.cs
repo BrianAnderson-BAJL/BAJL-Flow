@@ -138,6 +138,7 @@ namespace FlowEngineDesigner
     {
       if (e.Button == MouseButtons.Right)
       {
+        lvVariables.Tag = e.Location;
         contextMenuStrip1.Show(lvVariables, e.Location);
 
       }
@@ -148,10 +149,18 @@ namespace FlowEngineDesigner
       if (lvVariables.SelectedItems.Count == 0)
         return;
       Variable? var = lvVariables.SelectedItems[0].Tag as Variable;
-      if (var is null)
+      if (var is not null)
+      {
+        Clipboard.SetText(var.ToJson());
         return;
+      }
+      Point location = (Point)lvVariables.Tag;
+      var hitTest = lvVariables.HitTest(location);
+      if (hitTest.Item != null && hitTest.SubItem != null)
+      {
+        Clipboard.SetText(hitTest.SubItem.Text);
 
-      Clipboard.SetText(var.ToJson());
+      }
     }
 
     private void tvVariables_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)

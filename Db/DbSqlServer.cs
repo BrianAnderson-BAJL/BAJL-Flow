@@ -27,6 +27,11 @@ namespace Db
       throw new NotImplementedException();
     }
 
+    public Variable Execute(object connection, string SQL, params Variable[] vars)
+    {
+      throw new NotImplementedException();
+    }
+
     public List<string> GetFields(string tableName)
     {
       throw new NotImplementedException();
@@ -41,6 +46,7 @@ namespace Db
     {
       throw new NotImplementedException();
     }
+
     public Variable SelectId(string SQL, params Variable[] vars)
     {
       throw new NotImplementedException();
@@ -49,5 +55,25 @@ namespace Db
     {
       throw new NotImplementedException();
     }
+
+    public object TransactionBegin()
+    {
+      throw new NotImplementedException();
+    }
+
+    public void TransactionCommit(object connection)
+    {
+      throw new NotImplementedException();
+    }
+
+    public void TransactionRollback(object connection)
+    {
+      throw new NotImplementedException();
+    }
+    public bool TestSql(string sql, params Variable[] vars)
+    {
+      return false;
+    }
+
   }
 }

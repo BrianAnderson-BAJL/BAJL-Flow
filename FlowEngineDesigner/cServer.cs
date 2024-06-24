@@ -171,6 +171,16 @@ namespace FlowEngineDesigner
       {
         try
         {
+          if (e.Packet.PeekResponseCode() == BaseResponse.RESPONSE_CODE.UserSessionExpired || e.Packet.PeekResponseCode() == BaseResponse.RESPONSE_CODE.UserSessionInvalid)
+          {
+            Global.FormMain!.Invoke((MethodInvoker)delegate
+            {
+              Disconnect(false);
+              frmServerConnect f = new frmServerConnect();
+              f.Show();
+            });
+            return;
+          }
 
           Global.FormMain!.Invoke((MethodInvoker)delegate
           {
@@ -215,11 +225,11 @@ namespace FlowEngineDesigner
     {
     }
 
-    public static void Disconnect()
+    public static void Disconnect(bool SendCloseConnectionToServer = true)
     {
       lock (CriticalSection)
       {
-        if (cServer.UserLoggedIn is not null)
+        if (cServer.UserLoggedIn is not null && SendCloseConnectionToServer == true)
         {
           Send(new BaseMessage(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, Packet.PACKET_TYPE.CloseConnection).GetPacket());
         }

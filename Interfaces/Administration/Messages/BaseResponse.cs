@@ -14,6 +14,11 @@ namespace FlowEngineCore.Administration.Messages
       BadRequest = 400,
       AccessDenied = 401,
       Error = 500,
+      UserSessionExpired = 600,
+      UserSessionInvalid,
+      UserInvalid,
+      UserLockedout,
+
       Duplicate,
       NoStartPluginDefined,
       DebugOnlyAllowedInDevelopmentServer,

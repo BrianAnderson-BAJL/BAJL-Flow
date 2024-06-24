@@ -83,3 +83,4 @@ C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windo
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\runtimes\win-x64\native\libSkiaSharp.dll
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\bin\Debug\net6.0-windows\runtimes\win-x86\native\libSkiaSharp.dll
 C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmStatistics.resources
+C:\Users\brian\source\repos\FlowEngine\FlowEngineDesigner\obj\Debug\net6.0-windows\FlowEngineDesigner.frmSqlRecords.resources

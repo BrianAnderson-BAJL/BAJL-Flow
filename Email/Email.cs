@@ -12,12 +12,15 @@ namespace Email
   {
     private bool KeepRunning = true;
     private Thread? checkEmailThread;
-
+    private SmtpClient? mySmtpClient = null;
 
     private const string SETTING_NAME_MAIL_SERVER_URL = "Mail Server Url";
     private const string SETTING_NAME_MAIL_SERVER_PORT = "Mail Server Port";
     private const string SETTING_NAME_MAIL_SERVER_USER_NAME = "Mail Server User name";
     private const string SETTING_NAME_MAIL_SERVER_PASSWORD = "Mail Server Password";
+
+    private const int ERROR_EMAIL_BAD_TEMPLATE_PATH = (int)STEP_ERROR_NUMBERS.EmailErrorMin + 0;
+    private const int ERROR_EMAIL_UNABLE_TO_SEND_EMAIL = (int)STEP_ERROR_NUMBERS.EmailErrorMin + 1;
 
     public override void Init()
     {
@@ -121,7 +124,16 @@ namespace Email
     {
       string fileName = vars[0].GetValueAsString();
 
-      string template = File.ReadAllText(fileName);
+      fileName = Options.GetTemplateFileNameRelativePath(fileName);
+      string template;
+      try
+      {
+        template = File.ReadAllText(fileName);
+      }
+      catch (Exception ex)
+      {
+        return RESP.SetError(ERROR_EMAIL_BAD_TEMPLATE_PATH, ex.Message);
+      }
 
       for (int x = 1; x < vars.Length; x++)
       {
@@ -159,12 +171,14 @@ namespace Email
 
 
 
-        SmtpClient mySmtpClient = new SmtpClient(url, port);
-        mySmtpClient.Timeout = 5000;
-        // set smtp-client with basicAuthentication
-        mySmtpClient.EnableSsl = true;
-        mySmtpClient.UseDefaultCredentials = false;
-        mySmtpClient.Credentials = new System.Net.NetworkCredential(uid, pwd);
+        if (mySmtpClient is null)
+        {
+          mySmtpClient = new SmtpClient(url, port);
+          mySmtpClient.Timeout = 5000;
+          mySmtpClient.EnableSsl = true;
+          mySmtpClient.UseDefaultCredentials = false;
+          mySmtpClient.Credentials = new System.Net.NetworkCredential(uid, pwd);
+        }
         // add from,to mailaddresses
         MailAddress to = new MailAddress(toEmailAddress, toEmailAddressName);
         MailAddress from = new MailAddress(fromEmailAddress, fromEmailAddressName);
@@ -179,7 +193,7 @@ namespace Email
         myMail.SubjectEncoding = System.Text.Encoding.UTF8;
 
         //TODO: Fix to work with multiple content id attachments
-        Attachment myAtt = new Attachment(contentId);
+        Attachment myAtt = new Attachment(Options.GetTemplateFileNameRelativePath(contentId));
         contentId = Path.GetFileName(contentId);
         myAtt.ContentId = contentId;
         myMail.Attachments.Add(myAtt);
@@ -197,7 +211,7 @@ namespace Email
 
       catch (SmtpException ex)
       {
-        return RESP.SetError(1, ex.Message);
+        return RESP.SetError(ERROR_EMAIL_UNABLE_TO_SEND_EMAIL, ex.Message);
       }
       catch
       {

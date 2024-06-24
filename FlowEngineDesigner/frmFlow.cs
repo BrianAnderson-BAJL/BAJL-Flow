@@ -9,7 +9,7 @@ namespace FlowEngineDesigner
   public partial class frmFlow : Form
   {
     cFlowWrapper Flow = new cFlowWrapper();
-    cCamera Camera;
+    public cCamera Camera;
 
     HIT_RESULT SelectedItem;
     HIT_RESULT ResizeItem;
@@ -562,24 +562,31 @@ namespace FlowEngineDesigner
 
     private void saveToolStripMenuItem1_Click(object sender, EventArgs e)
     {
-      frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Save, Flow, FlowWrapperChanged_Callback);
+      frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Save, Flow, FlowWrapperChanged_Save_Callback);
       f.Location = CenterOfForm(f);
       f.Show();
     }
 
     private void openToolStripMenuItem1_Click(object sender, EventArgs e)
     {
-      frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Open, Flow, FlowWrapperChanged_Callback);
+      frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Open, Flow, FlowWrapperChanged_Open_Callback);
       f.Location = CenterOfForm(f);
       f.Show();
     }
-
-    private void FlowWrapperChanged_Callback(cFlowWrapper flowWrapper)
+    private void FlowWrapperChanged_Open_Callback(cFlowWrapper flowWrapper)
     {
       Flow = flowWrapper;
       Flow.PopulateSampleVariablesFromPlugin();
       TitleText();
       Flow.Center(this.Camera, pictureBox1);
+      pictureBox1.Refresh();
+    }
+
+    private void FlowWrapperChanged_Save_Callback(cFlowWrapper flowWrapper)
+    {
+      Flow = flowWrapper;
+      Flow.PopulateSampleVariablesFromPlugin();
+      TitleText();
       pictureBox1.Refresh();
     }
 

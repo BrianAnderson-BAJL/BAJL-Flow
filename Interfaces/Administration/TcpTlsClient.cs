@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Security;
@@ -99,7 +100,9 @@ namespace FlowEngineCore.Administration
         if (Client is null)
           return;
 
-        //SslStream NS = Client.mStream;
+        int sizeOfInt = sizeof(int);
+        byte[] fourByteHeader = new byte[sizeOfInt];
+
 
         while (mContinue == true)
         {
@@ -107,21 +110,26 @@ namespace FlowEngineCore.Administration
           {
             if (Client.mStream.CanRead)
             {
-              //if (Br is null)
-              //Br = new BinaryReader(NS);
+              Packet? packet = null;
 
-              Packet Packet = new();
-              //Packet.ReadAllData(Br);
               lock (CriticalSection)
               {
-                Packet.ReadAllTlsData(Client.mStream);
+                Client.mStream.ReadTimeout = 1;
+                int dataRead = Client.mStream.Read(fourByteHeader, 0, sizeOfInt);
+                if (dataRead == 4)
+                {
+                  packet = new Packet();
+                  packet.ReadAllTlsData(Client.mStream, fourByteHeader);
+                }
               }
-              if ((int)Packet.PacketType < (int)Packet.PACKET_TYPE._Unknown || (int)Packet.PacketType >= (int)Packet.PACKET_TYPE.zMaxValue)
-                throw new Exception("UNKNOWN PacketType TCP message is corrupted");
+              if (packet is not null)
+              {
+                if ((int)packet.PacketType <= (int)Packet.PACKET_TYPE._Unknown || (int)packet.PacketType >= (int)Packet.PACKET_TYPE.zMaxValue)
+                  throw new Exception("UNKNOWN PacketType TCP message is corrupted");
 
-              if (Packet.PacketType != Packet.PACKET_TYPE._Unknown)
-                OnNewPacket(Packet, Client);
-
+                if (packet.PacketType != Packet.PACKET_TYPE._Unknown)
+                  OnNewPacket(packet, Client);
+              }
             }
             Thread.Sleep(1);
           }
@@ -139,19 +147,15 @@ namespace FlowEngineCore.Administration
           catch (IOException ex)
           {
             //No Data
-            //Global.WriteToConsoleDebug(ex.Message);
-            //break;
           }
           catch (Exception ex)
           {
             //Unknown Error
             Global.WriteToConsoleDebug(ex.Message);
-
-            break; //Exit from Loop
+            break; 
           }
         }
         OnConnectionClosed(Client);
-        //Client.Stream.Close();
         Client.Close();
       }
       catch (Exception e)

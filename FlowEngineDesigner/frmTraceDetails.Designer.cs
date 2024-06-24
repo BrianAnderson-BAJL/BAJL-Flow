@@ -51,12 +51,13 @@
       // txtXml
       // 
       txtXml.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      txtXml.Location = new Point(12, 395);
+      txtXml.Location = new Point(695, 12);
       txtXml.Multiline = true;
       txtXml.Name = "txtXml";
       txtXml.ScrollBars = ScrollBars.Vertical;
-      txtXml.Size = new Size(776, 127);
+      txtXml.Size = new Size(104, 48);
       txtXml.TabIndex = 0;
+      txtXml.Visible = false;
       // 
       // label1
       // 
@@ -148,7 +149,7 @@
       lvVariables.Location = new Point(267, 108);
       lvVariables.MultiSelect = false;
       lvVariables.Name = "lvVariables";
-      lvVariables.Size = new Size(520, 187);
+      lvVariables.Size = new Size(520, 414);
       lvVariables.TabIndex = 10;
       lvVariables.UseCompatibleStateImageBehavior = false;
       lvVariables.View = View.Details;
@@ -184,7 +185,7 @@
       tvVariables.HideSelection = false;
       tvVariables.Location = new Point(27, 108);
       tvVariables.Name = "tvVariables";
-      tvVariables.Size = new Size(241, 187);
+      tvVariables.Size = new Size(241, 414);
       tvVariables.TabIndex = 11;
       tvVariables.AfterSelect += tvVariables_AfterSelect;
       tvVariables.NodeMouseClick += tvVariables_NodeMouseClick;
@@ -207,7 +208,7 @@
       Controls.Add(label1);
       Controls.Add(txtXml);
       Name = "frmTraceDetails";
-      Text = "frmTraceDetails";
+      Text = "Trace Details";
       Load += frmTraceDetails_Load;
       contextMenuStrip1.ResumeLayout(false);
       ResumeLayout(false);

@@ -139,6 +139,12 @@ namespace FlowEngineCore
       if (this.Name == "FlowCore.Trace") //Don't overwrite the previous step variables with the trace
         return resps;
 
+      //Execute the Validator to double check that the response is correct, Validators can turn a SUCCESS to ERROR or Change and ERROR to SUCCESS.
+      if (this.Validator is not null)
+      {
+        this.Validator.Validate(ref resps);
+      }
+
       if (resps.Success == false) //If there was an error, lets create the error number & description to be used in the flow, while the resp object contains the same info, it isn't accessible in the flow
       {
       }
@@ -165,11 +171,6 @@ namespace FlowEngineCore
         flow.VariableAdd(this.RespNames.Name, resps.Variable);  //If the flow author wants/needs the response later, they can store it in a new flow variable
       }
 
-      //Execute the Validator to double check that the response is correct, Validators can turn a SUCCESS to ERROR or Change and ERROR to SUCCESS.
-      if (this.Validator is not null)
-      {
-        this.Validator.Validate(ref resps);
-      }
       return resps;
     }
 

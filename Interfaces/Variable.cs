@@ -64,7 +64,7 @@ namespace FlowEngineCore
       this.Value = var.Value;
       this.Name = var.Name;
       this.Parent = var.Parent;
-
+      this.SubVariablesFormat = var.SubVariablesFormat;
       this.SubVariables = new List<Variable>(var.SubVariables.Count);
       for (int x = 0; x < var.SubVariables.Count; x++)
       {

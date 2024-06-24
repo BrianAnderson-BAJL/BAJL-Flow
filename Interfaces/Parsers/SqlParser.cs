@@ -213,7 +213,7 @@ namespace FlowEngineCore.Parsers
     //TODO: These keywords and functions are for MySql, later I will need to pull these values from the Database plugin using the IDatabase interface. That way I can get different keywords based on the database type (MySQl, SQL Server, Oracle, ...)
     private static readonly string[] Keywords = { "SELECT", "UPDATE", "INSERT", "DELETE", "FROM", "WHERE", "HAVING", "VALUES", "IN", "BETWEEN", "INNER", "LEFT", "RIGHT", "JOIN", "ON", "INTO", "GROUP", "ORDER", "BY", "AS", "WITH", "AND", "OR", "DESC", "ASC" };
     private static readonly string[] Functions = { "COUNT", "MAX", "MIN", "AVG", "SUM", "MONTHNAME", "MONTH", "DAY", "YEAR", "CURRENT_TIMESTAMP" };
-    private static readonly string[] Delimiters = { ",", " ", "(", ")", "\r\n", "\n", "\t", "=", "<=", ">=", "<", ">"};
+    private static readonly string[] Delimiters = { ",", " ", "(", ")", "\r\n", "\n", "\t", "=", "<=", ">=", "<", ">", ";"};
     private static readonly string[] Comparer = { "=", "<=", ">=", "<", ">" };
 
     private static Color KeywordColor = Color.Blue;
@@ -394,7 +394,7 @@ namespace FlowEngineCore.Parsers
       
       for (int x = 0; x < Units.Count; x++)
       {
-        if (Units[x].Value == "\n" && Units.Count - 1 == x)
+        if (Units[x].Value == "\n" && Units.Count - 1 == x) //Shitty RTF seems to need two \par for a blank line, something weird Microsoft did with RTF formats
         {
           sb.Append("\\par\\par");
         }

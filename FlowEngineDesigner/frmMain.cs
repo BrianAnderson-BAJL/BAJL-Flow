@@ -183,9 +183,11 @@ namespace FlowEngineDesigner
     {
       frmFlow f = new frmFlow(flowWrapper);
       Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
-      f.Show();
       flowWrapper.PopulateSampleVariablesFromPlugin();
+      flowWrapper.Center(f.Camera, f.pictureBox1);
+      f.TitleText();
       f.pictureBox1.Refresh();
+      f.Show();
     }
 
     private void openToolStripMenuItem_Click(object sender, EventArgs e)

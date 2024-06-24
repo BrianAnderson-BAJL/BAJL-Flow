@@ -17,12 +17,9 @@ namespace FlowEngineDesigner
     const int DT_VARIABLE = 1;
 
 
-    public ucParameterInteger(PARM_VAR parmVar, FunctionStep? step, cFlowWrapper flow)
+    public ucParameterInteger(PARM_VAR parmVar, FunctionStep step, cFlowWrapper flow) : base(parmVar, step, flow)
     {
       InitializeComponent();
-      mParmVar = parmVar;
-      mFlow = flow;
-      mStep = step;
 
       txtKey.Text = mParmVar.Parm.Name;
       

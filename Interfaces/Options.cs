@@ -163,6 +163,7 @@ namespace FlowEngineCore
       mSettings.SettingAdd(new Setting("FlowUserHistoryMax", 10));
       mSettings.SettingAdd(new Setting("UserPath", "./users.xml"));
       mSettings.SettingAdd(new Setting("SecurityProfilesPath", "./securityProfiles.xml"));
+      mSettings.SettingAdd(new Setting("TemplateBasePath", "./Flows"));
 
       Setting setting = mSettings.SettingAdd(new Setting("ServerType", SERVER_TYPE.Development.ToString(), STRING_SUB_TYPE.DropDownList));
       setting.OptionAdd(SERVER_TYPE.Development.ToString());
@@ -183,7 +184,7 @@ namespace FlowEngineCore
       mSettings.SettingAdd(new Setting("SessionSize", "Administration", 64));
 
       mSettings.LoadSettingsFromFile(SettingsPath);
-      mSettings.SaveSettings(SettingsPath); //I save the settings here again during development to write out any new <Setting> blocks
+      //mSettings.SaveSettings(SettingsPath); //I save the settings here again during development to write out any new <Setting> blocks
 
       string serverTypeStr = mSettings.SettingGetAsString("ServerType");
       Options.ServerType = Enum.Parse<SERVER_TYPE>(serverTypeStr);
@@ -237,6 +238,12 @@ namespace FlowEngineCore
         temp = fileName.Substring(flowPath.Length);
       }
       return temp;
+    }
+
+    public static string GetTemplateFileNameRelativePath(string fileName)
+    {
+      string templatePath = Options.GetFullPath(mSettings.SettingGetAsString("TemplateBasePath"), fileName);
+      return templatePath;
     }
 
     public static string FixUrl(string url)

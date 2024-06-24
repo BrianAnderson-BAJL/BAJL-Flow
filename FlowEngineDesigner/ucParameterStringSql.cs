@@ -14,12 +14,9 @@ namespace FlowEngineDesigner
   public partial class ucParameterStringSql : ucParameter
   {
 
-    public ucParameterStringSql(PARM_VAR parmVar, FunctionStep? step, cFlowWrapper flow)
+    public ucParameterStringSql(PARM_VAR parmVar, FunctionStep step, cFlowWrapper flow) : base(parmVar, step, flow)
     {
       InitializeComponent();
-      mParmVar = parmVar;
-      mFlow = flow;
-      mStep = step;
       txtKey.Text = mParmVar.Parm.Name;
       txtDataType.Text = mParmVar.Parm.DataType.ToString() + "-" + mParmVar.Parm.StringSubType.ToString();
       mParmVar.GetValue(out string val);
@@ -80,7 +77,7 @@ namespace FlowEngineDesigner
 
     private void btnSql_Click(object sender, EventArgs e)
     {
-      frmSqlEditor f = new frmSqlEditor(txtValue);
+      frmSqlEditor f = new frmSqlEditor(txtValue, mStep);
       f.Show();
     }
   }

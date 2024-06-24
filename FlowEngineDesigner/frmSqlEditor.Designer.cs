@@ -48,12 +48,25 @@
       testingToolStripMenuItem = new ToolStripMenuItem();
       openFileDialog1 = new OpenFileDialog();
       saveFileDialog1 = new SaveFileDialog();
+      splitContainer1 = new SplitContainer();
       scSql = new SplitContainer();
       rtbSql = new RichTextBox();
       label1 = new Label();
       tvDatabase = new TreeView();
+      lvParams = new ListView();
+      chParamName = new ColumnHeader();
+      chDataType = new ColumnHeader();
+      chValue = new ColumnHeader();
       btnOk = new Button();
+      lblErrorDescription = new Label();
+      lblTestSqlResults = new Label();
+      btnTestSql = new Button();
+      chkSeeResultRecords = new CheckBox();
       menuStrip1.SuspendLayout();
+      ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+      splitContainer1.Panel1.SuspendLayout();
+      splitContainer1.Panel2.SuspendLayout();
+      splitContainer1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)scSql).BeginInit();
       scSql.Panel1.SuspendLayout();
       scSql.Panel2.SuspendLayout();
@@ -65,7 +78,7 @@
       menuStrip1.Items.AddRange(new ToolStripItem[] { fileToolStripMenuItem, samplesToolStripMenuItem, viewToolStripMenuItem });
       menuStrip1.Location = new Point(0, 0);
       menuStrip1.Name = "menuStrip1";
-      menuStrip1.Size = new Size(1221, 24);
+      menuStrip1.Size = new Size(1482, 24);
       menuStrip1.TabIndex = 1;
       menuStrip1.Text = "menuStrip1";
       // 
@@ -194,10 +207,33 @@
       // 
       openFileDialog1.FileName = "openFileDialog1";
       // 
+      // splitContainer1
+      // 
+      splitContainer1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+      splitContainer1.Location = new Point(0, 27);
+      splitContainer1.Name = "splitContainer1";
+      splitContainer1.Orientation = Orientation.Horizontal;
+      // 
+      // splitContainer1.Panel1
+      // 
+      splitContainer1.Panel1.Controls.Add(scSql);
+      // 
+      // splitContainer1.Panel2
+      // 
+      splitContainer1.Panel2.Controls.Add(chkSeeResultRecords);
+      splitContainer1.Panel2.Controls.Add(lvParams);
+      splitContainer1.Panel2.Controls.Add(btnOk);
+      splitContainer1.Panel2.Controls.Add(lblErrorDescription);
+      splitContainer1.Panel2.Controls.Add(lblTestSqlResults);
+      splitContainer1.Panel2.Controls.Add(btnTestSql);
+      splitContainer1.Size = new Size(1482, 695);
+      splitContainer1.SplitterDistance = 558;
+      splitContainer1.TabIndex = 7;
+      // 
       // scSql
       // 
       scSql.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      scSql.Location = new Point(0, 27);
+      scSql.Location = new Point(3, 3);
       scSql.Name = "scSql";
       // 
       // scSql.Panel1
@@ -208,17 +244,17 @@
       // 
       scSql.Panel2.Controls.Add(label1);
       scSql.Panel2.Controls.Add(tvDatabase);
-      scSql.Size = new Size(1221, 596);
-      scSql.SplitterDistance = 928;
-      scSql.TabIndex = 2;
+      scSql.Size = new Size(1579, 552);
+      scSql.SplitterDistance = 1206;
+      scSql.TabIndex = 3;
       // 
       // rtbSql
       // 
       rtbSql.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
       rtbSql.Font = new Font("Courier New", 12F, FontStyle.Regular, GraphicsUnit.Point);
-      rtbSql.Location = new Point(0, 0);
+      rtbSql.Location = new Point(9, 3);
       rtbSql.Name = "rtbSql";
-      rtbSql.Size = new Size(925, 593);
+      rtbSql.Size = new Size(1194, 546);
       rtbSql.TabIndex = 1;
       rtbSql.Text = "";
       rtbSql.TextChanged += rtbSql_TextChanged;
@@ -238,30 +274,100 @@
       tvDatabase.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
       tvDatabase.Location = new Point(3, 27);
       tvDatabase.Name = "tvDatabase";
-      tvDatabase.Size = new Size(283, 566);
+      tvDatabase.Size = new Size(263, 522);
       tvDatabase.TabIndex = 0;
       tvDatabase.BeforeCollapse += tvDatabase_BeforeCollapse;
       tvDatabase.NodeMouseDoubleClick += tvDatabase_NodeMouseDoubleClick;
       tvDatabase.MouseDown += tvDatabase_MouseDown;
       // 
+      // lvParams
+      // 
+      lvParams.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+      lvParams.Columns.AddRange(new ColumnHeader[] { chParamName, chDataType, chValue });
+      lvParams.GridLines = true;
+      lvParams.Location = new Point(12, 3);
+      lvParams.Name = "lvParams";
+      lvParams.Size = new Size(312, 122);
+      lvParams.TabIndex = 11;
+      lvParams.UseCompatibleStateImageBehavior = false;
+      lvParams.View = View.Details;
+      lvParams.MouseClick += lvParams_MouseClick;
+      lvParams.MouseDown += lvParams_MouseDown;
+      // 
+      // chParamName
+      // 
+      chParamName.Text = "Param Name";
+      chParamName.Width = 100;
+      // 
+      // chDataType
+      // 
+      chDataType.Text = "Data Type";
+      chDataType.Width = 80;
+      // 
+      // chValue
+      // 
+      chValue.Text = "Test Value";
+      chValue.Width = 80;
+      // 
       // btnOk
       // 
       btnOk.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      btnOk.Location = new Point(1135, 629);
+      btnOk.Location = new Point(1396, 92);
       btnOk.Name = "btnOk";
       btnOk.Size = new Size(83, 36);
-      btnOk.TabIndex = 3;
+      btnOk.TabIndex = 10;
       btnOk.Text = "Ok";
       btnOk.UseVisualStyleBackColor = true;
       btnOk.Click += btnOk_Click;
+      // 
+      // lblErrorDescription
+      // 
+      lblErrorDescription.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+      lblErrorDescription.AutoSize = true;
+      lblErrorDescription.Location = new Point(470, 94);
+      lblErrorDescription.Name = "lblErrorDescription";
+      lblErrorDescription.Size = new Size(17, 15);
+      lblErrorDescription.TabIndex = 9;
+      lblErrorDescription.Text = "**";
+      // 
+      // lblTestSqlResults
+      // 
+      lblTestSqlResults.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+      lblTestSqlResults.AutoSize = true;
+      lblTestSqlResults.Location = new Point(409, 94);
+      lblTestSqlResults.Name = "lblTestSqlResults";
+      lblTestSqlResults.Size = new Size(55, 15);
+      lblTestSqlResults.TabIndex = 8;
+      lblTestSqlResults.Text = "SUCCESS";
+      // 
+      // btnTestSql
+      // 
+      btnTestSql.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+      btnTestSql.Location = new Point(330, 85);
+      btnTestSql.Name = "btnTestSql";
+      btnTestSql.Size = new Size(73, 33);
+      btnTestSql.TabIndex = 7;
+      btnTestSql.Text = "Test SQL";
+      btnTestSql.UseVisualStyleBackColor = true;
+      btnTestSql.Click += btnTestSql_Click;
+      // 
+      // chkSeeResultRecords
+      // 
+      chkSeeResultRecords.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+      chkSeeResultRecords.AutoSize = true;
+      chkSeeResultRecords.Location = new Point(334, 54);
+      chkSeeResultRecords.Name = "chkSeeResultRecords";
+      chkSeeResultRecords.Size = new Size(96, 19);
+      chkSeeResultRecords.TabIndex = 12;
+      chkSeeResultRecords.Text = "View Records";
+      chkSeeResultRecords.UseVisualStyleBackColor = true;
       // 
       // frmSqlEditor
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(1221, 672);
-      Controls.Add(btnOk);
-      Controls.Add(scSql);
+      ClientSize = new Size(1482, 719);
+      Controls.Add(splitContainer1);
       Controls.Add(menuStrip1);
       MainMenuStrip = menuStrip1;
       Name = "frmSqlEditor";
@@ -271,6 +377,11 @@
       Load += frmSqlEditor_Load;
       menuStrip1.ResumeLayout(false);
       menuStrip1.PerformLayout();
+      splitContainer1.Panel1.ResumeLayout(false);
+      splitContainer1.Panel2.ResumeLayout(false);
+      splitContainer1.Panel2.PerformLayout();
+      ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+      splitContainer1.ResumeLayout(false);
       scSql.Panel1.ResumeLayout(false);
       scSql.Panel2.ResumeLayout(false);
       scSql.Panel2.PerformLayout();
@@ -299,12 +410,21 @@
     private ToolStripMenuItem joinToLookUpToolStripMenuItem;
     private ToolStripMenuItem viewToolStripMenuItem;
     private ToolStripMenuItem showDatabaseToolStripMenuItem;
+    private ToolStripMenuItem leftJoinMultipleTablesToolStripMenuItem;
+    private ToolStripMenuItem testingToolStripMenuItem;
+    private SplitContainer splitContainer1;
     private SplitContainer scSql;
     private RichTextBox rtbSql;
     private Label label1;
     private TreeView tvDatabase;
+    private Label lblErrorDescription;
+    private Label lblTestSqlResults;
+    private Button btnTestSql;
     private Button btnOk;
-    private ToolStripMenuItem leftJoinMultipleTablesToolStripMenuItem;
-    private ToolStripMenuItem testingToolStripMenuItem;
+    private ListView lvParams;
+    private ColumnHeader chParamName;
+    private ColumnHeader chDataType;
+    private ColumnHeader chValue;
+    private CheckBox chkSeeResultRecords;
   }
 }

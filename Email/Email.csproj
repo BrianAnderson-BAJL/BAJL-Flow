@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(BaseOutputPath)$(Configuration)\net6.0\$(TargetName)$(TargetExt)&quot; &quot;$(SolutionDir)FlowEngineDesigner\bin\$(Configuration)\net6.0-windows\Plugins&quot; /s /i /y&#xD;&#xA;xcopy &quot;$(BaseOutputPath)\$(Configuration)\net6.0\$(TargetName)$(TargetExt)&quot; &quot;D:\Pi&quot; /s /i /y" />
+    <Exec Command="xcopy &quot;$(BaseOutputPath)$(Configuration)\net6.0\$(TargetName)$(TargetExt)&quot; &quot;$(SolutionDir)FlowEngineDesigner\bin\$(Configuration)\net6.0-windows\Plugins&quot; /s /i /y&#xD;&#xA;" />
   </Target>
 
 </Project>

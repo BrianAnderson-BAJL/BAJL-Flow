@@ -104,7 +104,7 @@ namespace FlowEngineDesigner
 
         if (parmVar.Parm.DataType == DATA_TYPE.String && parmVar.Parm.StringSubType == STRING_SUB_TYPE.DropDownList)
         {
-          ucParameterDropDownList uc = new ucParameterDropDownList(parmVar);
+          ucParameterDropDownList uc = new ucParameterDropDownList(parmVar, null, Flow);
           uc.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
           uc.Location = new Point(StartX, StartY + (uc.Size.Height * x) + 5);
           gbStartOptions.Controls.Add(uc);

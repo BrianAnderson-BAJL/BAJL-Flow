@@ -30,7 +30,11 @@ namespace Database
       if (resp.Variable.SubVariables.Count == 0)
       {
         resp.SetSuccess();
-        return;
+      }
+      else
+      {
+        resp.SetError(STEP_ERROR_NUMBERS.FV_MustHaveZeroRecords, Name);
+
       }
     }
 

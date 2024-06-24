@@ -119,13 +119,13 @@ namespace FlowEngineCore.Administration
         if (user is null)
         {
           mLog?.Write($"SECURITY ERROR!  User Login, User not found [{userLogin.LoginId}]");
-          SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
+          SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.UserInvalid);
           return false;
         }
         if (user.LockOutUntil > DateTime.UtcNow)
         {
           mLog?.Write($"SECURITY ERROR!  User Login, User is locked out for another [{(user.LockOutUntil - DateTime.UtcNow).TotalMinutes}] minutes");
-          SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
+          SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.UserLockedout);
           return false;
         }
         if (SecureHasherV1.Verify(userLogin.Password, user.passwordHash) == false)
@@ -140,7 +140,7 @@ namespace FlowEngineCore.Administration
           return false;
         }
         user.LoginAttempts = 0;
-        user.SessionKey = SecureHasherV1.Hash(Guid.NewGuid().ToString()); //User has successfully logged in, lets generate a new session key
+        user.SessionKey = SecureHasherV1.SessionIdCreate(); //User has successfully logged in, lets generate a new session key
         user.SessionKeyExpiration = DateTime.UtcNow + TimeSpan.FromMinutes(CacheAdministrationUserSessionKeyTimeoutInMinutes);
         return true;
 
@@ -151,7 +151,7 @@ namespace FlowEngineCore.Administration
       if (user is null)
       {
         mLog?.Write("SECURITY ERROR!  Missing Session Key");
-        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
+        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.UserSessionInvalid);
         return false;
       }
       if (user.SessionKeyExpiration < DateTime.UtcNow)
@@ -159,7 +159,7 @@ namespace FlowEngineCore.Administration
         user.SessionKey = "";
         user.SessionKeyExpiration = DateTime.MinValue;
         mLog?.Write("SECURITY ERROR!  Session Key has expired");
-        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.AccessDenied);
+        SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.UserSessionExpired);
         return false;
       }
 

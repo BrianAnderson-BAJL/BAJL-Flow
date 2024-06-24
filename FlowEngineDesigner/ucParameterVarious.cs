@@ -27,12 +27,9 @@ namespace FlowEngineDesigner
     private int DT_VARIABLE = 4;
     private int DT_NONE = 5;
     private int mParameterIndex = 0;
-    public ucParameterVarious(PARM_VAR parmVar, FunctionStep? step, cFlowWrapper flow, int parameterIndex = 0)
+    public ucParameterVarious(PARM_VAR parmVar, FunctionStep step, cFlowWrapper flow, int parameterIndex = 0) : base(parmVar, step, flow)
     {
       InitializeComponent();
-      mParmVar = parmVar;
-      mFlow = flow;
-      mStep = step;
       mParameterIndex = parameterIndex;
       txtKey.Text = mParmVar.ParmName;
       txtDataType.Text = mParmVar.Parm.DataType.ToString();

@@ -42,7 +42,7 @@ namespace Db
 
         cmd.Parameters.AddWithValue(vars[x].Name, val);
         
-
+        
         //else if (vars[x].DataType == DATA_TYPE.Boolean)
         //{
         //  vars[x].GetValue(out bool val);
@@ -71,7 +71,7 @@ namespace Db
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
         {
           connection.Open();
-          
+
           using (MySqlCommand command = new MySqlCommand(SQL, connection))
           {
             PopulateParameters(command, vars);
@@ -81,6 +81,38 @@ namespace Db
 
             root.Value = recordsAffected;
           }
+        }
+      }
+      catch (Exception ex)
+      {
+        mLog?.Write(ex, LOG_TYPE.WAR);
+        throw;
+      }
+      return root;
+    }
+
+    public Variable Execute(object transaction, string SQL, params Variable[] vars)
+    {
+      FlowEngine.Log?.Write("DB - " + SQL, LOG_TYPE.DBG);
+      MySqlTransaction? myTrans = transaction as MySqlTransaction;
+      if (myTrans is null)
+        throw new ArgumentException("DB bad transaction, expected MySqlTransaction");
+      if (myTrans.Connection is null)
+        throw new ArgumentException("DB bad connection, expected MySqlTransaction.Connection is null");
+      if (myTrans.Connection.State != System.Data.ConnectionState.Open)
+        throw new ArgumentException("DB Connection is not open");
+
+      Variable root = new Variable("recordsAffected", 0L);
+      try
+      {
+        using (MySqlCommand command = new MySqlCommand(SQL, myTrans.Connection, myTrans))
+        {
+          PopulateParameters(command, vars);
+          long recordsAffected = command.ExecuteNonQuery();
+          if (SQL.StartsWith("INSERT", StringComparison.InvariantCultureIgnoreCase) == true)
+            root.SubVariables.Add(new Variable("lastInsertedId", command.LastInsertedId));
+
+          root.Value = recordsAffected;
         }
       }
       catch (Exception ex)
@@ -265,6 +297,51 @@ namespace Db
       }
 
       return fieldNames;
+    }
+
+    public object TransactionBegin()
+    {
+      FlowEngine.Log?.Write("DB - TransactionBegin", LOG_TYPE.DBG);
+      try
+      {
+        MySqlConnection connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+        MySqlTransaction trans = connection.BeginTransaction();
+        return trans;
+      }
+      catch (Exception ex)
+      {
+        mLog?.Write(ex, LOG_TYPE.WAR);
+        throw;
+      }
+      
+    }
+
+    public void TransactionRollback(object transaction)
+    {
+      MySqlTransaction? myTrans = transaction as MySqlTransaction;
+      if (myTrans is null)
+        throw new ArgumentException("DB bad transaction, expected MySqlTransaction");
+
+      myTrans.Rollback();
+      myTrans.Connection.Dispose();
+      myTrans.Dispose();
+    }
+
+    public void TransactionCommit(object transaction)
+    {
+      MySqlTransaction? myTrans = transaction as MySqlTransaction;
+      if (myTrans is null)
+        throw new ArgumentException("DB bad transaction, expected MySqlTransaction");
+
+      myTrans.Commit();
+      myTrans.Connection.Dispose();
+      myTrans.Dispose();
+    }
+
+    public bool TestSql(string sql, params Variable[] vars)
+    {
+      return false;
     }
   }
 }
