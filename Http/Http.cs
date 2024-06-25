@@ -14,8 +14,6 @@ using static FlowEngineCore.PARM;
 
 namespace Http
 {
-  //Open AI secret key
-  //sk-proj-1HxfLxEFmjTuXjd2Z1iMT3BlbkFJpYp4zDYxX6GCVD7QUG42
 
   public class Http : FlowEngineCore.Plugin
   {
