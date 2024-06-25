@@ -78,12 +78,16 @@ namespace FlowEngineDesigner
 
     private void lvTracer_MouseDoubleClick(object sender, MouseEventArgs e)
     {
-      if (lvTracer.SelectedItems.Count > 0)
+      if (lvTracer.SelectedItems.Count == 0)
+        return;
+
+      if (lvTracer.SelectedItems[0].Text.StartsWith("FlowDebug") == true)
       {
         frmTraceDetails f = new frmTraceDetails();
         f.txtXml.Text = lvTracer.SelectedItems[0].Tag.ToString();
         f.Show();
       }
     }
+
   }
 }

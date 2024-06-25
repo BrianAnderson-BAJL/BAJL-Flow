@@ -91,6 +91,11 @@ namespace FlowEngineCore
     public static int XmlDepthMax = 100;
     public static int JsonDepthMax = 100;
 
+    public static string ConvertBackslashesToForwardslashes(string orig)
+    {
+      return orig.Replace('\\', '/');
+    }
+
     public static void WriteAllways(string val, LOG_TYPE debug = LOG_TYPE.INF)
     {
       Console.WriteLine(val);

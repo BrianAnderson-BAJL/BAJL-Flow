@@ -564,8 +564,8 @@ namespace FlowEngineCore
 
     public virtual void XmlReadFile(string fileName, READ_TIL til = READ_TIL.All)
     {
-      functionSteps.Clear();
-      FileName = fileName;
+      //functionSteps.Clear();
+      FileName = Global.ConvertBackslashesToForwardslashes(fileName);
       FileNameRelative = Options.GetFlowFileNameRelativePath(FileName);
       Xml xml = new();
       string content = xml.FileRead(FileName);

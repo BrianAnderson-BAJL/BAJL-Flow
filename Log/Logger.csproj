@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FlowEngineCore\FlowEngineCore.csproj" />
     <ProjectReference Include="..\Interfaces\FlowEngineCore.csproj" />
   </ItemGroup>
 

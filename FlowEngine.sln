@@ -5,7 +5,7 @@ VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_FlowEngine", "FlowEngine\_FlowEngine.csproj", "{DA5F8B60-6996-448E-9373-9CBA1995B800}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowEngineCore", "Interfaces\FlowEngineCore.csproj", "{A64C8EE9-0809-481F-945F-7FA769822C6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FlowEngineCore", "FlowEngineCore\FlowEngineCore.csproj", "{A64C8EE9-0809-481F-945F-7FA769822C6A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Database", "Db\Database.csproj", "{9484314D-1E9C-4D06-8215-A59CC013E6D3}"
 EndProject
