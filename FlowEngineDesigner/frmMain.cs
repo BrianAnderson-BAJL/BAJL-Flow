@@ -283,5 +283,11 @@ namespace FlowEngineDesigner
         f.Show();
       }
     }
+
+    private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+      frmAbout f = new frmAbout();
+      f.Show();
+    }
   }
 }

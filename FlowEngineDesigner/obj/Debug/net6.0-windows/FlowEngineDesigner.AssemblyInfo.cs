@@ -13,11 +13,15 @@ using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("FlowEngineDesigner")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyCopyrightAttribute("2024 BAJL, LLC")]
+[assembly: System.Reflection.AssemblyDescriptionAttribute("A user interface for configuring the BAJL Flow Engine. A visual programming syste" +
+    "m.")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2b0a903e32da3c3fa17f5b761e4d568ec0235385")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cb48d4d2e74168cf330bb9d84a84dd6bf0cdfeca")]
 [assembly: System.Reflection.AssemblyProductAttribute("FlowEngineDesigner")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FlowEngineDesigner")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
+[assembly: System.Reflection.AssemblyMetadataAttribute("RepositoryUrl", "https://github.com/BrianAnderson-BAJL/BAJL-Flow")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
 

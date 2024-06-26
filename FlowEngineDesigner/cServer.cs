@@ -46,7 +46,13 @@ namespace FlowEngineDesigner
 
         Client = FlowEngineCore.Administration.TcpTlsClient.Connect(domainName, port);
         if (Client is null)
+        {
+          cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, $"FAILED to Connect to [{domainName}], [{port}]", cEventManager.TRACER_TYPE.Error, te.End().Ticks);
+          Global.FormMain!.tsServer.Text = "Disconected";
+          Global.FormMain!.tsServer.ForeColor = Color.Red;
+          Global.FormMain!.tsLoggedInAs.Text = "[NOT LOGGED IN]";
           return false;
+        }
         else
         {
           Client.NewPacket += Client_NewPacket;

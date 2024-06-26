@@ -406,6 +406,15 @@
             "fileVersion": "0.7.1.0"
           }
         }
+      },
+      "FlowEngineCore/1.0.0": {
+        "dependencies": {
+          "MySql.Data": "8.1.0",
+          "Newtonsoft.Json": "13.0.3"
+        },
+        "runtime": {
+          "FlowEngineCore.dll": {}
+        }
       }
     }
   },
@@ -680,6 +689,11 @@
       "sha512": "sha512-Idgg+mJEyAujqDPzA3APy9dNoyw0YQcNA65GgYjktDRtJ+nvx/hv+J+m6Eax3JJMGEYGy04oc5YNP6ZvQ3Y1vQ==",
       "path": "zstdsharp.port/0.7.1",
       "hashPath": "zstdsharp.port.0.7.1.nupkg.sha512"
+    },
+    "FlowEngineCore/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     }
   }
 }

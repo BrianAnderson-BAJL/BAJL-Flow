@@ -44,6 +44,7 @@
       connectToolStripMenuItem = new ToolStripMenuItem();
       disconnectToolStripMenuItem = new ToolStripMenuItem();
       connectRecentToolStripMenuItem = new ToolStripMenuItem();
+      statisticsToolStripMenuItem = new ToolStripMenuItem();
       settingsToolStripMenuItem1 = new ToolStripMenuItem();
       administrationToolStripMenuItem = new ToolStripMenuItem();
       usersToolStripMenuItem1 = new ToolStripMenuItem();
@@ -56,14 +57,15 @@
       toolStripStatusLabel1 = new ToolStripStatusLabel();
       tsLoggedInAs = new ToolStripStatusLabel();
       openFileDialog1 = new OpenFileDialog();
-      statisticsToolStripMenuItem = new ToolStripMenuItem();
+      helpToolStripMenuItem = new ToolStripMenuItem();
+      aboutToolStripMenuItem = new ToolStripMenuItem();
       menuStrip1.SuspendLayout();
       statusStrip1.SuspendLayout();
       SuspendLayout();
       // 
       // menuStrip1
       // 
-      menuStrip1.Items.AddRange(new ToolStripItem[] { tsmFile, viewToolStripMenuItem, settingsToolStripMenuItem, serverToolStripMenuItem });
+      menuStrip1.Items.AddRange(new ToolStripItem[] { tsmFile, viewToolStripMenuItem, settingsToolStripMenuItem, serverToolStripMenuItem, helpToolStripMenuItem });
       menuStrip1.Location = new Point(0, 0);
       menuStrip1.Name = "menuStrip1";
       menuStrip1.Size = new Size(947, 24);
@@ -143,7 +145,7 @@
       // optionsToolStripMenuItem
       // 
       optionsToolStripMenuItem.Name = "optionsToolStripMenuItem";
-      optionsToolStripMenuItem.Size = new Size(116, 22);
+      optionsToolStripMenuItem.Size = new Size(180, 22);
       optionsToolStripMenuItem.Text = "&Options";
       optionsToolStripMenuItem.Click += optionsToolStripMenuItem_Click;
       // 
@@ -175,6 +177,13 @@
       connectRecentToolStripMenuItem.Name = "connectRecentToolStripMenuItem";
       connectRecentToolStripMenuItem.Size = new Size(180, 22);
       connectRecentToolStripMenuItem.Text = "Connect &Recent...";
+      // 
+      // statisticsToolStripMenuItem
+      // 
+      statisticsToolStripMenuItem.Name = "statisticsToolStripMenuItem";
+      statisticsToolStripMenuItem.Size = new Size(180, 22);
+      statisticsToolStripMenuItem.Text = "S&tatistics";
+      statisticsToolStripMenuItem.Click += statisticsToolStripMenuItem_Click;
       // 
       // settingsToolStripMenuItem1
       // 
@@ -238,8 +247,8 @@
       // tsServer
       // 
       tsServer.Name = "tsServer";
-      tsServer.Size = new Size(118, 17);
-      tsServer.Text = "toolStripStatusLabel1";
+      tsServer.Size = new Size(79, 17);
+      tsServer.Text = "Disconnected";
       // 
       // toolStripStatusLabel1
       // 
@@ -251,20 +260,27 @@
       // 
       tsLoggedInAs.DoubleClickEnabled = true;
       tsLoggedInAs.Name = "tsLoggedInAs";
-      tsLoggedInAs.Size = new Size(60, 17);
-      tsLoggedInAs.Text = "Username";
+      tsLoggedInAs.Size = new Size(101, 17);
+      tsLoggedInAs.Text = "[NOT LOGGED IN]";
       tsLoggedInAs.DoubleClick += tsLoggedInAs_DoubleClick;
       // 
       // openFileDialog1
       // 
       openFileDialog1.FileName = "openFileDialog1";
       // 
-      // statisticsToolStripMenuItem
+      // helpToolStripMenuItem
       // 
-      statisticsToolStripMenuItem.Name = "statisticsToolStripMenuItem";
-      statisticsToolStripMenuItem.Size = new Size(180, 22);
-      statisticsToolStripMenuItem.Text = "S&tatistics";
-      statisticsToolStripMenuItem.Click += statisticsToolStripMenuItem_Click;
+      helpToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { aboutToolStripMenuItem });
+      helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+      helpToolStripMenuItem.Size = new Size(44, 20);
+      helpToolStripMenuItem.Text = "&Help";
+      // 
+      // aboutToolStripMenuItem
+      // 
+      aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
+      aboutToolStripMenuItem.Size = new Size(180, 22);
+      aboutToolStripMenuItem.Text = "&About";
+      aboutToolStripMenuItem.Click += aboutToolStripMenuItem_Click;
       // 
       // frmMain
       // 
@@ -318,5 +334,7 @@
     public ToolStripMenuItem debugAlwaysToolStripMenuItem;
     private ToolStripMenuItem settingsToolStripMenuItem1;
     private ToolStripMenuItem statisticsToolStripMenuItem;
+    private ToolStripMenuItem helpToolStripMenuItem;
+    private ToolStripMenuItem aboutToolStripMenuItem;
   }
 }

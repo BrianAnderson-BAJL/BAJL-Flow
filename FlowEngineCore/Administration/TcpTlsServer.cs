@@ -63,18 +63,14 @@ namespace FlowEngineCore.Administration
     {
 
       mReadPacketTimeout = ReadPacketTimeout;
-      //X509Store Store = new X509Store(StoreName.TrustedPublisher, StoreLocation.CurrentUser);
-      //Store.Open(OpenFlags.ReadOnly);
-      //X509Certificate2Collection Certificates = Store.Certificates.Find(X509FindType.FindByIssuerDistinguishedName, "CN=flowengine.bajlllc.com", false);
-      //Store.Close();
-      
-      mCertificate = new X509Certificate(pathToCert, certPassword); //"b1581a"
-
-      //if (Certificates.Count > 0)
-      //{
-      //  mCertificate = Certificates[0];
-
-      //}
+      try
+      {
+        mCertificate = new X509Certificate(pathToCert, certPassword);
+      }
+      catch (Exception ex)
+      {
+        FlowEngine.Log?.Write($"FAILED to load [{pathToCert}] with password [{new string('*', certPassword.Length)}] Remote Administration access is disabled", ex, LOG_TYPE.ERR);
+      }
 
     }
 
@@ -146,16 +142,25 @@ namespace FlowEngineCore.Administration
 
     private TcpTlsClient ClientAdd(System.Net.Sockets.TcpClient Client)
     {
-      SslStream stream = new(Client.GetStream(), false);
-      stream.AuthenticateAsServer(mCertificate, false, SslProtocols.None, true); //SslProtocols.None means that the OS is allowed to decide which protocol to use, default is currently TLS 1.2, 1.3 is only available in Windows 11
-      TcpTlsClient C = new(Client, stream);
+      TcpTlsClient? tlsClient = null;
+      try
+      {
+        SslStream stream = new(Client.GetStream(), false);
+        stream.AuthenticateAsServer(mCertificate, false, SslProtocols.None, true); //SslProtocols.None means that the OS is allowed to decide which protocol to use, default is currently TLS 1.2, 1.3 is only available in Windows 11
+        tlsClient = new(Client, stream);
+      }
+      catch (Exception ex)
+      {
+        FlowEngine.Log?.Write("FAILED to AuthenticateAsServer with SslStream", ex, LOG_TYPE.ERR);
+        throw;
+      }
 
       lock (mCriticalSection)
       {
-        mClients.Add(C);
+        mClients.Add(tlsClient);
       }
-      OnNewConnection(C);
-      return C;
+      OnNewConnection(tlsClient);
+      return tlsClient;
     }
 
   }

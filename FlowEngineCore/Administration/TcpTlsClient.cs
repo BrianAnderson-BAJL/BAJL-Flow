@@ -66,6 +66,7 @@ namespace FlowEngineCore.Administration
           return null; //Couldn't connect within the connectTimeout period, return null (failure)
         }
         SslStream stream = new(client.GetStream(), false, ValidateServerCertificate!);
+        stream.ReadTimeout = connectTimeout;
         stream.AuthenticateAsClient(hostUrl);
         returnClient = new(client, stream);
         Thread T = new(new ParameterizedThreadStart(returnClient.ReadTlsPacketsThread!));

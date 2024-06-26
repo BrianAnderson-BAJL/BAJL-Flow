@@ -21,6 +21,8 @@ namespace FlowEngineCore.Administration
       _Unknown = 0,
       CloseConnection,
       Trace,
+      About,
+      AboutResponse,
       UserLogin,
       UserLoginResponse,
       UserLogout,

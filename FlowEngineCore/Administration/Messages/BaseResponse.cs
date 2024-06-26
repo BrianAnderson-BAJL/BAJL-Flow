@@ -26,11 +26,19 @@ namespace FlowEngineCore.Administration.Messages
     public RESPONSE_CODE ResponseCode = RESPONSE_CODE.Success;
     public Packet.PACKET_TYPE PacketType = Packet.PACKET_TYPE._Unknown;
     public int PacketId;
+
     public BaseResponse(int packetId, Packet.PACKET_TYPE packetType)
     {
       PacketType = packetType;
       PacketId = packetId;
     }
+
+    /// <summary>
+    /// The constructor is for creating the response to send to the client, it is a helper constructor to allow translating from the RECORD_RESULT type being returned by some singleton managers.
+    /// </summary>
+    /// <param name="packetId">The unique packet identifier sent in the original request</param>
+    /// <param name="results">Was it a Success, Error, or Duplicate</param>
+    /// <param name="packetType">What kind of packet response is this</param>
     public BaseResponse(int packetId, RECORD_RESULT results, Packet.PACKET_TYPE packetType)
     {
       if (results == RECORD_RESULT.Success)
@@ -50,6 +58,10 @@ namespace FlowEngineCore.Administration.Messages
       PacketId = packetId;
     }
 
+    /// <summary>
+    /// When a client receives a response this constructor is for parsing the ResponseCode and packet values
+    /// </summary>
+    /// <param name="packet"></param>
     public BaseResponse(FlowEngineCore.Administration.Packet packet)
     {
       packet.GetData<RESPONSE_CODE>(out this.ResponseCode);

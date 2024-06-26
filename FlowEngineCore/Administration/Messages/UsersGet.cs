@@ -1,11 +1,10 @@
-﻿using FlowEngineCore.Administration.Messages;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FlowEngineCore.Administration.Packets
+namespace FlowEngineCore.Administration.Messages
 {
   public class UsersGet : BaseMessage
   {

@@ -10,11 +10,20 @@
     <RunAnalyzersDuringLiveAnalysis>False</RunAnalyzersDuringLiveAnalysis>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <EnableNETAnalyzers>False</EnableNETAnalyzers>
+    <ApplicationIcon>Assets\BAJL_Logo_HD_Square.ico</ApplicationIcon>
+    <Description>A user interface for configuring the BAJL Flow Engine. A visual programming system.</Description>
+    <Copyright>2024 BAJL, LLC</Copyright>
+    <PackageIcon>BAJL_Logo_HD_Square.ico</PackageIcon>
+    <RepositoryUrl>https://github.com/BrianAnderson-BAJL/BAJL-Flow</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/BrianAnderson-BAJL/BAJL-Flow</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Assets\BAJL_Logo_HD_Square.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FlowEngineCore\FlowEngineCore.csproj" />
-    <ProjectReference Include="..\Interfaces\FlowEngineCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,14 +47,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="ScottPlot.WinForms" Version="5.0.34" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Assets\BAJL_Logo_HD_Square.ico">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

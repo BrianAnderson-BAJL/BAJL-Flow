@@ -2277,8 +2277,8 @@
     },
     "FlowEngineCore/1.0.0": {
       "type": "project",
-      "path": "../Interfaces/FlowEngineCore.csproj",
-      "msbuildProject": "../Interfaces/FlowEngineCore.csproj"
+      "path": "../FlowEngineCore/FlowEngineCore.csproj",
+      "msbuildProject": "../FlowEngineCore/FlowEngineCore.csproj"
     }
   },
   "projectFileDependencyGroups": {
@@ -2316,9 +2316,6 @@
           "projectReferences": {
             "C:\\Users\\brian\\source\\repos\\FlowEngine\\FlowEngineCore\\FlowEngineCore.csproj": {
               "projectPath": "C:\\Users\\brian\\source\\repos\\FlowEngine\\FlowEngineCore\\FlowEngineCore.csproj"
-            },
-            "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\FlowEngineCore.csproj": {
-              "projectPath": "C:\\Users\\brian\\source\\repos\\FlowEngine\\Interfaces\\FlowEngineCore.csproj"
             }
           }
         }
