@@ -8,7 +8,7 @@ Each execution unit is called a "Flow", a flow contains "Steps" which are basica
 * Could be integrated into another .Net application to do almost anything. The core is a .Net Assembly.
 * Plugins could be created to do almost anything. Plugins are just .Net assemblies that inherit from the FlowEngineCore.Plugin class.
 # Very simple flow (step graphics are place holders)
-![A very simple flow](https://github.com/BrianAnderson-BAJL/BAJL-Flow/ScreenShots/BasicFlow.png)
+![A very simple flow](https://github.com/BrianAnderson-BAJL/BAJL-Flow/blob/main/ScreenShots/BasicFlow.png)
 # Components
 The pieces that make the BAJL Flow Engine work!
 
