@@ -7,8 +7,8 @@ Each execution unit is called a "Flow", a flow contains "Steps" which are basica
 * BAJL is using the BAJL Flow Engine as a standalone backend application for a REST API performing CRUD (Create, Read, Update, Delete) operations with a Maria database (previously known as MySql before Oracle purchased it)
 * Could be integrated into another .Net application to do almost anything. The core is a .Net Assembly.
 * Plugins could be created to do almost anything. Plugins are just .Net assemblies that inherit from the FlowEngineCore.Plugin class.
-# Very simple flow (step graphics are place holders)
-![A very simple flow](https://github.com/BrianAnderson-BAJL/BAJL-Flow/ScreenShots/BasicFlow.png)
+# Very simple flow (graphics are place holders)
+![A very simple flow](https://github.com/BrianAnderson-BAJL/BAJL-Flow/blob/main/ScreenShots/BasicFlow.png)
 # Components
 The pieces that make the BAJL Flow Engine work!
 
