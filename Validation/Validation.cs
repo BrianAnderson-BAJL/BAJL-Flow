@@ -7,6 +7,10 @@ namespace Validation
   public class Validation : FlowEngineCore.Plugin
   {
 
+    private const int ERROR_INVALID_EMAIL = (int)STEP_ERROR_NUMBERS.ValidationErrorMin;
+    private const int ERROR_INVALID_PHONE = (int)STEP_ERROR_NUMBERS.ValidationErrorMin + 1;
+    private const int ERROR_VARIABLE_NO_VALUE = (int)STEP_ERROR_NUMBERS.ValidationErrorMin + 2;
+
     public override void Init()
     {
       base.Init();
@@ -54,7 +58,7 @@ namespace Validation
     {
     }
 
-    public RESP Email(FlowEngineCore.Flow flow, Variable[] vars)
+    public RESP Email(Flow flow, Variable[] vars)
     {
       mLog?.Write("Validation.Email", LOG_TYPE.DBG);
 
@@ -62,55 +66,55 @@ namespace Validation
       vars[1].GetValue(out string format);
 
       if (email is null)
-        return RESP.SetError(1, "Email - null");
+        return RESP.SetError(ERROR_INVALID_EMAIL, "Email - null");
 
       if (email.Contains('@') == false)
-        return RESP.SetError(1, $"Email - no @ symbol [{email}]");
+        return RESP.SetError(ERROR_INVALID_EMAIL, $"Email - no @ symbol [{email}]");
 
       string[] emailSplit = email.Split('@');
       if (emailSplit.Length != 2)
-        return RESP.SetError(1, $"Email - wrong number of @ symbols [{email}]");
+        return RESP.SetError(ERROR_INVALID_EMAIL, $"Email - wrong number of @ symbols [{email}]");
 
       if (format == "a@a")
       {
         if (emailSplit[0].Length < 1)
-          return RESP.SetError(1, $"Email - value before @ symbol is not valid [{email}]");
+          return RESP.SetError(ERROR_INVALID_EMAIL, $"Email - value before @ symbol is not valid [{email}]");
 
         if (emailSplit[1].Length < 1)
-          return RESP.SetError(1, $"Email - value after @ symbol is not valid [{email}]");
+          return RESP.SetError(ERROR_INVALID_EMAIL, $"Email - value after @ symbol is not valid [{email}]");
       }
       else if (format == "a@a.a")
       {
         if (emailSplit[0].Length < 1)
-          return RESP.SetError(1, $"Email - value before @ symbol is not valid [{email}]");
+          return RESP.SetError(ERROR_INVALID_EMAIL, $"Email - value before @ symbol is not valid [{email}]");
 
         if (emailSplit[1].Length < 3) // must be at least a.a (3 characters)
-          return RESP.SetError(1, $"Email - value after @ symbol is not valid [{email}]");
+          return RESP.SetError(ERROR_INVALID_EMAIL, $"Email - value after @ symbol is not valid [{email}]");
 
         if (emailSplit[1].Contains("..") == true)
-          return RESP.SetError(1, $"Email - invalid double dot detected '..' [{email}]");
+          return RESP.SetError(ERROR_INVALID_EMAIL, $"Email - invalid double dot detected '..' [{email}]");
 
         string[] afterAt = emailSplit[1].Split('.');
         if (afterAt.Length < 2)
-          return RESP.SetError(1, $"Email - value after @ symbol is not valid, invalid domain name [{email}]");
+          return RESP.SetError(ERROR_INVALID_EMAIL, $"Email - value after @ symbol is not valid, invalid domain name [{email}]");
         for (int x = 0; x < afterAt.Length; x++)
         {
           if (afterAt[x].Length < 1)
-            return RESP.SetError(1, $"Email - value after @ symbol is not valid [{email}]");
+            return RESP.SetError(ERROR_INVALID_EMAIL, $"Email - value after @ symbol is not valid [{email}]");
         }
       }
 
       return RESP.SetSuccess();
     }
 
-    public RESP Phone(FlowEngineCore.Flow flow, Variable[] vars)
+    public RESP Phone(Flow flow, Variable[] vars)
     {
       mLog?.Write("Validation.Phone", LOG_TYPE.DBG);
-
-      return RESP.SetSuccess();
+      throw new NotImplementedException();
+      //return RESP.SetSuccess();
     }
 
-    public RESP VariableHasValue(FlowEngineCore.Flow flow, Variable[] vars)
+    public RESP VariableHasValue(Flow flow, Variable[] vars)
     {
       mLog?.Write("Validation.VariableHasValue", LOG_TYPE.DBG);
 
@@ -119,7 +123,7 @@ namespace Validation
         Variable? var = flow.FindVariable(vars[x].Value);
         string temp = var.GetValueAsString();
         if (temp.Length == 0)
-          return RESP.SetError(1, $"Variable [{vars[x].Name}] is empty [{vars[x].Value}]");
+          return RESP.SetError(ERROR_VARIABLE_NO_VALUE, $"Variable [{vars[x].Name}] is empty [{vars[x].Value}]");
       }
 
       return RESP.SetSuccess();

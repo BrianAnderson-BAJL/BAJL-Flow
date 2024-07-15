@@ -21,7 +21,7 @@ namespace Db
     public const string DB_TREAT_TINYINT_AS_BOOLEAN = "TreatTinyintAsBoolean";
     public const string DB_DATE_FORMAT = "DateFormat";
 
-    private const int DB_ERROR = (int)STEP_ERROR_NUMBERS.DatabaseErrorMin;
+    private const int DB_ERROR_NO_DB = (int)STEP_ERROR_NUMBERS.DatabaseErrorMin;
     private const int DB_ERROR_UNKNOWN = (int)STEP_ERROR_NUMBERS.DatabaseErrorMin + 1;
     private const int DB_ERROR_ZERO_RECORDS = (int)STEP_ERROR_NUMBERS.DatabaseErrorMin + 2;
     public override void Init()
@@ -29,11 +29,8 @@ namespace Db
       base.Init();
 
       Function func;
-      //Functions.Add(new Function("Open", this, Open));
-      //Functions.Add(new Function("Close", this, Close));
-
-
-      func = new Function("Select", this, Select);
+      
+      func = new Function("Select", this, Select, "", "Select and retrieve records from a database");
       func.Validators.Add(new ValidatorAtLeastOneRec());
       func.Validators.Add(new ValidatorZeroRecords());
       func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
@@ -54,7 +51,7 @@ namespace Db
       Functions.Add(func);
 
 
-      func = new Function("Execute", this, Execute);
+      func = new Function("Execute", this, Execute, "", "Run a SQL query that doesn't return any records. (UPDATE, DELETE, DROP, CREATE, ...)");
       func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
       parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
       func.Parms.Add(parm);
@@ -63,15 +60,25 @@ namespace Db
       Functions.Add(func);
 
 
-      Functions.Add(new Function("InsertMany", this, InsertMany));
+      func = new Function("Insert Many", this, InsertMany);
+      func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
+      parm = new PARM("Variable with sub variables", DATA_TYPE.Various, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Single) { NameChangeable = true };
+      parm.Description = "This variable should contain an array of sub variables for insertion. If each array entry contains a 'Block' of multiple values then the name of the named variable will be used instead of the parameter name.";
+      func.Parms.Add(parm);
+      parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
+      parm.Description = "Extra variable that will remain static for each insertion, usually an ID value for a joined table";
+      func.Parms.Add(parm);
+      Functions.Add(func);
 
-      //func = new Function("GetInt", this, GetInt);
-      //func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
-      //parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
-      //func.Parms.Add(parm);
-      //func.RespNames.Add(new Variable("recordsInserted"));
-      //Functions.Add(func);
-
+      func = new Function("Update Many", this, UpdateMany);
+      func.Parms.Add(new PARM("SQL", STRING_SUB_TYPE.Sql));
+      parm = new PARM("Variable with sub variables", DATA_TYPE.Various, PARM.PARM_REQUIRED.Yes, PARM.PARM_ALLOW_MULTIPLE.Single) { NameChangeable = true };
+      parm.Description = "This variable should contain an array of sub variables for updating";
+      func.Parms.Add(parm);
+      parm = new PARM("@Param", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
+      parm.Description = "Extra variable that will remain static for each update, usually an ID value for a joined table";
+      func.Parms.Add(parm);
+      Functions.Add(func);
 
 
       Setting setting = mSettings.SettingAdd(new Setting(DB_TYPE, DB_TYPE_MY_SQL, STRING_SUB_TYPE.DropDownList));
@@ -148,23 +155,12 @@ namespace Db
       //Nothing to dispose of yet!
     }
 
-    //public RESP Open(Core.Flow flow, Variable[] vars)
-    //{
-    //  Global.Write("Db.Open - ");
-    //  return RESP.SetSuccess();
-    //}
-
-    //public RESP Close(Core.Flow flow, Variable[] vars)
-    //{
-    //  Global.Write("Db.Close");
-    //  return RESP.SetSuccess();
-    //}
 
     public RESP Select(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Db.Select", LOG_TYPE.DBG);
       if (mDatabase is null)
-        return RESP.SetError(2000, "No active database connection");
+        return RESP.SetError(DB_ERROR_NO_DB, "No active database connection");
 
       vars[0].GetValue(out string sql);
 
@@ -190,7 +186,7 @@ namespace Db
     {
       mLog?.Write("Db.Select", LOG_TYPE.DBG);
       if (mDatabase is null)
-        return RESP.SetError(2000, "No active database connection");
+        return RESP.SetError(DB_ERROR_NO_DB, "No active database connection");
 
       vars[0].GetValue(out string sql);
 
@@ -219,7 +215,7 @@ namespace Db
     {
       mLog?.Write("Db.Execute", LOG_TYPE.DBG);
       if (mDatabase is null)
-        return RESP.SetError(2002, "No active database connection");
+        return RESP.SetError(DB_ERROR_NO_DB, "No active database connection");
 
       vars[0].GetValue(out string sql);
       Variable? var = null;
@@ -236,16 +232,40 @@ namespace Db
 
     public RESP InsertMany(FlowEngineCore.Flow flow, Variable[] vars)
     {
-      mLog?.Write("Db.InsertMany", LOG_TYPE.DBG);
-      return RESP.SetSuccess();
+      mLog?.Write("Db.Insert Many", LOG_TYPE.DBG);
+      if (mDatabase is null)
+        return RESP.SetError(DB_ERROR_NO_DB, "No active database connection");
+      vars[0].GetValue(out string sql);
+      try
+      {
+        Variable var = mDatabase.InsertMany(sql, vars);
+        return RESP.SetSuccess(var);
+      }
+      catch (Exception ex)
+      {
+        mLog?.Write("Database.Insert Many FAILURE", ex, LOG_TYPE.ERR);
+        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
+      }
     }
 
-    //public RESP GetInt(Core.Flow flow, Variable[] vars)
-    //{
-    //  Global.Write("Db.GetInt");
-    //  return RESP.SetSuccess();
-    //}
 
-
+    public RESP UpdateMany(FlowEngineCore.Flow flow, Variable[] vars)
+    {
+      mLog?.Write("Db.Update Many", LOG_TYPE.DBG);
+      if (mDatabase is null)
+        return RESP.SetError(DB_ERROR_NO_DB, "No active database connection");
+      vars[0].GetValue(out string sql);
+      try
+      {
+        Variable var = mDatabase.UpdateMany(sql, vars);
+        return RESP.SetSuccess(var);
+      }
+      catch (Exception ex)
+      {
+        mLog?.Write("Database.Update Many FAILURE", ex, LOG_TYPE.ERR);
+        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
+      }
+    }
+    
   }
 }

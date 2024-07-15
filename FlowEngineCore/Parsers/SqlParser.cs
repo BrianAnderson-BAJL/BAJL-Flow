@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Reflection;
+﻿using System.Drawing;
 using System.Text;
-using System.Threading.Tasks;
-using static FlowEngineCore.Parsers.SqlParser.ParsedUnit;
 
 namespace FlowEngineCore.Parsers
 {
@@ -19,9 +13,10 @@ namespace FlowEngineCore.Parsers
         Keyword,
         Astrisk,
         Function,
+        UnusedFieldOrResult,
         FieldOrResult,
         DatabaseStructure,   //Field or table name or such
-        Delimter, //White space, or comma
+        Delimter, //White space, or comma, or ...
         Parentheses,
         Comparison,
         Parameter,
@@ -208,13 +203,14 @@ namespace FlowEngineCore.Parsers
       }
     }
 
-    private List<ParsedUnit> Units = new List<ParsedUnit>(8);
+    private List<ParsedUnit> Units = new List<ParsedUnit>(128);
 
     //TODO: These keywords and functions are for MySql, later I will need to pull these values from the Database plugin using the IDatabase interface. That way I can get different keywords based on the database type (MySQl, SQL Server, Oracle, ...)
-    private static readonly string[] Keywords = { "SELECT", "UPDATE", "INSERT", "DELETE", "FROM", "WHERE", "HAVING", "VALUES", "IN", "BETWEEN", "INNER", "LEFT", "RIGHT", "JOIN", "ON", "INTO", "GROUP", "ORDER", "BY", "AS", "WITH", "AND", "OR", "DESC", "ASC" };
-    private static readonly string[] Functions = { "COUNT", "MAX", "MIN", "AVG", "SUM", "MONTHNAME", "MONTH", "DAY", "YEAR", "CURRENT_TIMESTAMP" };
-    private static readonly string[] Delimiters = { ",", " ", "(", ")", "\r\n", "\n", "\t", "=", "<=", ">=", "<", ">", ";"};
-    private static readonly string[] Comparer = { "=", "<=", ">=", "<", ">" };
+    private static readonly string[] Keywords = { "SELECT", "UPDATE", "INSERT", "DELETE", "FROM", "WHERE", "HAVING", "VALUES", "IN", "BETWEEN", "INNER", "LEFT", "RIGHT", "OUTER", "JOIN", "ON", "INTO", "GROUP", "ORDER", "BY", "AS", "WITH", "AND", "OR", "NOT", "DESC", "ASC", "SET" };
+    //TODO: Need to add a lot more functions to this list
+    private static readonly string[] Functions = { "COUNT", "MAX", "MIN", "AVG", "SUM", "MONTHNAME", "MONTH", "DAY", "YEAR", "CURRENT_TIMESTAMP", "LENGTH" };
+    private static readonly string[] Delimiters = { ",", " ", "(", ")", "\r\n", "\n", "\t", "!=", "<=", ">=", "<", ">", "=", ";"};
+    private static readonly string[] Comparer = { "=", "<=", ">=", "<", ">", "!=" };
 
     private static Color KeywordColor = Color.Blue;
     private static Color FunctionColor = Color.DarkGreen;
@@ -233,31 +229,35 @@ namespace FlowEngineCore.Parsers
     const string PARAM_COLOR = "\\cf6 ";
 
     private bool BeforeFrom = true;
-    private ParsedUnit? PreviousParsedUnit = null;
+    
     /// <summary>
     /// Find the next unit of the SQL
     /// </summary>
     /// <param name="sql">The SQL text</param>
     /// <param name="parent">If the sql is a parentheses then the parent will be the actual parentheses so sub units can be added</param>
-    private void ReadNextUnit(ref string sql, ParsedUnit? parent = null, bool isAs = false)
+    private void ReadNextUnit(ref string sql, ParsedUnit? parent = null)
     {
       if (sql.Length == 0)
         return;
 
       ParsedUnit? unit = null;
-      (int index, int delimiterId) = FindIndexOfDelimter(ref sql);
+      (int index, int delimiterId) = FindIndexOfDelimter(sql);
       if (index == -1)
         return;
 
+      int delimiterLength = 0;
+      if (delimiterId > -1)
+        delimiterLength = Delimiters[delimiterId].Length;
+
       string word = sql.Substring(0, index);
-      if (sql.Length >= index + 1)
-        sql = sql.Substring(index + 1);
+      if (sql.Length >= index + delimiterLength)
+        sql = sql.Substring(index + delimiterLength);
       else
         sql = "";
 
       if (word.Length == 0 && delimiterId < 0)
       {
-        ReadNextUnit(ref sql, parent, isAs);
+        ReadNextUnit(ref sql, parent);
         return;
       }
       
@@ -271,11 +271,9 @@ namespace FlowEngineCore.Parsers
         {
           unit = new ParsedUnit(Delimiters[delimiterId], BeforeFrom);
           parent.SubUnits.Add(unit);
-          if (isAs == true)
-            ReadNextUnit(ref sql, parent, isAs);
         }
       }
-      else// if (word.Equals("AS", StringComparison.OrdinalIgnoreCase) == false)
+      else
       {
         if (unit.Value != "")
           Units.Add(unit);
@@ -285,18 +283,19 @@ namespace FlowEngineCore.Parsers
           Units.Add(unit);
         }
       }
-      //else if (word.Length > 0) //word == AS
-      //{
-      //  if (PreviousParsedUnit is not null) //Someone might of typed 'AS' as the first thing for some reason
-      //  {
-      //    PreviousParsedUnit.SubUnits.Add(unit);
-      //    ReadNextUnit(ref sql, PreviousParsedUnit, true);
-      //  }
-      //}
+      
+      //If we have an 'AS' we need to invalidate the previous field/result (they changed the name to the name after 'AS'
+      if (word.ToUpper() == "AS" && BeforeFrom == true)
+      {
+        ParsedUnit? prevUnit = GetLastOf(ParsedUnit.UNIT_TYPE.FieldOrResult);
+        if (prevUnit is not null)
+          prevUnit.UnitType = ParsedUnit.UNIT_TYPE.UnusedFieldOrResult;
+
+      }
 
       if (word == "(")
       {
-        int endIndex = FindEndingParentheses(ref sql);
+        int endIndex = FindEndingParentheses(sql);
         if (endIndex > -1)
         {
           sql = sql.Substring(0, endIndex);
@@ -308,7 +307,6 @@ namespace FlowEngineCore.Parsers
       {
         BeforeFrom = false;
       }
-      PreviousParsedUnit = unit;
 
       ReadNextUnit(ref sql); //Let's get recursive to parse the entire SQL statement
       
@@ -316,11 +314,27 @@ namespace FlowEngineCore.Parsers
     }
 
     /// <summary>
+    /// Get the last parsed unit of a specific type
+    /// </summary>
+    /// <param name="unitType">What unit type do you want?</param>
+    /// <returns>The found ParsedUnit or null if nothing found</returns>
+    public ParsedUnit? GetLastOf(ParsedUnit.UNIT_TYPE unitType)
+    {
+      for (int x = Units.Count - 1; x >= 0; x--)
+      {
+        if (Units[x].UnitType == unitType)
+          return Units[x];
+      }
+      return null;
+    }
+
+
+    /// <summary>
     /// Find the ending of the parentheses skipping over any sub parentheses
     /// </summary>
-    /// <param name="sql"></param>
-    /// <returns></returns>
-    private int FindEndingParentheses(ref string sql)
+    /// <param name="sql">The SQL statement</param>
+    /// <returns>The index position of the ending parenteses</returns>
+    private int FindEndingParentheses(string sql)
     {
       int openParen = sql.IndexOf('(');
       int closeParen = sql.IndexOf(")");
@@ -343,7 +357,7 @@ namespace FlowEngineCore.Parsers
     /// </summary>
     /// <param name="sql"></param>
     /// <returns></returns>
-    private (int, int) FindIndexOfDelimter(ref string sql)
+    private (int, int) FindIndexOfDelimter(string sql)
     {
       int minIndex = int.MaxValue;
       int delIndex = -1;
@@ -378,7 +392,7 @@ namespace FlowEngineCore.Parsers
     }
 
     /// <summary>
-    /// Build the RTF text for the RTF control
+    /// Build the RTF (Rich Text Format) text for the RTF control
     /// </summary>
     /// <returns>the RTF text that will be added to the RTF control</returns>
     public string GetRtfText()
@@ -405,7 +419,6 @@ namespace FlowEngineCore.Parsers
       }
       sb.AppendLine();
       sb.AppendLine(@"}");
-      //string val = @"{\rtf1\ansi\ansicpg1252\deff0\nouicompat\deflang14346{\fonttbl{\f0\fnil\fcharset0 Calibri;}} {\*\generator Riched20 10.0.10586}\viewkind4\uc1 \pard\sa200\sl276\slmult1\f0\fs22\lang10 Hello World.\par }";
       return sb.ToString();
     }
 
@@ -425,6 +438,11 @@ namespace FlowEngineCore.Parsers
       return count;
     }
 
+    /// <summary>
+    /// Get a list of all ParsedUnit with a type of unitType (used to get all the fields in the SQL statement)
+    /// </summary>
+    /// <param name="unitType">What types do you want?</param>
+    /// <returns>A list of ParsedUnit of a specific type</returns>
     public List<string> GetListOf(ParsedUnit.UNIT_TYPE unitType)
     {
       List<string> list = new List<string>(32);

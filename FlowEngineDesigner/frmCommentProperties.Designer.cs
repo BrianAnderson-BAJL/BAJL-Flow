@@ -31,6 +31,13 @@
       label1 = new Label();
       txtComment = new TextBox();
       btnOk = new Button();
+      colorDialog1 = new ColorDialog();
+      picBack = new PictureBox();
+      label2 = new Label();
+      label3 = new Label();
+      picFont = new PictureBox();
+      ((System.ComponentModel.ISupportInitialize)picBack).BeginInit();
+      ((System.ComponentModel.ISupportInitialize)picFont).BeginInit();
       SuspendLayout();
       // 
       // label1
@@ -62,11 +69,53 @@
       btnOk.UseVisualStyleBackColor = true;
       btnOk.Click += btnOk_Click;
       // 
+      // picBack
+      // 
+      picBack.BorderStyle = BorderStyle.FixedSingle;
+      picBack.Location = new Point(107, 199);
+      picBack.Name = "picBack";
+      picBack.Size = new Size(91, 23);
+      picBack.TabIndex = 3;
+      picBack.TabStop = false;
+      picBack.Click += picBack_Click;
+      // 
+      // label2
+      // 
+      label2.AutoSize = true;
+      label2.Location = new Point(35, 203);
+      label2.Name = "label2";
+      label2.Size = new Size(67, 15);
+      label2.TabIndex = 4;
+      label2.Text = "Back Color:";
+      // 
+      // label3
+      // 
+      label3.AutoSize = true;
+      label3.Location = new Point(35, 232);
+      label3.Name = "label3";
+      label3.Size = new Size(66, 15);
+      label3.TabIndex = 6;
+      label3.Text = "Font Color:";
+      // 
+      // picFont
+      // 
+      picFont.BorderStyle = BorderStyle.FixedSingle;
+      picFont.Location = new Point(107, 228);
+      picFont.Name = "picFont";
+      picFont.Size = new Size(91, 23);
+      picFont.TabIndex = 5;
+      picFont.TabStop = false;
+      picFont.Click += picFont_Click;
+      // 
       // frmCommentProperties
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
       ClientSize = new Size(469, 256);
+      Controls.Add(label3);
+      Controls.Add(picFont);
+      Controls.Add(label2);
+      Controls.Add(picBack);
       Controls.Add(btnOk);
       Controls.Add(txtComment);
       Controls.Add(label1);
@@ -74,6 +123,8 @@
       StartPosition = FormStartPosition.Manual;
       Text = "Comment properties";
       Load += frmCommentProperties_Load;
+      ((System.ComponentModel.ISupportInitialize)picBack).EndInit();
+      ((System.ComponentModel.ISupportInitialize)picFont).EndInit();
       ResumeLayout(false);
       PerformLayout();
     }
@@ -83,5 +134,10 @@
     private Label label1;
     private TextBox txtComment;
     private Button btnOk;
+    private ColorDialog colorDialog1;
+    private PictureBox picBack;
+    private Label label2;
+    private Label label3;
+    private PictureBox picFont;
   }
 }

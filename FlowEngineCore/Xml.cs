@@ -526,10 +526,15 @@ namespace FlowEngineCore
     //  return NewColor;
     //}
 
-    public static Color GetXMLChunkAsColor(ref string XML, string Tag)
+    public static Color GetXMLChunkAsColor(ref string XML, string Tag, Color? defaultColor = null)
     {
       string Value = Xml.GetXMLChunk(ref XML, Tag);
-      Color NewColor = ConvertStringToColor(Value);
+      Color NewColor = Color.Transparent;
+      if (defaultColor is not null)
+        NewColor = (Color)defaultColor;
+      if (Value.Length > 0)
+         NewColor = ConvertStringToColor(Value);
+
       return NewColor;
     }
 

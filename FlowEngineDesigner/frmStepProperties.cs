@@ -207,7 +207,7 @@ namespace FlowEngineDesigner
         return;
       PARM parm = mStep.Function.Parms[mStep.Function.Parms.Count - 1];
       parmVar = parm.ToParmVar();
-      if (parmVar.Parm.NameChangeIncrement == true && parmVar.Parm.NameChangeable == true)
+      if (parmVar.Parm.NameChangeIncrement == true)
       {
         parmVar.ParmName = parmVar.Parm.Name + FindNextParmVarNumber();
       }

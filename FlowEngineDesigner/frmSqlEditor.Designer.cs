@@ -38,6 +38,12 @@
       groupByHavingToolStripMenuItem = new ToolStripMenuItem();
       joinToLookUpToolStripMenuItem = new ToolStripMenuItem();
       leftJoinMultipleTablesToolStripMenuItem = new ToolStripMenuItem();
+      insertToolStripMenuItem = new ToolStripMenuItem();
+      simpleToolStripMenuItem3 = new ToolStripMenuItem();
+      updateToolStripMenuItem = new ToolStripMenuItem();
+      simpleToolStripMenuItem1 = new ToolStripMenuItem();
+      deleteToolStripMenuItem = new ToolStripMenuItem();
+      simpleToolStripMenuItem2 = new ToolStripMenuItem();
       joinToolStripMenuItem = new ToolStripMenuItem();
       innerJoinToolStripMenuItem = new ToolStripMenuItem();
       leftJoinToolStripMenuItem = new ToolStripMenuItem();
@@ -53,6 +59,7 @@
       rtbSql = new RichTextBox();
       label1 = new Label();
       tvDatabase = new TreeView();
+      chkSeeResultRecords = new CheckBox();
       lvParams = new ListView();
       chParamName = new ColumnHeader();
       chDataType = new ColumnHeader();
@@ -61,7 +68,6 @@
       lblErrorDescription = new Label();
       lblTestSqlResults = new Label();
       btnTestSql = new Button();
-      chkSeeResultRecords = new CheckBox();
       menuStrip1.SuspendLayout();
       ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
       splitContainer1.Panel1.SuspendLayout();
@@ -105,7 +111,7 @@
       // 
       // samplesToolStripMenuItem
       // 
-      samplesToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { selectToolStripMenuItem, joinToolStripMenuItem });
+      samplesToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { selectToolStripMenuItem, insertToolStripMenuItem, updateToolStripMenuItem, deleteToolStripMenuItem, joinToolStripMenuItem });
       samplesToolStripMenuItem.Name = "samplesToolStripMenuItem";
       samplesToolStripMenuItem.Size = new Size(95, 20);
       samplesToolStripMenuItem.Text = "&Insert Samples";
@@ -115,7 +121,7 @@
       // 
       selectToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { simpleToolStripMenuItem, groupByHavingToolStripMenuItem, joinToLookUpToolStripMenuItem, leftJoinMultipleTablesToolStripMenuItem });
       selectToolStripMenuItem.Name = "selectToolStripMenuItem";
-      selectToolStripMenuItem.Size = new Size(105, 22);
+      selectToolStripMenuItem.Size = new Size(112, 22);
       selectToolStripMenuItem.Text = "&Select";
       // 
       // simpleToolStripMenuItem
@@ -146,11 +152,53 @@
       leftJoinMultipleTablesToolStripMenuItem.Text = "&Left Join multiple tables";
       leftJoinMultipleTablesToolStripMenuItem.Click += leftJoinMultipleTablesToolStripMenuItem_Click;
       // 
+      // insertToolStripMenuItem
+      // 
+      insertToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { simpleToolStripMenuItem3 });
+      insertToolStripMenuItem.Name = "insertToolStripMenuItem";
+      insertToolStripMenuItem.Size = new Size(112, 22);
+      insertToolStripMenuItem.Text = "&Insert";
+      // 
+      // simpleToolStripMenuItem3
+      // 
+      simpleToolStripMenuItem3.Name = "simpleToolStripMenuItem3";
+      simpleToolStripMenuItem3.Size = new Size(110, 22);
+      simpleToolStripMenuItem3.Text = "&Simple";
+      simpleToolStripMenuItem3.Click += simpleToolStripMenuItem3_Click;
+      // 
+      // updateToolStripMenuItem
+      // 
+      updateToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { simpleToolStripMenuItem1 });
+      updateToolStripMenuItem.Name = "updateToolStripMenuItem";
+      updateToolStripMenuItem.Size = new Size(112, 22);
+      updateToolStripMenuItem.Text = "&Update";
+      // 
+      // simpleToolStripMenuItem1
+      // 
+      simpleToolStripMenuItem1.Name = "simpleToolStripMenuItem1";
+      simpleToolStripMenuItem1.Size = new Size(110, 22);
+      simpleToolStripMenuItem1.Text = "&Simple";
+      simpleToolStripMenuItem1.Click += simpleToolStripMenuItem1_Click;
+      // 
+      // deleteToolStripMenuItem
+      // 
+      deleteToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { simpleToolStripMenuItem2 });
+      deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
+      deleteToolStripMenuItem.Size = new Size(112, 22);
+      deleteToolStripMenuItem.Text = "&Delete";
+      // 
+      // simpleToolStripMenuItem2
+      // 
+      simpleToolStripMenuItem2.Name = "simpleToolStripMenuItem2";
+      simpleToolStripMenuItem2.Size = new Size(110, 22);
+      simpleToolStripMenuItem2.Text = "&Simple";
+      simpleToolStripMenuItem2.Click += simpleToolStripMenuItem2_Click;
+      // 
       // joinToolStripMenuItem
       // 
       joinToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { innerJoinToolStripMenuItem, leftJoinToolStripMenuItem, rightJoinToolStripMenuItem, fullJoinFullOuterJoinToolStripMenuItem });
       joinToolStripMenuItem.Name = "joinToolStripMenuItem";
-      joinToolStripMenuItem.Size = new Size(105, 22);
+      joinToolStripMenuItem.Size = new Size(112, 22);
       joinToolStripMenuItem.Text = "&Join";
       // 
       // innerJoinToolStripMenuItem
@@ -280,6 +328,17 @@
       tvDatabase.NodeMouseDoubleClick += tvDatabase_NodeMouseDoubleClick;
       tvDatabase.MouseDown += tvDatabase_MouseDown;
       // 
+      // chkSeeResultRecords
+      // 
+      chkSeeResultRecords.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+      chkSeeResultRecords.AutoSize = true;
+      chkSeeResultRecords.Location = new Point(334, 54);
+      chkSeeResultRecords.Name = "chkSeeResultRecords";
+      chkSeeResultRecords.Size = new Size(96, 19);
+      chkSeeResultRecords.TabIndex = 12;
+      chkSeeResultRecords.Text = "View Records";
+      chkSeeResultRecords.UseVisualStyleBackColor = true;
+      // 
       // lvParams
       // 
       lvParams.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
@@ -291,6 +350,7 @@
       lvParams.TabIndex = 11;
       lvParams.UseCompatibleStateImageBehavior = false;
       lvParams.View = View.Details;
+      lvParams.SelectedIndexChanged += lvParams_SelectedIndexChanged;
       lvParams.MouseClick += lvParams_MouseClick;
       lvParams.MouseDown += lvParams_MouseDown;
       // 
@@ -350,17 +410,6 @@
       btnTestSql.Text = "Test SQL";
       btnTestSql.UseVisualStyleBackColor = true;
       btnTestSql.Click += btnTestSql_Click;
-      // 
-      // chkSeeResultRecords
-      // 
-      chkSeeResultRecords.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-      chkSeeResultRecords.AutoSize = true;
-      chkSeeResultRecords.Location = new Point(334, 54);
-      chkSeeResultRecords.Name = "chkSeeResultRecords";
-      chkSeeResultRecords.Size = new Size(96, 19);
-      chkSeeResultRecords.TabIndex = 12;
-      chkSeeResultRecords.Text = "View Records";
-      chkSeeResultRecords.UseVisualStyleBackColor = true;
       // 
       // frmSqlEditor
       // 
@@ -426,5 +475,11 @@
     private ColumnHeader chDataType;
     private ColumnHeader chValue;
     private CheckBox chkSeeResultRecords;
+    private ToolStripMenuItem insertToolStripMenuItem;
+    private ToolStripMenuItem simpleToolStripMenuItem3;
+    private ToolStripMenuItem updateToolStripMenuItem;
+    private ToolStripMenuItem simpleToolStripMenuItem1;
+    private ToolStripMenuItem deleteToolStripMenuItem;
+    private ToolStripMenuItem simpleToolStripMenuItem2;
   }
 }

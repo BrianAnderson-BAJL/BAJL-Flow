@@ -32,12 +32,16 @@ namespace Session
 
       // Create a session info Variable with a bunch of sub variables, this is used for a bunch of functions, this will make sure they have the same output signature.
       // Used in 'User Register', 'User Login', 'Check Session', & 'Change Password', all of these return a sessionInfo block
-      Variable sessionInfo = new Variable("sessionInfo");
-      sessionInfo.SubVariableAdd(new Variable("loginId", ""));
-      sessionInfo.SubVariableAdd(new Variable("statusId", 0L));
-      sessionInfo.SubVariableAdd(new Variable("sessionToken", ""));
-      sessionInfo.SubVariableAdd(new Variable("sessionExpiration", ""));
-      sessionInfo.SubVariableAdd(new Variable("deviceToken", ""));
+      Variable sessionInfoWithUserId = new Variable("sessionInfo");
+      sessionInfoWithUserId.SubVariableAdd(new Variable("userId", 0L));
+      sessionInfoWithUserId.SubVariableAdd(new Variable("loginId", ""));
+      sessionInfoWithUserId.SubVariableAdd(new Variable("statusId", 0L));
+      sessionInfoWithUserId.SubVariableAdd(new Variable("sessionToken", ""));
+      sessionInfoWithUserId.SubVariableAdd(new Variable("sessionExpiration", ""));
+      sessionInfoWithUserId.SubVariableAdd(new Variable("deviceToken", ""));
+
+      Variable sessionInfo = sessionInfoWithUserId.Clone();
+      sessionInfo.SubVariableDeleteByName("userId");
 
       Function function = new("User Register", this, UserRegister);
       function.Parms.Add("LoginId", DATA_TYPE.String);
@@ -90,8 +94,7 @@ namespace Session
       function = new Function("Check Session", this, CheckSession);
       function.Parms.Add("SessionToken", DATA_TYPE.String);
       function.DefaultSaveResponseVariable = true;
-      function.RespNames = sessionInfo;
-      function.RespNames.SubVariableAdd(new Variable("userId", 0L));  //Check Session also returns the numeric database userId
+      function.RespNames = sessionInfoWithUserId;
       Functions.Add(function);
 
       function = new Function("Change Password", this, ChangePassword);
@@ -99,7 +102,7 @@ namespace Session
       function.Parms.Add("Old password", DATA_TYPE.String);
       function.Parms.Add("New password", DATA_TYPE.String);
       function.DefaultSaveResponseVariable = true;
-      function.RespNames = sessionInfo;
+      function.RespNames = sessionInfoWithUserId;
       Functions.Add(function);
 
       function = new Function("User Forgot Password", this, UserForgotPassword);

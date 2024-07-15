@@ -70,9 +70,21 @@ namespace Db
     {
       throw new NotImplementedException();
     }
-    public bool TestSql(string sql, params Variable[] vars)
+    public Variable TestSelect(string sql, params Variable[] vars)
     {
-      return false;
+      throw new NotImplementedException();
+    }
+    public Variable TestExecute(string sql, params Variable[] vars)
+    {
+      throw new NotImplementedException();
+    }
+    public Variable InsertMany(string SQL, params Variable[] vars)
+    {
+      throw new NotImplementedException();
+    }
+    public Variable UpdateMany(string SQL, params Variable[] vars)
+    {
+      throw new NotImplementedException();
     }
 
   }

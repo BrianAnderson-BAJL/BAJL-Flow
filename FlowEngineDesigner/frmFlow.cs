@@ -12,7 +12,7 @@ namespace FlowEngineDesigner
     public cCamera Camera;
 
     HIT_RESULT SelectedItem;
-    HIT_RESULT ResizeItem;
+    //HIT_RESULT ResizeItem;
 
     public frmFlow(cFlowWrapper? flowWrapper = null)
     {
@@ -124,6 +124,10 @@ namespace FlowEngineDesigner
             cMouse.PreviousHitItem = SelectedItem;
           }
         }
+        else
+        {
+          
+        }
       }
     }
 
@@ -171,11 +175,11 @@ namespace FlowEngineDesigner
         }
         else
         {
-          if (ResizeItem.Hit == true)
-          {
-            pictureBox1.Cursor = Cursors.Default;
-            ResizeItem = new HIT_RESULT();
-          }
+          //if (ResizeItem.Hit == true)
+          //{
+           // pictureBox1.Cursor = Cursors.Default;
+            //ResizeItem = new HIT_RESULT();
+          //}
         }
       }
 
@@ -222,6 +226,9 @@ namespace FlowEngineDesigner
       {
         cMouse.FlowItem = null;
         cMouse.DraggingStart = null;
+        cMouse.PreviousHitItem = new HIT_RESULT();
+
+
       }
     }
 

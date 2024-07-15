@@ -16,6 +16,7 @@ namespace FlowEngineDesigner
   public partial class frmTraceDetails : Form
   {
     private int StepId = -1;
+    private const string NO_NAME = "[NO NAME]";
     public frmTraceDetails()
     {
       InitializeComponent();
@@ -170,7 +171,10 @@ namespace FlowEngineDesigner
 
     private void PopulateNode(TreeNode node, Variable var)
     {
-      node = node.Nodes.Add(var.Name);
+      string tmpName = var.Name;
+      if (tmpName == "")
+        tmpName = NO_NAME;
+      node = node.Nodes.Add(tmpName);
       node.Tag = var;
       for (int x = 0; x < var.SubVariables.Count; x++)
       {
@@ -198,7 +202,11 @@ namespace FlowEngineDesigner
       {
         for (int x = 0; x < var.SubVariables.Count; x++)
         {
-          ListViewItem lvi = lvVariables.Items.Add(var.SubVariables[x].Name);
+          string tmpName = var.SubVariables[x].Name;
+          if (tmpName == "")
+            tmpName = NO_NAME;
+
+          ListViewItem lvi = lvVariables.Items.Add(tmpName);
           lvi.Tag = node.Nodes[x];
           if (var.SubVariables[x].DataType == DATA_TYPE._None)
           {

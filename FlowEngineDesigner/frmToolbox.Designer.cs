@@ -40,7 +40,7 @@
       tvToolbox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
       tvToolbox.Location = new Point(8, 9);
       tvToolbox.Name = "tvToolbox";
-      tvToolbox.Size = new Size(338, 682);
+      tvToolbox.Size = new Size(338, 764);
       tvToolbox.TabIndex = 0;
       tvToolbox.NodeMouseClick += tvToolbox_NodeMouseClick;
       tvToolbox.MouseDown += tvToolbox_MouseDown;
@@ -62,7 +62,7 @@
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(352, 696);
+      ClientSize = new Size(352, 778);
       Controls.Add(tvToolbox);
       MdiChildrenMinimizedAnchorBottom = false;
       Name = "frmToolbox";

@@ -30,24 +30,29 @@ namespace FlowEngineDesigner
     private void VariableSelection_Load(object sender, EventArgs e)
     {
       LoadVariables();
-      if (ParmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Variable)
+      try
       {
-
-        string? val = ParmVar.VariableName;
-        string[] varNames = val!.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
-        if (varNames.Length > 0)
+        //Attempt to highlight / select the current variable
+        if (ParmVar.ParmLiteralOrVariable == PARM_VAR.PARM_L_OR_V.Variable)
         {
-          TreeNode? node = GetNode(varNames[0], tvVariables.Nodes);
-          if (node is not null && varNames.Length > 1)
+
+          string? val = ParmVar.VariableName;
+          string[] varNames = val!.Split(new char[] { '.' }, StringSplitOptions.RemoveEmptyEntries);
+          if (varNames.Length > 0)
           {
-            for (int i = 1; i < varNames.Length; i++)
+            TreeNode? node = GetNode(varNames[0], tvVariables.Nodes);
+            if (node is not null && varNames.Length > 1)
             {
-              node = GetNode(varNames[i], node!.Nodes);
+              for (int i = 1; i < varNames.Length; i++)
+              {
+                node = GetNode(varNames[i], node!.Nodes);
+              }
             }
+            tvVariables.SelectedNode = node;
           }
-          tvVariables.SelectedNode = node;
         }
       }
+      catch { }
     }
 
     private TreeNode? GetNode(string varName, TreeNodeCollection nodes)

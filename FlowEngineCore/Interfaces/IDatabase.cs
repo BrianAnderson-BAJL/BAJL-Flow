@@ -11,6 +11,8 @@ namespace FlowEngineCore.Interfaces
     void Connect(string connectionString);
     Variable Execute(string SQL, params Variable[] vars);
     Variable Execute(object transaction, string SQL, params Variable[] vars);
+    Variable InsertMany(string SQL, params Variable[] vars);
+    Variable UpdateMany(string SQL, params Variable[] vars);
     Variable Select(string SQL, params Variable[] vars);
 
     Variable SelectId(string SQL, params Variable[] vars);
@@ -22,6 +24,7 @@ namespace FlowEngineCore.Interfaces
     void TransactionRollback(object transaction);
     void TransactionCommit(object transaction);
 
-    bool TestSql(string sql, params Variable[] vars);
+    Variable TestSelect(string sql, params Variable[] vars);
+    Variable TestExecute(string sql, params Variable[] vars);
   }
 }

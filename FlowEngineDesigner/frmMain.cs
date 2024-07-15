@@ -44,7 +44,7 @@ namespace FlowEngineDesigner
       formlayout2.layoutForm = cLayoutForm.LAYOUT_FORM.Toolbox;
       formlayout2.open = true;
       formlayout2.state = FormWindowState.Normal;
-      formlayout2.size = new System.Numerics.Vector2(300, 600);
+      formlayout2.size = new System.Numerics.Vector2(300, 800);
       formlayout2.position = new System.Numerics.Vector2(22, 212);
 
       cLayoutForm formlayout3 = new cLayoutForm();

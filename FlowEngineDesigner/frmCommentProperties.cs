@@ -13,10 +13,14 @@ namespace FlowEngineDesigner
   public partial class frmCommentProperties : Form
   {
     private FlowEngineCore.Comment Comment;
+    private static int[]? CustomColors;
     public frmCommentProperties(FlowEngineCore.Comment comment)
     {
       InitializeComponent();
       Comment = comment;
+      picBack.BackColor = Comment.ColorBackground;
+      picFont.BackColor = Comment.ColorText;
+      colorDialog1.CustomColors = CustomColors;
     }
 
     private void frmCommentProperties_Load(object sender, EventArgs e)
@@ -28,6 +32,31 @@ namespace FlowEngineDesigner
     {
       Comment.Text = txtComment.Text;
       this.Close();
+    }
+
+    private void picBack_Click(object sender, EventArgs e)
+    {
+      colorDialog1.Color = Comment.ColorBackground;
+      DialogResult dr = colorDialog1.ShowDialog();
+      if (dr == DialogResult.OK)
+      {
+        picBack.BackColor = colorDialog1.Color;
+        Comment.ColorBackground = colorDialog1.Color;
+        CustomColors = colorDialog1.CustomColors;
+      }
+    }
+
+    private void picFont_Click(object sender, EventArgs e)
+    {
+      colorDialog1.Color = Comment.ColorText;
+      DialogResult dr = colorDialog1.ShowDialog();
+      if (dr == DialogResult.OK)
+      {
+        picFont.BackColor = colorDialog1.Color;
+        Comment.ColorText = colorDialog1.Color;
+        CustomColors = colorDialog1.CustomColors;
+      }
+
     }
   }
 }

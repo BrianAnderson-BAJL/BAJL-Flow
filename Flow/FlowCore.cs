@@ -34,7 +34,13 @@ namespace FlowCore
     private const string IF_COMPARE_NOT_EQUAL = "!= (not equal)";
     private const int IF_OUTPUT_INDEX_FALSE = 2;
 
-    private const int ERROR_IF_BAD_VARIABLES = (int)STEP_ERROR_NUMBERS.FlowCoreErrorMin + 1;
+    private const int ERROR_IF_BAD_VARIABLES = (int)STEP_ERROR_NUMBERS.FlowCoreErrorMin;
+    private const int ERROR_SOURCE_IS_NULL = (int)STEP_ERROR_NUMBERS.FlowCoreErrorMin + 1;
+    private const int ERROR_SPLIT_VALUE_IS_NULL = (int)STEP_ERROR_NUMBERS.FlowCoreErrorMin + 2;
+    private const int ERROR_SEEK_VALUE_IS_NOT_FOUND = (int)STEP_ERROR_NUMBERS.FlowCoreErrorMin + 3;
+    private const int ERROR_VARIABLE_MISSING = (int)STEP_ERROR_NUMBERS.FlowCoreErrorMin + 4;
+    private const int ERROR_FLOW_NAME_INVALID = (int)STEP_ERROR_NUMBERS.FlowCoreErrorMin + 5;
+    private const int ERROR_FLOW_RESP_MISSING = (int)STEP_ERROR_NUMBERS.FlowCoreErrorMin + 6;
 
 
     public override void Init()
@@ -59,10 +65,20 @@ namespace FlowCore
       function.Parms.Add("Error Info", DATA_TYPE.String);
       function.DefaultSaveResponseVariable = true;
       function.RespNames.Name = "ErrorInfo";
+      function.RespNames.SubVariableAdd(new Variable("ErrorNumber", 0L));
+      function.RespNames.SubVariableAdd(new Variable("ErrorDescription", ""));
       function.OutputClear();
       function.OutputAddSuccess(); //We don't want an error response, it is a pass through value
       Functions.Add(function);
 
+      function = new Function("Create Error Info", this, CreateErrorInfo);
+      function.Parms.Add("ErrorNumber", DATA_TYPE.Integer);
+      function.Parms.Add("ErrorDescription", DATA_TYPE.String);
+      function.DefaultSaveResponseVariable = true;
+      function.RespNames.Name = "ErrorInfo";
+      function.OutputClear();
+      function.OutputAddSuccess(); //We don't want an error response, it is a pass through value
+      Functions.Add(function);
 
       function = new Function("Flow Run", this, FlowRun);
       function.Parms.Add(PARM_FLOW_NAME, DATA_TYPE.String);
@@ -82,6 +98,11 @@ namespace FlowCore
       pddl.OptionAdd(OPTION_ERROR);
       function.Parms.Add(pddl);
       function.Parms.Add("Variable", DATA_TYPE.Various);
+      pddl = new PARM("Error Number", DATA_TYPE.Integer, PARM_REQUIRED.No);
+      pddl.ValidatorAdd(PARM_VALIDATION.NumberMin, (decimal)STEP_ERROR_NUMBERS.CustomErrorMin);
+      pddl.ValidatorAdd(PARM_VALIDATION.NumberMax, (decimal)STEP_ERROR_NUMBERS.CustomErrorMax);
+      pddl.ValidatorAdd(PARM_VALIDATION.NumberDefaultValue, (decimal)STEP_ERROR_NUMBERS.CustomErrorMin + 10);
+      function.Parms.Add(pddl);
       Functions.Add(function);
 
       function = new Function("If", this, If);
@@ -105,7 +126,7 @@ namespace FlowCore
       Functions.Add(function);
 
       function = new Function("Variable Create", this, VariableCreate);
-      PARM parm = new PARM("Variable Value", DATA_TYPE.Various);
+      PARM parm = new PARM("Value", DATA_TYPE.Various);
       parm.ValidatorAdd(PARM_VALIDATION.NumberDecimalPlaces, 5);
       function.Parms.Add(parm);
       pddl = new PARM("Sub block format", STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
@@ -173,6 +194,27 @@ namespace FlowCore
       function.Input = null; //Just like the 'Start' step, no inputs
       function.OutputAddSuccess("Error Start");
       function.RespNames.Name = "errorInfo";
+      function.DefaultSaveResponseVariable = true;
+      Functions.Add(function);
+
+      function = new Function("Flatten to Array", this, FlattenToArray, "", "Take all the sub variables from the parameters and flatten them all to a single array");
+      parm = new PARM("Sub variable", DATA_TYPE.Various, PARM_REQUIRED.Yes, PARM_ALLOW_MULTIPLE.Multiple);
+      function.Parms.Add(parm);
+      function.OutputAddSuccess("Continue");
+      function.RespNames.Name = "flattenedArray";
+      function.DefaultSaveResponseVariable = true;
+      Functions.Add(function);
+
+      function = new Function("Group Array data", this, GroupArrayData, "", "Loop through an array of data and group it by the variable names");
+      parm = new PARM("Source array", DATA_TYPE.Various);
+      function.Parms.Add(parm);
+      parm = new PARM("New sub variable name", DATA_TYPE.String);
+      function.Parms.Add(parm);
+      parm = new PARM("Group by variable", DATA_TYPE.Various, PARM_REQUIRED.Yes, PARM_ALLOW_MULTIPLE.Multiple);
+      parm.NameChangeIncrement = true;
+      function.Parms.Add(parm);
+      function.OutputAddSuccess("Continue");
+      function.RespNames.Name = "groupedArray";
       function.DefaultSaveResponseVariable = true;
       Functions.Add(function);
 
@@ -340,9 +382,9 @@ namespace FlowCore
       vars[1].GetValue(out string splitOn);
 
       if (source is null)
-        return RESP.SetError(1, "Source is null");
+        return RESP.SetError(ERROR_SOURCE_IS_NULL, "Source is null");
       if (splitOn is null)
-        return RESP.SetError(1, "Split on value is null");
+        return RESP.SetError(ERROR_SPLIT_VALUE_IS_NULL, "Split on value is null");
 
 
       string[] splitStr = source.Split(splitOn, StringSplitOptions.RemoveEmptyEntries);
@@ -363,7 +405,7 @@ namespace FlowCore
       vars[2].GetValue(out bool caseSensitive);
 
       if (source is null)
-        return RESP.SetError(1, "Source is null");
+        return RESP.SetError(ERROR_SOURCE_IS_NULL, "Source is null");
       if (seekVal is null)
         return RESP.SetError(1, "Seek value is null");
 
@@ -376,7 +418,7 @@ namespace FlowCore
       if (source.Contains(seekVal) == true)
         return RESP.SetSuccess();
       else
-        return RESP.SetError(1, "Seek value is not contained in Source value");
+        return RESP.SetError(ERROR_SEEK_VALUE_IS_NOT_FOUND, "Seek value is not contained in Source value");
     }
 
     /// <summary>
@@ -426,7 +468,7 @@ namespace FlowCore
       {
         Variable? v = flow.FindVariable(vars[x].Value);
         if (v is null)
-          return RESP.SetError(1, $"Variable missing [{vars[x].Value}]");
+          return RESP.SetError(ERROR_VARIABLE_MISSING, $"Variable missing [{vars[x].Value}]");
       }
       return RESP.SetSuccess();
     }
@@ -488,12 +530,12 @@ namespace FlowCore
       vars[0].GetValue(out string flowName);
       Variable? var = vars[1];
       if (flowName == "")
-        return RESP.SetError(10, "No flow name specified to start");
+        return RESP.SetError(ERROR_FLOW_NAME_INVALID, "No flow name specified to start");
 
       mLog?.Write($"FlowCore.FlowRun - flowName [{flowName}]", LOG_TYPE.DBG);
       Flow? flowToRun = FlowCore.Plugin!.FindFlowByName(flowName);
       if (flowToRun is null)
-        return RESP.SetError(0, $"Could not find flow to run [{flowName}]");
+        return RESP.SetError(ERROR_FLOW_NAME_INVALID, $"Could not find flow to run [{flowName}]");
 
       Variable varBase = new Variable("flow_start", 0L);
       Variable varData = new Variable("data", 0L);
@@ -504,7 +546,7 @@ namespace FlowCore
 
       if (resp is null) //If the flow didn't return a response, we will assume it failed. Flow Author must specify SUCCESS!
       {
-        resp = RESP.SetError(0, "Unknown failure, flow didn't return a response");
+        resp = RESP.SetError(ERROR_FLOW_RESP_MISSING, "Unknown failure, flow didn't return a response");
       }
 
 
@@ -526,12 +568,12 @@ namespace FlowCore
       Variable? var = vars[1];
 
       if (flowName == "")
-        return RESP.SetError(10, "No flow name specified to start");
+        return RESP.SetError(ERROR_FLOW_NAME_INVALID, "No flow name specified to start");
 
       mLog?.Write("FlowCore.FlowRun - flowName = " + flowName, LOG_TYPE.DBG);
       Flow? flowToRun = FlowCore.Plugin!.FindFlowByName(flowName);
       if (flowToRun is null)
-        return RESP.SetError(0, $"Could not find flow to run [{flowName}]");
+        return RESP.SetError(ERROR_FLOW_NAME_INVALID, $"Could not find flow to run [{flowName}]");
 
 
       FlowEngine.StartFlow(new FlowRequest(var, FlowCore.Plugin, flowToRun));
@@ -549,10 +591,7 @@ namespace FlowCore
     public RESP FlowReturn(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Flow.FlowReturn", LOG_TYPE.DBG);
-      if (vars.Length < 2)
-      {
-        return RESP.SetError(0, "");
-      }
+
       vars[0].GetValue(out string success);
       Variable varVariable = vars[1];
 
@@ -751,6 +790,104 @@ namespace FlowCore
     public RESP NullStep(Flow flow, Variable[] vars)
     {
       return RESP.SetSuccess();
+    }
+
+    public RESP FlattenToArray(Flow flow, Variable[] vars)
+    {
+      Variable newVar = new Variable("flattenedToArray");
+      newVar.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
+
+      for (int x = 0; x < vars.Length; x++)
+      {
+        Variable temp = vars[x];
+        AddToArray(ref newVar, temp);
+      }
+
+      return RESP.SetSuccess(newVar);
+    }
+
+    private void AddToArray(ref Variable arrayAddingTo, Variable var)
+    {
+      if (var.DataType != DATA_TYPE._None)
+        arrayAddingTo.SubVariableAdd(new Variable() { DataType = var.DataType, Value = var.Value});
+
+      for (int x = 0; x < var.Count; x++)
+      {
+        Variable temp = var[x];
+        if (temp.DataType != DATA_TYPE._None)
+          arrayAddingTo.SubVariableAdd(new Variable() { DataType = temp.DataType, Value = temp.Value });
+        if (temp.Count > 0)
+          AddToArray(ref arrayAddingTo, temp);
+      }
+    }
+
+    public RESP CreateErrorInfo(Flow flow, Variable[] vars)
+    {
+      Variable newVar = new Variable("ErrorInfo");
+
+      newVar.SubVariableAdd(new Variable(vars[0])); //0 = Error Number
+      newVar.SubVariableAdd(new Variable(vars[1])); //1 = Error Description
+
+
+      return RESP.SetSuccess(newVar);
+    }
+
+    public RESP GroupArrayData(Flow flow, Variable[] vars)
+    {
+      Variable newRoot = new Variable();
+      newRoot.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
+      Variable newItem = new Variable();
+      Variable newSubItem = new Variable(vars[1].GetValueAsString());
+
+      Dictionary<string, Variable> uniqueItems = new Dictionary<string, Variable>();
+      string uniqueKey = "";
+      Variable source = vars[0];
+
+      List<Variable> uniqueItemsToReadd = new List<Variable>(32);
+
+      //Find unique keys
+      for (int x = 0; x < source.Count; x++)
+      {
+        Variable tmpSource = source[x];
+        tmpSource.Name = "";
+        uniqueKey = "";
+        uniqueItemsToReadd.Clear();
+        for (int y = 2; y < vars.Length; y++) 
+        {
+          Variable? tmpSub = tmpSource.SubVariableFindByName(vars[y].GetValueAsString());
+          if (tmpSub is null)
+            throw new ArgumentException($"Sub variable not found {vars[y].GetValueAsString()}");
+          uniqueKey += tmpSub.GetValueAsString();
+          tmpSource.SubVariableDeleteByName(vars[y].GetValueAsString());
+          uniqueItemsToReadd.Add(tmpSub);
+        }
+        if (uniqueItems.ContainsKey(uniqueKey) == true)
+        {
+          newItem = uniqueItems[uniqueKey];
+          newSubItem = newItem.SubVariableFindByName(vars[1].GetValueAsString())!;
+        }
+        else
+        {
+          newItem = new Variable();
+          newSubItem = new Variable(vars[1].GetValueAsString());
+          newSubItem.SubVariablesFormat = DATA_FORMAT_SUB_VARIABLES.Array;
+          for (int i = 0; i < uniqueItemsToReadd.Count; i++)
+          {
+            newItem.SubVariableAdd(uniqueItemsToReadd[i]);
+          }
+          newItem.SubVariableAdd(newSubItem);
+          uniqueItems.Add(uniqueKey, newItem);
+        }
+        //newSubItem.SubVariableAdd(tmpSource);
+        AddToArray(ref newSubItem, tmpSource);
+      }
+
+      foreach (var item in uniqueItems.Values)
+      {
+        newRoot.SubVariableAdd(item);
+      }
+
+      return RESP.SetSuccess(newRoot);
     }
 
   }

@@ -27,10 +27,11 @@ namespace FlowEngineDesigner
     private int DT_VARIABLE = 4;
     private int DT_NONE = 5;
     private int mParameterIndex = 0;
-    public ucParameterVarious(PARM_VAR parmVar, FunctionStep step, cFlowWrapper flow, int parameterIndex = 0) : base(parmVar, step, flow)
+
+    public ucParameterVarious(PARM_VAR parmVar, FunctionStep step, cFlowWrapper flow) : base(parmVar, step, flow)
     {
       InitializeComponent();
-      mParameterIndex = parameterIndex;
+      //mParameterIndex = parameterIndex;
       txtKey.Text = mParmVar.ParmName;
       txtDataType.Text = mParmVar.Parm.DataType.ToString();
 
@@ -107,13 +108,18 @@ namespace FlowEngineDesigner
         {
           cmbDataType.SelectedIndex = DT_INTEGER;
           mParmVar.GetValue(out long val);
-          nudNumber.Value = val;
+          if (val < nudNumber.Minimum)
+            nudNumber.Value = nudNumber.Minimum;
+          else if (val > nudNumber.Maximum)
+            nudNumber.Value = nudNumber.Maximum;
+          else
+            nudNumber.Value = val;
         }
         else if (mParmVar.Var.DataType == DATA_TYPE.Decimal)
         {
           cmbDataType.SelectedIndex = DT_DECIMAL;
           mParmVar.GetValue(out decimal val);
-          nudNumber.Value = val;
+          nudNumber.Value = nudNumber.Minimum;
         }
         else if (mParmVar.Var.DataType == DATA_TYPE.Boolean)
         {

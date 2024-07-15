@@ -3,6 +3,7 @@ using FlowEngineCore.Administration.Messages;
 using FlowEngineCore.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.ConstrainedExecution;
@@ -659,6 +660,8 @@ namespace FlowEngineCore
           c.Id = Xml.GetXMLChunkAsInt(ref comment, "Id");
           if (c.Id >= currentId)
             currentId = c.Id + 1;
+          c.ColorBackground = Xml.GetXMLChunkAsColor(ref comment, "ColorBackground", Color.FromArgb(255, 188, 255, 189));
+          c.ColorText = Xml.GetXMLChunkAsColor(ref comment, "ColorText", Color.Black);
           c.Position = Xml.GetXMLChunkAsVector2(ref comment, "Position");
           c.Size = Xml.GetXMLChunkAsSizeF(ref comment, "Size");
           c.Text = Xml.GetXMLChunk(ref comment, "Text");
@@ -698,44 +701,45 @@ namespace FlowEngineCore
         PARM_VAR.PARM_L_OR_V lOrV = Enum.Parse<PARM_VAR.PARM_L_OR_V>(temp, true);
         if (lOrV == PARM_VAR.PARM_L_OR_V.Literal)
         {
-          string dataType = Xml.GetXMLChunk(ref var, "DataType");
-          if (dataType == "Integer" && (p.DataType == DATA_TYPE.Integer || p.DataType == DATA_TYPE.Various))
+          string dataTypeStr = Xml.GetXMLChunk(ref var, "DataType");
+          DATA_TYPE dataType = Enum.Parse<DATA_TYPE>(dataTypeStr, true);
+          if (dataType == DATA_TYPE.Integer && (p.DataType == DATA_TYPE.Integer || p.DataType == DATA_TYPE.Various))
           {
             long value = Xml.GetXMLChunkAsLong(ref var, "Value");
             pv = new PARM_VAR(p, value);
           }
-          else if (dataType == "Decimal" && (p.DataType == DATA_TYPE.Decimal || p.DataType == DATA_TYPE.Various))
+          else if (dataType == DATA_TYPE.Decimal && (p.DataType == DATA_TYPE.Decimal || p.DataType == DATA_TYPE.Various))
           {
             decimal value = Xml.GetXMLChunkAsDecimal(ref var, "Value");
             pv = new PARM_VAR(p, value);
           }
-          else if (dataType == "String" && (p.DataType == DATA_TYPE.String || p.DataType == DATA_TYPE.Various))
+          else if (dataType == DATA_TYPE.String && (p.DataType == DATA_TYPE.String || p.DataType == DATA_TYPE.Various))
           {
             string value = Xml.GetXMLChunk(ref var, "Value", Xml.BAJL_ENCODE.Base64Encoding); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
             pv = new PARM_VAR(p, value);
           }
-          else if (dataType == "Boolean" && (p.DataType == DATA_TYPE.Boolean || p.DataType == DATA_TYPE.Various))
+          else if (dataType == DATA_TYPE.Boolean && (p.DataType == DATA_TYPE.Boolean || p.DataType == DATA_TYPE.Various))
           {
             bool value = Xml.GetXMLChunkAsBool(ref var, "Value");
             pv = new PARM_VAR(p, value);
           }
-          else if (dataType == "Object" && p.DataType == DATA_TYPE.Object)
+          else if (dataType == DATA_TYPE.Object && p.DataType == DATA_TYPE.Object)
           {
             string value = Xml.GetXMLChunk(ref var, "Value", Xml.BAJL_ENCODE.Base64Encoding); //Need to decode the string, strings could have weird data in it like '<', '>', whatever
             pv = new PARM_VAR(p, value);
           }
-          else if (dataType == "Various")
+          else if (dataType == DATA_TYPE.Various)
           {
             pv = new PARM_VAR(p, "");
           }
-          else if (dataType == "_None")
+          else if (dataType == DATA_TYPE._None)
           {
             pv = new PARM_VAR(p, "");
             pv.Var.DataType = DATA_TYPE._None;
           }
           else
           {
-            throw new ExceptionFlowLoad($"Unknown Datatype [{dataType}] for parameter [{name}] in flow [{this.FileName}]");
+            throw new ExceptionFlowLoad($"Unknown Datatype [{dataTypeStr}] for parameter [{name}] in flow [{this.FileName}]");
           }
         }
         else //Variable

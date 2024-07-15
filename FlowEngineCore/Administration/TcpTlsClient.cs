@@ -17,7 +17,10 @@ namespace FlowEngineCore.Administration
   public class TcpTlsClient : TcpClientBase
   {
     public SslStream mStream;
-    private object CriticalSection = new object(); //Had to add a critical section for the SslStream, it doesn't handle sending and receiving at the same time from differnet threads
+    //Reading about the SslStream threading problem, it seems like it could be just a problem of writing to the same stream from multiple threads or reading from the same stream from multiple threads
+    //So I've changed the critical section to be wrapped around the stream write only for now, will need to perform a load test again.
+    private object CriticalSectionWrite = new object();
+    //private object CriticalSectionRead = new object(); 
     //private X509Certificate Certificate;
 
 
@@ -113,15 +116,12 @@ namespace FlowEngineCore.Administration
             {
               Packet? packet = null;
 
-              lock (CriticalSection)
+              Client.mStream.ReadTimeout = Timeout.Infinite;
+              int dataRead = Client.mStream.Read(fourByteHeader, 0, sizeOfInt);
+              if (dataRead == 4)
               {
-                Client.mStream.ReadTimeout = 1;
-                int dataRead = Client.mStream.Read(fourByteHeader, 0, sizeOfInt);
-                if (dataRead == 4)
-                {
-                  packet = new Packet();
-                  packet.ReadAllTlsData(Client.mStream, fourByteHeader);
-                }
+                packet = new Packet();
+                packet.ReadAllTlsData(Client.mStream, fourByteHeader);
               }
               if (packet is not null)
               {
@@ -147,7 +147,8 @@ namespace FlowEngineCore.Administration
           }
           catch (IOException ex)
           {
-            //No Data
+            //Read timeout
+            Thread.Sleep(100);
           }
           catch (Exception ex)
           {
@@ -173,7 +174,7 @@ namespace FlowEngineCore.Administration
       {
 
         Packet.FinalizePacketBeforeSending();
-        lock (CriticalSection)
+        lock (CriticalSectionWrite)
         {
           mStream.Write(Packet.DataToSend, 0, Packet.SendLength); //Need to add the 4 byte header to the length being sent
           mStream.Flush();

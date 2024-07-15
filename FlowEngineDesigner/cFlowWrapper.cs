@@ -551,7 +551,7 @@ namespace FlowEngineDesigner
     {
       comment.Selected = false;
       Rectangle r = camera.CreateDrawingRect(comment.Position, comment.Size);
-      Color c = cOptions.CommentColorBackgroundDefault;
+      Color c = comment.ColorBackground;
       Brush b = new SolidBrush(c);
       graphics.FillRoundedRectangle(b, r, 20);
 
@@ -560,7 +560,7 @@ namespace FlowEngineDesigner
       format.LineAlignment = StringAlignment.Center;
       format.Alignment = StringAlignment.Center;
 
-      Brush brush = new SolidBrush(cOptions.CommentColorTextDefault);
+      Brush brush = new SolidBrush(comment.ColorText);
 
       float fontSize = 20f * camera.ZoomLevel;
       using (Font font1 = new Font("Arial", Math.Max(fontSize, 4), FontStyle.Regular, GraphicsUnit.Pixel))
@@ -923,6 +923,8 @@ namespace FlowEngineDesigner
         {
           xml.WriteTagStart("Comment");
           xml.WriteTagAndContents("Id", Comments[x].Id);
+          xml.WriteTagAndContents("ColorBackground", Comments[x].ColorBackground);
+          xml.WriteTagAndContents("ColorText", Comments[x].ColorText);
           xml.WriteTagAndContents("Position", Comments[x].Position);
           xml.WriteTagAndContents("Size", Comments[x].Size);
           xml.WriteTagAndContents("Text", Comments[x].Text);

@@ -18,6 +18,7 @@ namespace FlowEngineDesigner
     {
       InitializeComponent();
       RecordSet = recordset;
+      this.Text = $"Records [{recordset.Count}]";
     }
 
     private void frmSqlRecords_Load(object sender, EventArgs e)

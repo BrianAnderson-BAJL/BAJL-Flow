@@ -47,7 +47,7 @@ namespace Http
     private HttpListener? Listener;
 
     private const string SETTING_URL_PARAMS_LOWERCASE = "Set all URL parameter keys to lowercase";
-
+    private const string SETTING_ERROR_NO_FLOW_MESSAGE = "Error Message For No Flow";
     private const string PARM_URL = "Url Path";
     private const string PARM_METHOD = "Method";
     private const string PARM_HOST = "Host";
@@ -75,6 +75,7 @@ namespace Http
         Setting s = new Setting("Uri", DATA_TYPE.String);
         s.Description = "The URIs this Http pluging should listen on, comma delimited. (http://*:80,http://*:443, ...)";
         mSettings.SettingAdd(s);
+        mSettings.SettingAdd(new Setting(SETTING_ERROR_NO_FLOW_MESSAGE, "No flow capable of handling request."));
         mSettings.SettingAdd(new Setting(SETTING_URL_PARAMS_LOWERCASE, true));
         mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
         mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Orange));
@@ -230,6 +231,7 @@ namespace Http
         mLog?.Write("Unable to start HTTP listening, no URIs to listen on", LOG_TYPE.WAR);
         return;
       }
+      string noFlowErrorMessage = mSettings.SettingGetAsString(SETTING_ERROR_NO_FLOW_MESSAGE);
       bool queryStringLowercase = mSettings.SettingGetAsBoolean(SETTING_URL_PARAMS_LOWERCASE);
       int index = -1;
       string[] urisString = { };
@@ -290,7 +292,6 @@ namespace Http
             Stream body = request.InputStream;
             StreamReader reader = new StreamReader(body, request.ContentEncoding);
             data = reader.ReadToEnd();
-            //
           }
           try
           {
@@ -299,34 +300,71 @@ namespace Http
             {
               HttpListenerResponse response = context.Response;
               response.Headers.Clear();
-              response.StatusCode = (int)HttpStatusCode.BadRequest;
-              byte[] outputData = System.Text.Encoding.UTF8.GetBytes("No flow capable of handling request.");
-              response.ContentLength64 = outputData.Length;
-              response.OutputStream.Write(outputData, 0, outputData.Length);
+              response.StatusCode = (int)HttpStatusCode.NotFound; //Return 404 - NOT FOUND
+              if (Options.ServerType == Options.SERVER_TYPE.Development) //Only send back error messages if it is a development server
+              {
+                byte[] outputData = System.Text.Encoding.UTF8.GetBytes(noFlowErrorMessage);
+                response.ContentLength64 = outputData.Length;
+                response.OutputStream.Write(outputData, 0, outputData.Length);
+              }
               response.Close();
+              mLog?.Write($"No flows found for request! Url [{request.Url}], HttpMethod [{request.HttpMethod}], UserHostName [{request.UserHostName}]", LOG_TYPE.INF);
               continue;
             }
 
             Variable baseVar = new Variable(Flow.VAR_NAME_FLOW_START);
-            //Variable requestVar = new Variable(Flow.VAR_REQUEST);
             baseVar.SubVariableAdd(new Variable(PARM_CONNECTION_HANDLE, context));
-            //requestVar.Add();
             baseVar.SubVariableAdd(GetHeaders(request));
             
             if (request.ContentType == "application/json" && data is not null && data.Length > 0)
             {
-              Variable? v = Variable.JsonParse(ref data, "data");
-              baseVar.SubVariableAdd(v);
-              //string junk = v.SubVariables[0].JsonCreate();
+              try
+              {
+                Variable? v = Variable.JsonParse(ref data, "data");
+                baseVar.SubVariableAdd(v);
+              }
+              catch (Exception ex) //Bad JSON data
+              {
+                HttpListenerResponse response = context.Response;
+                response.Headers.Clear();
+                response.StatusCode = (int)HttpStatusCode.BadRequest;
+                if (Options.ServerType == Options.SERVER_TYPE.Development) //Only send back error messages if it is a development server
+                {
+                  byte[] outputData = System.Text.Encoding.UTF8.GetBytes(ex.Message);
+                  response.ContentLength64 = outputData.Length;
+                  response.OutputStream.Write(outputData, 0, outputData.Length);
+                }
+                response.Close();
+                mLog?.Write(ex, LOG_TYPE.INF);
+                continue;
+              }
             }
-            //baseVar.SubVariableAdd(new Variable(VAR_PARAMETERS));
 
             if (flows.Count > 0)
             {
               for (int flowIndex = 0; flowIndex < flows.Count; flowIndex++)
               {
-                Variable varParam = GetRestParameters(flows[flowIndex], request);
+                Variable varParam;
+                try
+                {
+                  varParam = GetRestParameters(flows[flowIndex], request);
+                }
+                catch (Exception ex)
+                {
+                  HttpListenerResponse response = context.Response;
+                  response.Headers.Clear();
+                  response.StatusCode = (int)HttpStatusCode.BadRequest;
+                  if (Options.ServerType == Options.SERVER_TYPE.Development) //Only send back error messages if it is a development server
+                  {
+                    byte[] outputData = System.Text.Encoding.UTF8.GetBytes(ex.Message);
+                    response.ContentLength64 = outputData.Length;
+                    response.OutputStream.Write(outputData, 0, outputData.Length);
+                  }
+                  response.Close();
+                  mLog?.Write("Failed to get correct REST Parameters", ex, LOG_TYPE.INF);
 
+                  continue;
+                }
 
                 for (int x = 0; x < request.QueryString.Count; x++)
                 {
@@ -416,7 +454,23 @@ namespace Http
             if (endPos == -1)
               endPos = url.Length;
             string val = url.Substring(index + 1, endPos - index - 1);
-            param.SubVariableAdd(new Variable(restParam[x].Name, val));
+            string parmName = restParam[x].Name;
+            DATA_TYPE dt = restParam[x].DataType;
+            try
+            {
+              if (dt == DATA_TYPE.String)
+                param.SubVariableAdd(new Variable(parmName, val));
+              else if (dt == DATA_TYPE.Integer)
+                param.SubVariableAdd(new Variable(parmName, long.Parse(val)));
+              else if (dt == DATA_TYPE.Decimal)
+                param.SubVariableAdd(new Variable(parmName, decimal.Parse(val)));
+              else if (dt == DATA_TYPE.Boolean)
+                param.SubVariableAdd(new Variable(parmName, bool.Parse(val)));
+            }
+            catch (Exception ex)
+            {
+              throw new Exception($"Failed to convert REST parameter [{parmName}:{val}] to [{dt}]", ex);
+            }
           }
         }
       } while (index > 0);

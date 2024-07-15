@@ -36,7 +36,7 @@ namespace FlowEngineCore.Parsers
       if (jt is null)
         return;
 
-      if (jt.Type == JTokenType.String)
+      if (jt.Type == JTokenType.String || jt.Type == JTokenType.Date || jt.Type == JTokenType.Guid || jt.Type == JTokenType.TimeSpan || jt.Type == JTokenType.Uri)
       {
         var.Value = jt.Value<string>()!;
         var.DataType = DATA_TYPE.String;
@@ -64,23 +64,26 @@ namespace FlowEngineCore.Parsers
       for (int x = 0; x < ja.Count; x++)
       {
         Variable var = new Variable();
-        JObject? jo = ja[x] as JObject;
-        if (jo is not null)
-        {
-          Parse(jo, var);
-        }
         JValue? jv = ja[x] as JValue;
         if (jv is not null)
         {
           Parse(jv, var);
+          parent.SubVariableAdd(var);
         }
+        JObject? jo = ja[x] as JObject;
+        if (jo is not null)
+        {
+          Parse(jo, var);
+          parent.SubVariableAdd(var);
+        }
+        JArray? ja2 = ja[x] as JArray; //Array could contain another array
+        if (ja2 is not null)
+        {
+          Parse(ja2, var);
+          parent.SubVariableAdd(var);
+        }
+
       }
-      //foreach (JValue item in ja)
-      //{
-      //  Variable var = new Variable();
-      //  parent.SubVariableAdd(var);
-      //  Parse(item, var);
-      //}
     }
 
     private void Parse(JObject? jo, Variable parent)

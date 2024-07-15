@@ -28,7 +28,8 @@ namespace FlowEngineDesigner
     private FunctionStep Step;
     private ComboBox mComboBoxParameterDataType;
     private TextBox mTextBoxParameterValue;
-    const int LIMIT_RECORDS = 100;
+    private bool AllowTextChanged = true;
+    private Dictionary<string, KeyValuePair<string, string>> parameterValuesCache = new Dictionary<string, KeyValuePair<string, string>>();
     public frmSqlEditor(TextBox txtSql, FunctionStep step)
     {
       InitializeComponent();
@@ -41,6 +42,7 @@ namespace FlowEngineDesigner
       lblErrorDescription.Text = "";
       mTextBoxParameterValue = new TextBox();
       mTextBoxParameterValue.TextChanged += mTextBoxParameterValue_TextChanged;
+      //mTextBoxParameterValue.LostFocus += mTextBoxParameterValue_LostFocus;
       mComboBoxParameterDataType = new System.Windows.Forms.ComboBox();
       mComboBoxParameterDataType.Items.Add("Integer");
       mComboBoxParameterDataType.Items.Add("String");
@@ -49,21 +51,40 @@ namespace FlowEngineDesigner
       mComboBoxParameterDataType.DropDownStyle = ComboBoxStyle.DropDownList;
       mComboBoxParameterDataType.SelectedIndexChanged += mComboBox_SelectedIndexChanged;
 
-      if (Step.Name == "Database.Execute")
+      //Can't see record results if it is an execute, insert, or update command, only works on Select
+      if (Step.Name.Contains("Execute", StringComparison.InvariantCultureIgnoreCase) || 
+          Step.Name.Contains("Insert", StringComparison.InvariantCultureIgnoreCase) || 
+          Step.Name.Contains("Update", StringComparison.InvariantCultureIgnoreCase))
       {
         chkSeeResultRecords.Checked = false;
         chkSeeResultRecords.Enabled = false;
       }
+      else
+      {
+        chkSeeResultRecords.Checked = true;
+      }
+    }
+
+    private void mTextBoxParameterValue_LostFocus(object? sender, EventArgs e)
+    {
+      lvParams.Controls.Remove(mTextBoxParameterValue);
     }
 
     private void mTextBoxParameterValue_TextChanged(object? sender, EventArgs e)
     {
+      if (AllowTextChanged == false)
+        return;
+
       if (mTextBoxParameterValue.Tag is Tuple<int, int> cellPosition)
       {
         int rowIndex = cellPosition.Item1;
         int colIndex = cellPosition.Item2;
-
+        string dataType = lvParams.Items[rowIndex].SubItems[1].Text;
         lvParams.Items[rowIndex].SubItems[colIndex].Text = mTextBoxParameterValue.Text;
+        if (parameterValuesCache.ContainsKey(lvParams.Items[rowIndex].Text) == true)
+          parameterValuesCache[lvParams.Items[rowIndex].Text] = new KeyValuePair<string, string>(dataType, mTextBoxParameterValue.Text);
+        else
+          parameterValuesCache.Add(lvParams.Items[rowIndex].Text, new KeyValuePair<string, string>(dataType, mTextBoxParameterValue.Text));
       }
     }
 
@@ -104,10 +125,32 @@ namespace FlowEngineDesigner
       lvParams.Items.Clear();
       for (int x = 0; x < parms.Count; x++)
       {
-        ListViewItem lvi = lvParams.Items.Add(parms[x]);
-        lvi.SubItems.Add("String");
-        lvi.SubItems.Add("");
+        if (AlreadyAddedToListView(parms[x]) == false)
+        {
+          ListViewItem lvi = lvParams.Items.Add(parms[x]);
+          if (parameterValuesCache.ContainsKey(parms[x]))
+          {
+            KeyValuePair<string, string> kvp = parameterValuesCache[parms[x]];
+            lvi.SubItems.Add(kvp.Key);
+            lvi.SubItems.Add(kvp.Value);
+          }
+          else
+          {
+            lvi.SubItems.Add("String");
+            lvi.SubItems.Add("");
+          }
+        }
       }
+    }
+
+    private bool AlreadyAddedToListView(string text)
+    {
+      for (int x = 0; x < lvParams.Items.Count; x++)
+      {
+        if (lvParams.Items[x].Text == text)
+          return true;
+      }
+      return false;
     }
 
     private void frmSqlEditor_Load(object sender, EventArgs e)
@@ -129,10 +172,10 @@ namespace FlowEngineDesigner
     {
       List<string> tableNames = db.GetTables();
       tableNames.Sort();
-      List<string> fieldNames = new List<string>();
+      List<string>[] fieldNames = new List<string>[tableNames.Count];
       for (int x = 0; x < tableNames.Count; x++)
       {
-        fieldNames = db.GetFields(tableNames[x]);
+        fieldNames[x] = db.GetFields(tableNames[x]);
       }
 
 
@@ -141,9 +184,9 @@ namespace FlowEngineDesigner
         for (int x = 0; x < tableNames.Count; x++)
         {
           TreeNode tn = tvDatabase.Nodes.Add(tableNames[x]);
-          for (int y = 0; y < fieldNames.Count; y++)
+          for (int y = 0; y < fieldNames[x].Count; y++)
           {
-            tn.Nodes.Add(fieldNames[y]);
+            tn.Nodes.Add(fieldNames[x][y]);
           }
         }
       });
@@ -285,7 +328,7 @@ namespace FlowEngineDesigner
 
     private void simpleToolStripMenuItem_Click(object sender, EventArgs e)
     {
-      rtbSql.SelectedText = "SELECT LoginId, StatusId, Active\r\nFROM Users\r\nWHERE Active = @Param1";
+      rtbSql.SelectedText = "SELECT LoginId, StatusId, Active\r\nFROM Users\r\nWHERE Active = @Param";
       ParseSql();
 
     }
@@ -395,15 +438,7 @@ namespace FlowEngineDesigner
         try
         {
           string sql = rtbSql.Text;
-          sql = sql.Trim();
-          if (sql.Length > 0)
-          {
-            if (sql[sql.Length - 1] == ';')
-              sql = sql.Substring(0, sql.Length - 1) + " LIMIT " + LIMIT_RECORDS + ";";
-            else
-              sql = sql + " LIMIT " + LIMIT_RECORDS;
-          }
-          Variable recordset = Db.Select(sql, vars);
+          Variable recordset = Db.TestSelect(sql, vars);
           lblTestSqlResults.Text = "SUCCESS";
           lblTestSqlResults.ForeColor = System.Drawing.Color.Green;
           lblErrorDescription.Text = "";
@@ -425,13 +460,12 @@ namespace FlowEngineDesigner
       }
       else
       {
-        object conn = Db.TransactionBegin();
         try
         {
-          Db.Execute(conn, rtbSql.Text, vars);
+          Variable recordsAffected = Db.TestExecute(rtbSql.Text, vars);
           lblTestSqlResults.Text = "SUCCESS";
           lblTestSqlResults.ForeColor = System.Drawing.Color.Green;
-          lblErrorDescription.Text = "";
+          lblErrorDescription.Text = "Records affected: " + recordsAffected.GetValueAsString();
         }
         catch (Exception ex)
         {
@@ -442,13 +476,12 @@ namespace FlowEngineDesigner
           else
             lblErrorDescription.Text = ex.Message;
         }
-        Db.TransactionRollback(conn);
       }
     }
 
     private void lvParams_MouseClick(object sender, MouseEventArgs e)
     {
-     
+
     }
 
     private void lvParams_MouseDown(object sender, MouseEventArgs e)
@@ -466,27 +499,33 @@ namespace FlowEngineDesigner
           mComboBoxParameterDataType.Tag = new Tuple<int, int>(rowIndex, colIndex);
           lvParams.Controls.Add(mComboBoxParameterDataType);
           mComboBoxParameterDataType.BringToFront();
-          
+
           Global.ComboBoxSetIndex(mComboBoxParameterDataType, hitTest.SubItem.Text);
           return;
         }
         else if (colIndex == 2) // Value textbox
         {
+          mTextBoxParameterValue.LostFocus -= mTextBoxParameterValue_LostFocus;
           lvParams.Controls.Remove(mComboBoxParameterDataType);
-          mTextBoxParameterValue.Text = hitTest.SubItem.Text;
+          AllowTextChanged = false;
           mTextBoxParameterValue.SetBounds(rect.X + 6, rect.Y + 2, rect.Width - 6, rect.Height - 2); //Cells seem to have a little padding
           mTextBoxParameterValue.Visible = true;
           mTextBoxParameterValue.BorderStyle = BorderStyle.None;
           mTextBoxParameterValue.Tag = new Tuple<int, int>(rowIndex, colIndex);
           lvParams.Controls.Add(mTextBoxParameterValue);
-          mTextBoxParameterValue.BringToFront();
+          AllowTextChanged = true;
           this.ActiveControl = mTextBoxParameterValue;
           //Ugly hack to get the control to activate, doesn't seem to activate otherwise when a control is newly added, don't know why
           Task.Delay(100).ContinueWith(_ =>
           {
             this.Invoke(new Action(() =>
             {
+              mTextBoxParameterValue.Text = hitTest.SubItem.Text;
+              mTextBoxParameterValue.BringToFront();
               mTextBoxParameterValue.Focus();
+              mTextBoxParameterValue.SelectAll();
+              mTextBoxParameterValue.LostFocus += mTextBoxParameterValue_LostFocus;
+
             }));
           });
           return;
@@ -496,6 +535,32 @@ namespace FlowEngineDesigner
       //If we fell through then we didn't add a edit control
       lvParams.Controls.Remove(mComboBoxParameterDataType);
       lvParams.Controls.Remove(mTextBoxParameterValue);
+    }
+
+    private void simpleToolStripMenuItem1_Click(object sender, EventArgs e)
+    {
+      rtbSql.SelectedText = "UPDATE Users SET LoginAttempts = 0 WHERE UserId = @Param;";
+      ParseSql();
+
+    }
+
+    private void simpleToolStripMenuItem2_Click(object sender, EventArgs e)
+    {
+      rtbSql.SelectedText = "DELETE FROM Users WHERE UserId = @Param;";
+      ParseSql();
+
+    }
+
+    private void simpleToolStripMenuItem3_Click(object sender, EventArgs e)
+    {
+      rtbSql.SelectedText = "INSERT INTO Users (LoginId, Password) VALUES (@ParamLoginId, @ParamPassword);";
+      ParseSql();
+
+    }
+
+    private void lvParams_SelectedIndexChanged(object sender, EventArgs e)
+    {
+
     }
   }
 }

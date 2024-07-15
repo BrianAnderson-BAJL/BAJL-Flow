@@ -114,7 +114,7 @@ namespace FlowEngineCore
             resps = RESP.SetError(2, $"Could not resolve variable [{pv.VariableName}]");
             goto GotoResults;
           }
-          if (pv.Parm.NameChangeable == true) //Database.Select you can set the parameter names for the SQL parameters, these values will be used in the SQL statement
+          if (pv.Parm.NameChangeable == true || pv.Parm.NameChangeIncrement == true) //Database.Select you can set the parameter names for the SQL parameters, these values will be used in the SQL statement
           {
             pvVar = pvVar.CloneWithNewName(pv.ParmName);
           }
