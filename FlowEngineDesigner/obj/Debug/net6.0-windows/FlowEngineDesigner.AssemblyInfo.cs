@@ -17,7 +17,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute("A user interface for configuring the BAJL Flow Engine. A visual programming syste" +
     "m.")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+395457bdcc79e35f17a4f4f48bf113ff1c270274")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a6921f089f3ca2e1d8499ac8ece0f1e54d141e22")]
 [assembly: System.Reflection.AssemblyProductAttribute("FlowEngineDesigner")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FlowEngineDesigner")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

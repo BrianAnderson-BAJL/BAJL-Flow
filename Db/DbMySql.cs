@@ -55,9 +55,9 @@ namespace Db
           continue;
 
         if (vars[x].DataType == DATA_TYPE.String)
-          SQL = SQL.Replace(vars[x].Name, "'" + vars[x].Value + "'");
+          SQL = SQL.Replace(vars[x].Name, "'" + vars[x].GetValueAsString() + "'");
         else
-          SQL = SQL.Replace(vars[x].Name, vars[x].Value);
+          SQL = SQL.Replace(vars[x].Name, vars[x].GetValueAsString());
       }
 
       FlowEngine.Log?.Write("DB - " + SQL, LOG_TYPE.DBG);

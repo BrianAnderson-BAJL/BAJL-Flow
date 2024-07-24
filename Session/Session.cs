@@ -455,7 +455,7 @@ namespace Session
       }
 
       //We got this far, the loginId is good, and the password is good, lets reset the locks
-      Database.Execute("UPDATE Users SET LoginAttempts = 0, LockedUntil = NULL WHERE UserId = @UserId", varUserId);
+      Database.Execute("UPDATE Users SET LoginAttempts = 0, LockedUntil = NULL, LastLogin = NOW() WHERE UserId = @UserId", varUserId);
 
       if (deviceId is not null)
       {

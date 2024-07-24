@@ -119,6 +119,10 @@ namespace FlowEngineDesigner
       {
         uc = new ucParameterStringSql(pv, mStep, mFlow);
       }
+      else if (pv.Parm.DataType == DATA_TYPE.String && pv.Parm.StringSubType == STRING_SUB_TYPE.TemplateFile)
+      {
+        uc = new ucParameterStringTemplate(pv, mStep, mFlow);
+      }
       else
       {
         uc = new ucParameterVarious(pv, mStep, mFlow);

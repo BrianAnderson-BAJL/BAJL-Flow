@@ -63,6 +63,7 @@ namespace FlowEngineCore
           xml.WriteTagAndContents("AdministrationSecurityProfiles", sp.AdministrationSecurityProfiles);
           xml.WriteTagAndContents("AdministrationFlows", sp.AdministrationFlows);
           xml.WriteTagAndContents("Statistics", sp.Statistics);
+          xml.WriteTagAndContents("Templates", sp.Templates);
           xml.WriteTagEnd("Profile");
         }
       }
@@ -89,6 +90,8 @@ namespace FlowEngineCore
         Enum.TryParse<SecurityProfile.SECURITY_ACCESS_LEVEL>(temp, true, out sp.AdministrationFlows);
         temp = Xml.GetXMLChunk(ref profileXml, "Statistics");
         Enum.TryParse<SecurityProfile.SECURITY_ACCESS_SIMPLE>(temp, true, out sp.Statistics);
+        temp = Xml.GetXMLChunk(ref profileXml, "Templates");
+        Enum.TryParse<SecurityProfile.SECURITY_ACCESS_SIMPLE>(temp, true, out sp.Templates);
 
         spList.Add(sp);
         profileXml = Xml.GetXMLChunk(ref profiles, "Profile");
@@ -115,6 +118,7 @@ namespace FlowEngineCore
       sp.AdministrationSecurityProfiles = spa.AdministrationSecurityProfiles;
       sp.AdministrationFlows = spa.AdministrationFlows;
       sp.Statistics = spa.Statistics;
+      sp.Templates = spa.Templates;
 
       lock (mCriticalSection)
       {
@@ -135,6 +139,7 @@ namespace FlowEngineCore
       sp.AdministrationSecurityProfiles = spe.AdministrationSecurityProfiles;
       sp.AdministrationFlows = spe.AdministrationFlows;
       sp.Statistics = spe.Statistics;
+      sp.Templates = spe.Templates;
 
       Save();
       return RECORD_RESULT.Success;

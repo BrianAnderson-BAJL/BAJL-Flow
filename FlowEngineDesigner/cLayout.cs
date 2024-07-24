@@ -13,7 +13,7 @@ namespace FlowEngineDesigner
     public List<cLayoutForm> FormLayouts = new List<cLayoutForm>();
     
 
-    public void ExecuteLayout()
+    public void ExecuteLayout(Form? owner = null)
     {
       for (int i = 0; i < FormLayouts.Count; i++)
       {
@@ -29,6 +29,7 @@ namespace FlowEngineDesigner
           if (f is null && layoutForm.open == true)
           {
             f = new frmToolbox();
+            f.Owner = owner;
             f.Show();
           }
         }
@@ -38,6 +39,7 @@ namespace FlowEngineDesigner
           if (f is null && layoutForm.open == true)
           {
             f = new frmFlow();
+            f.Owner = owner;
             f.Show();
           }
         }
@@ -47,6 +49,7 @@ namespace FlowEngineDesigner
           if (f is null && layoutForm.open == true)
           {
             f = new frmTracer();
+            f.Owner = owner;
             f.Show();
           }
         }

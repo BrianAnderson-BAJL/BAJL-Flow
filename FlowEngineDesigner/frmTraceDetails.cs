@@ -109,7 +109,10 @@ namespace FlowEngineDesigner
         cFlowWrapper flowWrapper = new cFlowWrapper(cFlowWrapper.INCLUDE_START_STEP.EXCLUDE);
         flowWrapper.FileName = txtFileName.Text;
         flowWrapper.XmlRead(ref flowXml);
+        flowWrapper.PopulateSampleVariablesFromPlugin();
         frmFlow f = new frmFlow(flowWrapper);
+        flowWrapper.Center(f.Camera, f.pictureBox1);
+
         Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
 
         f.Show();

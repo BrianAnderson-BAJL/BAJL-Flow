@@ -1,10 +1,16 @@
 ﻿using FlowEngineCore;
 using FlowEngineCore.Administration.Messages;
+using System.Diagnostics.Eventing.Reader;
 
 namespace FlowEngineDesigner
 {
   public partial class frmAdministrationFile : Form
   {
+    public enum FILE_TYPE
+    {
+      Flow,
+      Template,
+    }
     private struct FLOW_FILE_INFO
     {
       public string FileName;
@@ -13,16 +19,18 @@ namespace FlowEngineDesigner
       public string StartCommands;
     }
 
-    public delegate void FlowWrapperChanged(cFlowWrapper flowWrapper);
+    public delegate void FlowWrapperChanged(cFlowWrapper flowWrapper, string fileName = "");
 
     private FILE_MODE FileMode = FILE_MODE.Open;
+    private FILE_TYPE FileType = FILE_TYPE.Flow;
     private cFlowWrapper FlowWrapper;
     private FlowWrapperChanged Call_Back;
     private string SaveAsFileName = "";
-    public frmAdministrationFile(FILE_MODE fileMode, cFlowWrapper flowWrapper, FlowWrapperChanged call_back)
+    public frmAdministrationFile(FILE_MODE fileMode, cFlowWrapper flowWrapper, FlowWrapperChanged call_back, FILE_TYPE fileType = FILE_TYPE.Flow)
     {
       InitializeComponent();
       FileMode = fileMode;
+      FileType = fileType;
       FlowWrapper = flowWrapper;
       Call_Back = call_back;
     }
@@ -30,6 +38,25 @@ namespace FlowEngineDesigner
     private void frmAdministrationFile_Load(object sender, EventArgs e)
     {
       btnAction.Text = FileMode.ToString();
+
+      if (FileType == FILE_TYPE.Flow)
+      {
+        GetFlowFiles();
+      }
+      else
+      {
+        GetTemplateFiles();
+      }
+    }
+
+    private void GetTemplateFiles()
+    {
+      chkDeployLive.Visible = false;
+      TemplatesGet message = new TemplatesGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn!.SessionKey);
+      cServer.SendAndResponse(message.GetPacket(), Callback_Files);
+    }
+    private void GetFlowFiles()
+    {
       SecurityProfile.SECURITY_ACCESS_LEVEL accessLevel = cServer.AccessLevelForUserLoggedIn(SecurityProfile.SECURITY_AREA.Flows);
       if (accessLevel >= SecurityProfile.SECURITY_ACCESS_LEVEL.Full)
       {
@@ -180,15 +207,18 @@ namespace FlowEngineDesigner
           return;
         }
       }
-      if (txtFileName.Text.Contains(".") == true && txtFileName.Text.ToLower().Contains(".flow") == false)
+      if (FileType == FILE_TYPE.Flow)
       {
-        MessageBox.Show("Illegal extension for file name, file name must end in '.flow' or leave off to have the .flow extension added automatically.");
-        txtFileName.Focus();
-        return;
-      }
-      if (txtFileName.Text.ToLower().EndsWith(".flow") == false)
-      {
-        txtFileName.Text += ".flow";
+        if (txtFileName.Text.Contains(".") == true && txtFileName.Text.ToLower().Contains(".flow") == false)
+        {
+          MessageBox.Show("Illegal extension for file name, file name must end in '.flow' or leave off to have the .flow extension added automatically.");
+          txtFileName.Focus();
+          return;
+        }
+        if (txtFileName.Text.ToLower().EndsWith(".flow") == false)
+        {
+          txtFileName.Text += ".flow";
+        }
       }
       if (FileMode == FILE_MODE.Save)
       {
@@ -212,15 +242,23 @@ namespace FlowEngineDesigner
         SaveAsFileName = BuildPathFromTree(SaveAsFileName);
       }
 
-      if (FileMode == FILE_MODE.Save)
+      if (FileType == FILE_TYPE.Flow)
       {
-        FlowSave fs = new FlowSave(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName, chkDeployLive.Checked, FlowWrapper!.XmlWriteMemory()); //Stupid code parser doesn't understand that FlowWrapper can't be null here, so the !
-        cServer.SendAndResponse(fs.GetPacket(), Callback_FileSave);
+        if (FileMode == FILE_MODE.Save)
+        {
+          FlowSave fs = new FlowSave(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName, chkDeployLive.Checked, FlowWrapper!.XmlWriteMemory()); //Stupid code parser doesn't understand that FlowWrapper can't be null here, so the !
+          cServer.SendAndResponse(fs.GetPacket(), Callback_FileSave);
+        }
+        if (FileMode == FILE_MODE.Open)
+        {
+          FlowOpen fo = new FlowOpen(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName);
+          cServer.SendAndResponse(fo.GetPacket(), Callback_FileOpen);
+        }
       }
-      if (FileMode == FILE_MODE.Open)
+      else
       {
-        FlowOpen fo = new FlowOpen(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName);
-        cServer.SendAndResponse(fo.GetPacket(), Callback_FileOpen);
+        Call_Back(FlowWrapper!, txtFileName.Text);
+        this.Close();
       }
     }
 

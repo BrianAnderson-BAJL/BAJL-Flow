@@ -292,7 +292,7 @@ namespace FlowEngineCore
       {
         if (parms.SubVariables[x] is null)
         {
-          xml.WriteTagAndContents("parm" + x.ToString(), "[null]", Xml.BAJL_ENCODE.Base64Encoding); //Let's cram some JSON in the XML, everybody loves mixing data schemas!!! The XML parser isn't 100% yet, so this is a temp hack
+          xml.WriteTagAndContents("parm" + x.ToString(), "[null]", Xml.BAJL_ENCODE.Base64Encoding); 
         }
         else
         {

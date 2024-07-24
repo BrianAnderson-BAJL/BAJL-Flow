@@ -47,18 +47,18 @@ namespace Email
       func.Parms.Add(new PARM("subject", DATA_TYPE.Various));
       func.Parms.Add(new PARM("body", DATA_TYPE.Various));
 
-      parm = new PARM("content images to attach", DATA_TYPE.Various);
+      parm = new PARM("content images to attach", DATA_TYPE.String) { StringSubType = STRING_SUB_TYPE.TemplateFile };
       parm.Description = "(optional) If you are sending HTML in the body and have Content-ID images to link, then populate sub variables in this variable";
       func.Parms.Add(parm);
 
-      parm = new PARM("files to attach", DATA_TYPE.Various);
+      parm = new PARM("files to attach", DATA_TYPE.String) { StringSubType = STRING_SUB_TYPE.TemplateFile};
       parm.Description = "(optional) If you need to attach files to the email then populate sub variables in this variable";
       func.Parms.Add(parm);
 
       Functions.Add(func);
 
       func = new Function("Load Template", this, LoadTemplate);
-      parm = new PARM("FileName", DATA_TYPE.Various);
+      parm = new PARM("FileName", DATA_TYPE.String) {StringSubType = STRING_SUB_TYPE.TemplateFile };
       parm.Description = "The path and file name to the template file. A text file that will be used in the email.";
       func.Parms.Add(parm);
       parm = new PARM("%(code)s", DATA_TYPE.Various);

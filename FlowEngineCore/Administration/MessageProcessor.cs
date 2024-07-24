@@ -47,6 +47,7 @@ namespace FlowEngineCore.Administration
       Processors.Add(Packet.PACKET_TYPE.ServerSettingsEdit, ProcessServerSettingsEdit);
       Processors.Add(Packet.PACKET_TYPE.StatisticsRegister, ProcessStatisticsRegister);
       Processors.Add(Packet.PACKET_TYPE.StatisticsDeregister, ProcessStatisticsDeregister);
+      Processors.Add(Packet.PACKET_TYPE.TemplatesGet, ProcessTemplatesGet);
 
 
       if (GlobalPluginValues.ContainsKey("log") == true)
@@ -345,19 +346,33 @@ namespace FlowEngineCore.Administration
       Xml xml = new();
       xml.WriteMemoryNew();
       xml.WriteTagStart("Directories");
-      WriteSubDirectory(path, relativePath, xml, 0);
+      WriteSubDirectory(path, "*.flow", relativePath, xml, 0);
       xml.WriteTagEnd("Directories");
       string flowsXml = xml.ReadMemory();
       FlowsGetResponse response = new(packet.PacketId, flowsXml);
       client.Send(response.GetPacket());
     }
 
-    private static void WriteSubDirectory(string path, string relativePath, Xml xml, int depth)
+    private static void ProcessTemplatesGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
+    {
+      string path = Options.GetFullPath(Options.GetSettings.SettingGetAsString("TemplateBasePath"));
+      string relativePath = "";
+      Xml xml = new();
+      xml.WriteMemoryNew();
+      xml.WriteTagStart("Directories");
+      WriteSubDirectory(path, "*.*", relativePath, xml, 0);
+      xml.WriteTagEnd("Directories");
+      string flowsXml = xml.ReadMemory();
+      TemplatesGetResponse response = new(packet.PacketId, flowsXml);
+      client.Send(response.GetPacket());
+    }
+
+    private static void WriteSubDirectory(string path, string fileType, string relativePath, Xml xml, int depth)
     {
       xml.WriteTagStart("Directory" + depth.ToString()); //Adding depth to the Directory tag to make my XML parsing easier, cheap hack! //TODO: Fix the cheesy/cheap XML hack with a real XML parser
       xml.WriteTagAndContents("Path", "/" + Path.GetFileNameWithoutExtension(relativePath)); //Not really getting the file name, but the last directory in the path, we don't want the full path
       
-      string[] files = Directory.GetFiles(path, "*.flow");
+      string[] files = Directory.GetFiles(path, fileType);
       for (int y = 0; y < files.Length; y++)
       {
         Flow flow = new();
@@ -377,7 +392,7 @@ namespace FlowEngineCore.Administration
         for (int x = 0; x < dirs.Length; x++)
         {
           string strippedPath = Global.StripOff(path, dirs[x]);
-          WriteSubDirectory(path + "/" + strippedPath, relativePath + "/" + strippedPath, xml, depth + 1);
+          WriteSubDirectory(path + "/" + strippedPath, fileType, relativePath + "/" + strippedPath, xml, depth + 1);
         }
       }
       xml.WriteTagEnd("Directory" + depth.ToString());

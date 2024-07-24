@@ -67,7 +67,7 @@ namespace Logger
       Functions.Add(new Function("Create", this, Create));
       Function function = new Function("Write", this, Write);
       function.OutputClear();
-      function.OutputAdd("Complete");
+      function.OutputAdd("Continue");
       PARM pddl = function.Parms.Add("Log Type", STRING_SUB_TYPE.DropDownList);
       pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, "INF");
       foreach (int val in Enum.GetValues(typeof(LOG_TYPE)))

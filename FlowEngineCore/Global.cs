@@ -22,11 +22,15 @@ namespace FlowEngineCore
     Color,
   }
 
+  /// <summary>
+  /// All these types map to the String data type above.
+  /// </summary>
   public enum STRING_SUB_TYPE
   {
     _None, //Just a normal string, nothing special
-    DropDownList, //Maps to String
-    Sql, //Maps to String
+    DropDownList,
+    Sql, 
+    TemplateFile, 
   }
 
   /// <summary>
@@ -82,6 +86,8 @@ namespace FlowEngineCore
     ValidationErrorMax = 7999,
     EmailErrorMin = 8000,
     EmailErrorMax = 8999,
+    DataErrorMin = 9000,
+    DataErrorMax = 9999,
   }
 
   public class Global

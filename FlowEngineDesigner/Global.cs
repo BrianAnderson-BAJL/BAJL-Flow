@@ -19,6 +19,7 @@ namespace FlowEngineDesigner
 
   public enum FILE_MODE
   {
+    Select,
     Open,
     Save,
   }
@@ -54,6 +55,17 @@ namespace FlowEngineDesigner
       for (int x = 0; x < Application.OpenForms.Count; x++)
       {
         if (Application.OpenForms[x].Text == titleText)
+        {
+          return Application.OpenForms[x];
+        }
+      }
+      return null;
+    }
+    public static Form? FindOpenFormByName(string name)
+    {
+      for (int x = 0; x < Application.OpenForms.Count; x++)
+      {
+        if (Application.OpenForms[x].Name == name)
         {
           return Application.OpenForms[x];
         }

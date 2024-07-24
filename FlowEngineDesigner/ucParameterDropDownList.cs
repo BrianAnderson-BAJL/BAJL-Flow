@@ -26,6 +26,7 @@ namespace FlowEngineDesigner
     private void ucParameterDropDownList_Load(object sender, EventArgs e)
     {
       txtKey.Text = mParmVar.Parm.Name;
+      txtKey.ReadOnly = !mParmVar.Parm.NameChangeable;
       txtDataType.Text = mParmVar.Parm.DataType.ToString();
       cmbItems.Items.Clear();
       if (mParmVar.Parm.Options is not null)

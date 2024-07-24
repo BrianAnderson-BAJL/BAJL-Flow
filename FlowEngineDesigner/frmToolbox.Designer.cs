@@ -66,6 +66,7 @@
       Controls.Add(tvToolbox);
       MdiChildrenMinimizedAnchorBottom = false;
       Name = "frmToolbox";
+      ShowInTaskbar = false;
       Text = "Toolbox";
       Load += frmToolbox_Load;
       cmsPopup.ResumeLayout(false);

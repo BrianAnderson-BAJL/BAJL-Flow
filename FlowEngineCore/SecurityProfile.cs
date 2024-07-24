@@ -39,6 +39,7 @@ namespace FlowEngineCore
     public SECURITY_ACCESS_LEVEL AdministrationFlows = SECURITY_ACCESS_LEVEL.None;
     public SECURITY_ACCESS_LEVEL ServerSettings = SECURITY_ACCESS_LEVEL.Readonly;
     public SECURITY_ACCESS_SIMPLE Statistics = SECURITY_ACCESS_SIMPLE.None;
+    public SECURITY_ACCESS_SIMPLE Templates = SECURITY_ACCESS_SIMPLE.None;
 
     /// <summary>
     /// Returns a blank SecurityProfile with no access to anything.
@@ -102,6 +103,8 @@ namespace FlowEngineCore
         case Packet.PACKET_TYPE.StatisticsRegister:
         case Packet.PACKET_TYPE.StatisticsDeregister:
           rc = Statistics >= SECURITY_ACCESS_SIMPLE.Access; break;
+        case Packet.PACKET_TYPE.TemplatesGet:
+          rc = Templates >= SECURITY_ACCESS_SIMPLE.Access; break;
         default:
           rc = false;
           break;

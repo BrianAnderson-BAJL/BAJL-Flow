@@ -114,7 +114,8 @@ namespace Http
         }
 
         
-        function.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String);
+        PARM tmpParm = function.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String);
+        tmpParm.NameChangeable = true;
         pddl = new PARM(PARM_DATA_FORMAT, STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
         pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, PARM_DATA_FORMAT_JSON);
         pddl.OptionAdd(PARM_DATA_FORMAT_RAW);

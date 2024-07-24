@@ -38,6 +38,7 @@ namespace FlowEngineDesigner
         lvi.SubItems.Add(cServer.SecurityProfiles[x].AdministrationSecurityProfiles.ToString());
         lvi.SubItems.Add(cServer.SecurityProfiles[x].AdministrationFlows.ToString());
         lvi.SubItems.Add(cServer.SecurityProfiles[x].Statistics.ToString());
+        lvi.SubItems.Add(cServer.SecurityProfiles[x].Templates.ToString());
         lvi.Tag = cServer.SecurityProfiles[x];
       }
     }

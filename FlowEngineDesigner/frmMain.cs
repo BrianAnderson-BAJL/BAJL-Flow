@@ -66,7 +66,7 @@ namespace FlowEngineDesigner
         FormLayouts = { formlayout1, formlayout2, formlayout3, formlayout4 }
       };
 
-      Global.Layout.ExecuteLayout();
+      Global.Layout.ExecuteLayout(this);
 
 
       //TEST AREA
@@ -179,7 +179,7 @@ namespace FlowEngineDesigner
       f.Show();
     }
 
-    private void FlowWrapperChanged_Callback(cFlowWrapper flowWrapper)
+    private void FlowWrapperChanged_Callback(cFlowWrapper flowWrapper, string filename)
     {
       frmFlow f = new frmFlow(flowWrapper);
       Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
@@ -288,6 +288,36 @@ namespace FlowEngineDesigner
     {
       frmAbout f = new frmAbout();
       f.Show();
+    }
+
+    private void frmMain_Shown(object sender, EventArgs e)
+    {
+    }
+
+    private void frmMain_Enter(object sender, EventArgs e)
+    {
+
+    }
+
+    //private bool inActivated = false;
+    private void frmMain_Activated(object sender, EventArgs e)
+    {
+      
+      //if (inActivated == true)
+      //  return;
+      //inActivated = true;
+      //cEventManager.RaiseEventTracer(cEventManager.SENDER.Compiler, "Main Activated");
+      //Form? f = Global.FindOpenFormByName("frmTracer");
+      //if (f is not null)
+      //  f.BringToFront();
+      //f = Global.FindOpenFormByName("frmToolbox");
+      //if (f is not null)
+      //  f.BringToFront();
+      //f = Global.FindOpenFormByName("frmFlow");
+      //if (f is not null)
+      //  f.BringToFront();
+      ////this.BringToFront();
+      //inActivated = false;
     }
   }
 }

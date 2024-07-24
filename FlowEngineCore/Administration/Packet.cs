@@ -57,6 +57,8 @@ namespace FlowEngineCore.Administration
       FlowDebugResponse,
       FlowDebugAlways,   // register for all debug events even if not debugging a specific flow
       FlowDebugAlwaysResponse,
+      TemplatesGet,
+      TemplatesGetResponse,
       ServerSettingsGet,
       ServerSettingsGetResponse,
       ServerSettingsEdit,

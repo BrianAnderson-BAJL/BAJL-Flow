@@ -40,6 +40,8 @@
       cmbSecurityProfiles = new ComboBox();
       label4 = new Label();
       cmbStatistics = new ComboBox();
+      label5 = new Label();
+      cmbTemplates = new ComboBox();
       SuspendLayout();
       // 
       // lblDuplicate
@@ -149,11 +151,31 @@
       cmbStatistics.Size = new Size(225, 23);
       cmbStatistics.TabIndex = 30;
       // 
+      // label5
+      // 
+      label5.AutoSize = true;
+      label5.Location = new Point(51, 181);
+      label5.Name = "label5";
+      label5.Size = new Size(63, 15);
+      label5.TabIndex = 33;
+      label5.Text = "Templates:";
+      // 
+      // cmbTemplates
+      // 
+      cmbTemplates.DropDownStyle = ComboBoxStyle.DropDownList;
+      cmbTemplates.FormattingEnabled = true;
+      cmbTemplates.Location = new Point(131, 178);
+      cmbTemplates.Name = "cmbTemplates";
+      cmbTemplates.Size = new Size(225, 23);
+      cmbTemplates.TabIndex = 32;
+      // 
       // frmAdministrationSecurityProfileProperties
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
       ClientSize = new Size(570, 287);
+      Controls.Add(label5);
+      Controls.Add(cmbTemplates);
       Controls.Add(label4);
       Controls.Add(cmbStatistics);
       Controls.Add(label3);
@@ -187,5 +209,7 @@
     private ComboBox cmbSecurityProfiles;
     private Label label4;
     private ComboBox cmbStatistics;
+    private Label label5;
+    private ComboBox cmbTemplates;
   }
 }

@@ -161,7 +161,7 @@ namespace Db
       mLog?.Write("Db.Select", LOG_TYPE.DBG);
       if (mDatabase is null)
         return RESP.SetError(DB_ERROR_NO_DB, "No active database connection");
-
+      
       vars[0].GetValue(out string sql);
 
       Variable? var = null;
@@ -171,7 +171,7 @@ namespace Db
       }
       catch (Exception ex)
       {
-        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
+        return RESP.SetError(DB_ERROR_UNKNOWN, Global.FullExceptionMessage(ex));
       }
       return RESP.SetSuccess(var);
     }
@@ -197,7 +197,7 @@ namespace Db
       }
       catch (Exception ex)
       {
-        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
+        return RESP.SetError(DB_ERROR_UNKNOWN, Global.FullExceptionMessage(ex));
       }
       if (var.Count > 0)
         return RESP.SetSuccess(var[0]);
@@ -225,7 +225,7 @@ namespace Db
       }
       catch (Exception ex)
       {
-        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
+        return RESP.SetError(DB_ERROR_UNKNOWN, Global.FullExceptionMessage(ex));
       }
       return RESP.SetSuccess(var);
     }
@@ -244,7 +244,7 @@ namespace Db
       catch (Exception ex)
       {
         mLog?.Write("Database.Insert Many FAILURE", ex, LOG_TYPE.ERR);
-        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
+        return RESP.SetError(DB_ERROR_UNKNOWN, Global.FullExceptionMessage(ex));
       }
     }
 
@@ -263,7 +263,7 @@ namespace Db
       catch (Exception ex)
       {
         mLog?.Write("Database.Update Many FAILURE", ex, LOG_TYPE.ERR);
-        return RESP.SetError(DB_ERROR_UNKNOWN, ex.Message);
+        return RESP.SetError(DB_ERROR_UNKNOWN, Global.FullExceptionMessage(ex));
       }
     }
     

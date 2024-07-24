@@ -580,7 +580,7 @@ namespace FlowEngineDesigner
       f.Location = CenterOfForm(f);
       f.Show();
     }
-    private void FlowWrapperChanged_Open_Callback(cFlowWrapper flowWrapper)
+    private void FlowWrapperChanged_Open_Callback(cFlowWrapper flowWrapper, string filename)
     {
       Flow = flowWrapper;
       Flow.PopulateSampleVariablesFromPlugin();
@@ -589,7 +589,7 @@ namespace FlowEngineDesigner
       pictureBox1.Refresh();
     }
 
-    private void FlowWrapperChanged_Save_Callback(cFlowWrapper flowWrapper)
+    private void FlowWrapperChanged_Save_Callback(cFlowWrapper flowWrapper, string filename)
     {
       Flow = flowWrapper;
       Flow.PopulateSampleVariablesFromPlugin();
