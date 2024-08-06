@@ -49,16 +49,16 @@ Start a flow every X seconds or at a specific time
 The designer is a Windows only application that is the user interface for the Flow Engine. It lets you design and build flows that will run inside the engine.
 
 # Work in progress, early stages 
-This project is a work in progress. The engine works, but can't really do much yet. There are only a few steps that work, Session.User Register, Session.Device Register, Http.Send, Flow.Sleep, Flow.Run, & Flow.RunAsync, plus others. The designer can load and save flows locally and to the server. The graphics in the designer are place holders only for now. They will be updated at some point in the future.
+This project is a work in progress. It is currently being used as a REST API for the backend of another project that is in development. The engine works and the included plugins have many functions that work. The designer can load and save flows locally and to the server. The graphics in the designer are place holders only for now. They will be updated at some point in the future.
 
 # Features
 Many of the below features are fleshed out in the code
 * Run on both Linux and Windows (.Net Core 6)
 * Users with Security profiles (Admin, developer, readonly, ...)
-* Engine running type profiles (Production, QA, development, ...)
+* Engine running type profiles (Production, QA, Development, ...)
 * Upload flows to server and have them update / added in real time, no reboot/restart required
-* Trace log of code performance and inspect variables before and after each step (function)
-* Comments in flow
+* Trace log of code performance and inspect variables after each step/function
+* Comments in flows
 * Designer Layouts. You can layout your desktop however you want and it will remember next time you start it.
 * Statistics regarding flows (Counts, avg time to execute, longest flow runtime, shortest flow runtime, ...)
 
