@@ -87,6 +87,9 @@ namespace FlowEngineDesigner
 
     private static void Callback_GetServerSettings(FlowEngineCore.Administration.EventArgsPacket e)
     {
+      if (e.Packet.PeekResponseCode() != BaseResponse.RESPONSE_CODE.Success)
+        return;
+
       ServerSettingsGetResponse ssgr = new ServerSettingsGetResponse(e.Packet);
       string xmlData = ssgr.Xml;
       Options.LoadSettingsFromXml(xmlData);

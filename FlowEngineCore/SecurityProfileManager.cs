@@ -62,6 +62,7 @@ namespace FlowEngineCore
           xml.WriteTagAndContents("AdministrationUsers", sp.AdministrationUsers);
           xml.WriteTagAndContents("AdministrationSecurityProfiles", sp.AdministrationSecurityProfiles);
           xml.WriteTagAndContents("AdministrationFlows", sp.AdministrationFlows);
+          xml.WriteTagAndContents("ServerSettings", sp.ServerSettings);
           xml.WriteTagAndContents("Statistics", sp.Statistics);
           xml.WriteTagAndContents("Templates", sp.Templates);
           xml.WriteTagEnd("Profile");
@@ -88,6 +89,8 @@ namespace FlowEngineCore
         Enum.TryParse<SecurityProfile.SECURITY_ACCESS_LEVEL>(temp, true, out sp.AdministrationSecurityProfiles);
         temp = Xml.GetXMLChunk(ref profileXml, "AdministrationFlows");
         Enum.TryParse<SecurityProfile.SECURITY_ACCESS_LEVEL>(temp, true, out sp.AdministrationFlows);
+        temp = Xml.GetXMLChunk(ref profileXml, "ServerSettings");
+        Enum.TryParse<SecurityProfile.SECURITY_ACCESS_LEVEL>(temp, true, out sp.ServerSettings);
         temp = Xml.GetXMLChunk(ref profileXml, "Statistics");
         Enum.TryParse<SecurityProfile.SECURITY_ACCESS_SIMPLE>(temp, true, out sp.Statistics);
         temp = Xml.GetXMLChunk(ref profileXml, "Templates");
@@ -117,6 +120,7 @@ namespace FlowEngineCore
       sp.AdministrationUsers = spa.AdministrationUsers;
       sp.AdministrationSecurityProfiles = spa.AdministrationSecurityProfiles;
       sp.AdministrationFlows = spa.AdministrationFlows;
+      sp.ServerSettings = spa.ServerSettings;
       sp.Statistics = spa.Statistics;
       sp.Templates = spa.Templates;
 
@@ -138,6 +142,7 @@ namespace FlowEngineCore
       sp.AdministrationUsers = spe.AdministrationUsers;
       sp.AdministrationSecurityProfiles = spe.AdministrationSecurityProfiles;
       sp.AdministrationFlows = spe.AdministrationFlows;
+      sp.ServerSettings = spe.ServerSettings;
       sp.Statistics = spe.Statistics;
       sp.Templates = spe.Templates;
 

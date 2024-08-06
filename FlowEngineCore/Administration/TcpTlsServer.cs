@@ -65,6 +65,7 @@ namespace FlowEngineCore.Administration
       mReadPacketTimeout = ReadPacketTimeout;
       try
       {
+        
         mCertificate = new X509Certificate(pathToCert, certPassword);
       }
       catch (Exception ex)

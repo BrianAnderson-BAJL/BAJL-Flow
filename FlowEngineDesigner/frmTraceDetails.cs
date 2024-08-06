@@ -111,6 +111,7 @@ namespace FlowEngineDesigner
         flowWrapper.XmlRead(ref flowXml);
         flowWrapper.PopulateSampleVariablesFromPlugin();
         frmFlow f = new frmFlow(flowWrapper);
+        f.Owner = Global.FormMain;
         flowWrapper.Center(f.Camera, f.pictureBox1);
 
         Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);

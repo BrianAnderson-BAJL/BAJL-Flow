@@ -29,6 +29,8 @@ namespace FlowEngineCore
       SecurityProfiles,
       Flows,
       Statistics,
+      ServerSettings,
+      Templates,
     }
 
 
@@ -121,6 +123,10 @@ namespace FlowEngineCore
         return AdministrationSecurityProfiles;
       if (securityArea == SECURITY_AREA.Flows)
         return AdministrationFlows;
+      if (securityArea == SECURITY_AREA.ServerSettings)
+        return ServerSettings;
+      if (securityArea == SECURITY_AREA.Templates)
+        return ConvertToLevel(Templates);
       if (securityArea == SECURITY_AREA.Statistics)
         return ConvertToLevel(Statistics);
 

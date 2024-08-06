@@ -74,7 +74,7 @@ namespace FlowEngineDesigner
         FlowEngineCore.Plugin? plugin = tvToolbox.SelectedNode.Tag as FlowEngineCore.Plugin;
         if (plugin is not null)
         {
-          frmSettings f = new frmSettings(plugin.GetSettings, $"Plugin Settings [{plugin.Name}]");
+          frmSettings f = new frmSettings(plugin.GetSettings, $"Plugin Settings [{plugin.Name}]", frmSettings.SOURCE.Local);
           f.Show();
         }
       }

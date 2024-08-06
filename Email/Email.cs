@@ -101,6 +101,12 @@ namespace Email
     private void CheckEmailThread()
     {
       //ImapClient imapClient = new ImapClient();
+      //imapClient.Alert += ImapClient_Alert;
+      //List<ImapEventGroup> eve = new List<ImapEventGroup>();
+      //ImapMailboxFilter filter;
+      
+      //eve.Add(new ImapEventGroup(
+      //imapClient.Notify(
       //imapClient.Connect("imap.example.com", 993, true);
       //imapClient.Authenticate("username", "password");
       //imapClient.Inbox.Open(FolderAccess.ReadOnly);
@@ -119,6 +125,10 @@ namespace Email
       //imapClient.Dispose();
     }
 
+    private void ImapClient_Alert(object? sender, AlertEventArgs e)
+    {
+      throw new NotImplementedException();
+    }
 
     public RESP LoadTemplate(Flow flow, Variable[] vars)
     {

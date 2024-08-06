@@ -38,12 +38,13 @@
       chFlows = new ColumnHeader();
       chStatistics = new ColumnHeader();
       chTemplates = new ColumnHeader();
+      chServerSettings = new ColumnHeader();
       SuspendLayout();
       // 
       // btnDelete
       // 
       btnDelete.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      btnDelete.Location = new Point(709, 408);
+      btnDelete.Location = new Point(873, 408);
       btnDelete.Name = "btnDelete";
       btnDelete.Size = new Size(81, 36);
       btnDelete.TabIndex = 7;
@@ -54,7 +55,7 @@
       // btnEditView
       // 
       btnEditView.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      btnEditView.Location = new Point(622, 408);
+      btnEditView.Location = new Point(786, 408);
       btnEditView.Name = "btnEditView";
       btnEditView.Size = new Size(81, 36);
       btnEditView.TabIndex = 6;
@@ -65,7 +66,7 @@
       // btnAdd
       // 
       btnAdd.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-      btnAdd.Location = new Point(535, 408);
+      btnAdd.Location = new Point(699, 408);
       btnAdd.Name = "btnAdd";
       btnAdd.Size = new Size(81, 36);
       btnAdd.TabIndex = 5;
@@ -76,12 +77,12 @@
       // lstData
       // 
       lstData.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      lstData.Columns.AddRange(new ColumnHeader[] { chName, chUsers, chSecurityProfiles, chFlows, chStatistics, chTemplates });
+      lstData.Columns.AddRange(new ColumnHeader[] { chName, chUsers, chSecurityProfiles, chFlows, chServerSettings, chStatistics, chTemplates });
       lstData.FullRowSelect = true;
       lstData.GridLines = true;
       lstData.Location = new Point(12, 12);
       lstData.Name = "lstData";
-      lstData.Size = new Size(778, 390);
+      lstData.Size = new Size(942, 390);
       lstData.TabIndex = 4;
       lstData.UseCompatibleStateImageBehavior = false;
       lstData.View = View.Details;
@@ -117,11 +118,16 @@
       chTemplates.Text = "Templates";
       chTemplates.Width = 120;
       // 
+      // chServerSettings
+      // 
+      chServerSettings.Text = "Server Settings";
+      chServerSettings.Width = 120;
+      // 
       // frmAdministrationSecurityProfiles
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
-      ClientSize = new Size(802, 456);
+      ClientSize = new Size(966, 456);
       Controls.Add(btnDelete);
       Controls.Add(btnEditView);
       Controls.Add(btnAdd);
@@ -145,5 +151,6 @@
     private ColumnHeader chSecurityProfiles;
     private ColumnHeader chStatistics;
     private ColumnHeader chTemplates;
+    private ColumnHeader chServerSettings;
   }
 }

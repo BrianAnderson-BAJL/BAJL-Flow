@@ -161,34 +161,35 @@
       // connectToolStripMenuItem
       // 
       connectToolStripMenuItem.Name = "connectToolStripMenuItem";
-      connectToolStripMenuItem.Size = new Size(167, 22);
+      connectToolStripMenuItem.Size = new Size(180, 22);
       connectToolStripMenuItem.Text = "&Connect";
       connectToolStripMenuItem.Click += connectToolStripMenuItem_Click;
       // 
       // disconnectToolStripMenuItem
       // 
       disconnectToolStripMenuItem.Name = "disconnectToolStripMenuItem";
-      disconnectToolStripMenuItem.Size = new Size(167, 22);
+      disconnectToolStripMenuItem.Size = new Size(180, 22);
       disconnectToolStripMenuItem.Text = "Disconnect";
       disconnectToolStripMenuItem.Click += disconnectToolStripMenuItem_Click;
       // 
       // connectRecentToolStripMenuItem
       // 
       connectRecentToolStripMenuItem.Name = "connectRecentToolStripMenuItem";
-      connectRecentToolStripMenuItem.Size = new Size(167, 22);
+      connectRecentToolStripMenuItem.Size = new Size(180, 22);
       connectRecentToolStripMenuItem.Text = "Connect &Recent...";
+      connectRecentToolStripMenuItem.Click += connectRecentToolStripMenuItem_Click;
       // 
       // statisticsToolStripMenuItem
       // 
       statisticsToolStripMenuItem.Name = "statisticsToolStripMenuItem";
-      statisticsToolStripMenuItem.Size = new Size(167, 22);
+      statisticsToolStripMenuItem.Size = new Size(180, 22);
       statisticsToolStripMenuItem.Text = "S&tatistics";
       statisticsToolStripMenuItem.Click += statisticsToolStripMenuItem_Click;
       // 
       // settingsToolStripMenuItem1
       // 
       settingsToolStripMenuItem1.Name = "settingsToolStripMenuItem1";
-      settingsToolStripMenuItem1.Size = new Size(167, 22);
+      settingsToolStripMenuItem1.Size = new Size(180, 22);
       settingsToolStripMenuItem1.Text = "&Settings";
       settingsToolStripMenuItem1.Click += settingsToolStripMenuItem1_Click;
       // 
@@ -196,7 +197,7 @@
       // 
       administrationToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { usersToolStripMenuItem1, securityProfilesToolStripMenuItem, changePasswordToolStripMenuItem, flowOpenToolStripMenuItem, debugAlwaysToolStripMenuItem });
       administrationToolStripMenuItem.Name = "administrationToolStripMenuItem";
-      administrationToolStripMenuItem.Size = new Size(167, 22);
+      administrationToolStripMenuItem.Size = new Size(180, 22);
       administrationToolStripMenuItem.Text = "&Administration";
       // 
       // usersToolStripMenuItem1

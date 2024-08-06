@@ -33,6 +33,7 @@ namespace FlowEngineDesigner
         cmbUsers.Items.Add(vals[x].ToString());
         cmbSecurityProfiles.Items.Add(vals[x].ToString());
         cmbFlows.Items.Add(vals[x].ToString());
+        cmbServerSettings.Items.Add(vals[x].ToString());
       }
       cmbStatistics.Items.Add(SecurityProfile.SECURITY_ACCESS_SIMPLE.None.ToString());
       cmbStatistics.Items.Add(SecurityProfile.SECURITY_ACCESS_SIMPLE.Access.ToString());
@@ -46,6 +47,7 @@ namespace FlowEngineDesigner
         Global.ComboBoxSetIndex(cmbUsers, Profile.AdministrationUsers.ToString());
         Global.ComboBoxSetIndex(cmbSecurityProfiles, Profile.AdministrationSecurityProfiles.ToString());
         Global.ComboBoxSetIndex(cmbFlows, Profile.AdministrationFlows.ToString());
+        Global.ComboBoxSetIndex(cmbServerSettings, Profile.ServerSettings.ToString());
         Global.ComboBoxSetIndex(cmbStatistics, Profile.Statistics.ToString());
         Global.ComboBoxSetIndex(cmbTemplates, Profile.Templates.ToString());
       }
@@ -56,6 +58,7 @@ namespace FlowEngineDesigner
         cmbUsers.Enabled = false;
         cmbSecurityProfiles.Enabled = false;
         cmbFlows.Enabled = false;
+        cmbServerSettings.Enabled = false;
         cmbStatistics.Enabled = false;
         cmbTemplates.Enabled = false;
       }
@@ -87,17 +90,18 @@ namespace FlowEngineDesigner
       SecurityProfile.SECURITY_ACCESS_LEVEL users = Enum.Parse<SecurityProfile.SECURITY_ACCESS_LEVEL>(cmbUsers.Text);
       SecurityProfile.SECURITY_ACCESS_LEVEL sp = Enum.Parse<SecurityProfile.SECURITY_ACCESS_LEVEL>(cmbSecurityProfiles.Text);
       SecurityProfile.SECURITY_ACCESS_LEVEL flows = Enum.Parse<SecurityProfile.SECURITY_ACCESS_LEVEL>(cmbFlows.Text);
+      SecurityProfile.SECURITY_ACCESS_LEVEL serverSettings = Enum.Parse<SecurityProfile.SECURITY_ACCESS_LEVEL>(cmbServerSettings.Text);
       SecurityProfile.SECURITY_ACCESS_SIMPLE stats = Enum.Parse<SecurityProfile.SECURITY_ACCESS_SIMPLE>(cmbStatistics.Text);
       SecurityProfile.SECURITY_ACCESS_SIMPLE template = Enum.Parse<SecurityProfile.SECURITY_ACCESS_SIMPLE>(cmbTemplates.Text);
 
       if (Mode == FORM_MODE.Add)
       {
-        FlowEngineCore.Administration.Messages.SecurityProfileAdd u = new FlowEngineCore.Administration.Messages.SecurityProfileAdd(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text, users, sp, flows, stats, template);
+        FlowEngineCore.Administration.Messages.SecurityProfileAdd u = new FlowEngineCore.Administration.Messages.SecurityProfileAdd(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text, users, sp, flows, serverSettings, stats, template);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.Edit)
       {
-        FlowEngineCore.Administration.Messages.SecurityProfileEdit u = new FlowEngineCore.Administration.Messages.SecurityProfileEdit(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, OldName, txtName.Text, users, sp, flows, stats, template);
+        FlowEngineCore.Administration.Messages.SecurityProfileEdit u = new FlowEngineCore.Administration.Messages.SecurityProfileEdit(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, OldName, txtName.Text, users, sp, flows, serverSettings, stats, template);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.Delete)
@@ -112,8 +116,7 @@ namespace FlowEngineDesigner
 
     private void Callback(FlowEngineCore.Administration.EventArgsPacket e)
     {
-      BaseResponse response = new BaseResponse(e.Packet);
-      if (response.ResponseCode == BaseResponse.RESPONSE_CODE.Success)
+      if (e.Packet.PeekResponseCode() == BaseResponse.RESPONSE_CODE.Success)
       {
         this.Close();
       }

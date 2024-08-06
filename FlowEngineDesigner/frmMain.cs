@@ -23,6 +23,7 @@ namespace FlowEngineDesigner
     private void toolboxToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmToolbox f = new frmToolbox();
+      f.Owner = this;
       Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Toolbox);
       f.Show();
     }
@@ -81,6 +82,7 @@ namespace FlowEngineDesigner
       if (cOptions.AdministrationAutoConnect == true)
       {
         frmServerConnect f = new frmServerConnect();
+        f.Owner = this;
         f.Show(); //The form load event will auto login if AdministrationAutoConnect is true.
       }
 
@@ -89,6 +91,7 @@ namespace FlowEngineDesigner
     private void newToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmFlow f = new frmFlow();
+      f.Owner = this;
       Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
       f.Show();
     }
@@ -107,6 +110,7 @@ namespace FlowEngineDesigner
     private void tracerToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmTracer f = new frmTracer();
+      f.Owner = this;
       Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Tracer);
       f.Show();
     }
@@ -117,6 +121,7 @@ namespace FlowEngineDesigner
     private void connectToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmServerConnect f = new frmServerConnect();
+      f.Owner = this;
       f.Show();
     }
 
@@ -128,6 +133,7 @@ namespace FlowEngineDesigner
     private void usersToolStripMenuItem1_Click(object sender, EventArgs e)
     {
       frmAdministrationUsers f = new frmAdministrationUsers();
+      f.Owner = this;
       f.Show();
     }
 
@@ -135,12 +141,14 @@ namespace FlowEngineDesigner
     private void changePasswordToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmAdministrationUserChangePassword f = new frmAdministrationUserChangePassword();
+      f.Owner = this;
       f.ShowDialog();
     }
 
     private void securityProfilesToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmAdministrationSecurityProfiles f = new frmAdministrationSecurityProfiles();
+      f.Owner = this;
       f.Show();
     }
 
@@ -170,12 +178,14 @@ namespace FlowEngineDesigner
     private void tsLoggedInAs_DoubleClick(object sender, EventArgs e)
     {
       frmAdministrationUserProperties f = new frmAdministrationUserProperties(FORM_MODE.ReadOnly, cServer.UserLoggedIn);
+      f.Owner = this;
       f.Show();
     }
 
     private void flowOpenToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmAdministrationFile f = new frmAdministrationFile(FILE_MODE.Open, new cFlowWrapper(), FlowWrapperChanged_Callback);
+      f.Owner = this;
       f.Show();
     }
 
@@ -185,6 +195,7 @@ namespace FlowEngineDesigner
       Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
       flowWrapper.PopulateSampleVariablesFromPlugin();
       flowWrapper.Center(f.Camera, f.pictureBox1);
+      f.Owner = this;
       f.TitleText();
       f.pictureBox1.Refresh();
       f.Show();
@@ -202,6 +213,7 @@ namespace FlowEngineDesigner
         cFlowWrapper flow = new cFlowWrapper(cFlowWrapper.INCLUDE_START_STEP.EXCLUDE);
         flow.XmlReadFile(openFileDialog1.FileName);
         frmFlow f = new frmFlow(flow);
+        f.Owner = this;
         Global.Layout.ExecuteLayout(f, cLayoutForm.LAYOUT_FORM.Flow);
         f.Show();
       }
@@ -264,9 +276,10 @@ namespace FlowEngineDesigner
 
     private void settingsToolStripMenuItem1_Click(object sender, EventArgs e)
     {
-      //FlowEngineCore.Administration.Messages.
+      //Server settings are retrieved from the server after a user connects to the server, in cServer.GetServerSettings()
 
-      frmSettings f = new frmSettings(Options.GetSettings, "Server settings");
+      frmSettings f = new frmSettings(Options.GetSettings, "Server settings", frmSettings.SOURCE.RemoteServer);
+      f.Owner = this;
       f.Show();
     }
 
@@ -280,6 +293,7 @@ namespace FlowEngineDesigner
       else
       {
         frmStatistics f = new frmStatistics();
+        f.Owner = this;
         f.Show();
       }
     }
@@ -287,6 +301,7 @@ namespace FlowEngineDesigner
     private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
     {
       frmAbout f = new frmAbout();
+      f.Owner = this;
       f.Show();
     }
 
@@ -302,7 +317,7 @@ namespace FlowEngineDesigner
     //private bool inActivated = false;
     private void frmMain_Activated(object sender, EventArgs e)
     {
-      
+
       //if (inActivated == true)
       //  return;
       //inActivated = true;
@@ -318,6 +333,11 @@ namespace FlowEngineDesigner
       //  f.BringToFront();
       ////this.BringToFront();
       //inActivated = false;
+    }
+
+    private void connectRecentToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+
     }
   }
 }

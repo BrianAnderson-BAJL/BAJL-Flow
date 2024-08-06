@@ -22,7 +22,7 @@ namespace FlowEngineCore.Administration.Messages
     /// <summary>
     /// This class inherits from SecurityProfileAdd, so you won't see all the security profile fiels here.
     /// </summary>
-    public SecurityProfileEdit(string serverKey, string sessionKey, string oldName, string name, SecurityProfile.SECURITY_ACCESS_LEVEL administrationUsers, SecurityProfile.SECURITY_ACCESS_LEVEL administrationSecurityProfiles, SecurityProfile.SECURITY_ACCESS_LEVEL administrationFlows, SecurityProfile.SECURITY_ACCESS_SIMPLE statistics, SecurityProfile.SECURITY_ACCESS_SIMPLE templates) : base(serverKey, sessionKey, name, administrationUsers, administrationSecurityProfiles, administrationFlows, statistics, templates)
+    public SecurityProfileEdit(string serverKey, string sessionKey, string oldName, string name, SecurityProfile.SECURITY_ACCESS_LEVEL administrationUsers, SecurityProfile.SECURITY_ACCESS_LEVEL administrationSecurityProfiles, SecurityProfile.SECURITY_ACCESS_LEVEL administrationFlows, SecurityProfile.SECURITY_ACCESS_LEVEL serverSettings, SecurityProfile.SECURITY_ACCESS_SIMPLE statistics, SecurityProfile.SECURITY_ACCESS_SIMPLE templates) : base(serverKey, sessionKey, name, administrationUsers, administrationSecurityProfiles, administrationFlows, serverSettings, statistics, templates)
   {
       this.PacketType = Packet.PACKET_TYPE.SecurityProfileEdit;
       this.OldName = oldName;

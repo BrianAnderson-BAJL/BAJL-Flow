@@ -35,6 +35,7 @@
       chValue = new ColumnHeader();
       btnOk = new Button();
       toolTip1 = new ToolTip(components);
+      cmbServerSettings = new ComboBox();
       SuspendLayout();
       // 
       // lstSettings
@@ -43,9 +44,9 @@
       lstSettings.Columns.AddRange(new ColumnHeader[] { chKey, chDataType, chValue });
       lstSettings.FullRowSelect = true;
       lstSettings.GridLines = true;
-      lstSettings.Location = new Point(2, 12);
+      lstSettings.Location = new Point(2, 39);
       lstSettings.Name = "lstSettings";
-      lstSettings.Size = new Size(642, 399);
+      lstSettings.Size = new Size(642, 404);
       lstSettings.TabIndex = 0;
       lstSettings.UseCompatibleStateImageBehavior = false;
       lstSettings.View = View.Details;
@@ -79,11 +80,20 @@
       btnOk.UseVisualStyleBackColor = true;
       btnOk.Click += btnOk_Click;
       // 
+      // cmbServerSettings
+      // 
+      cmbServerSettings.FormattingEnabled = true;
+      cmbServerSettings.Location = new Point(2, 10);
+      cmbServerSettings.Name = "cmbServerSettings";
+      cmbServerSettings.Size = new Size(249, 23);
+      cmbServerSettings.TabIndex = 2;
+      // 
       // frmSettings
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
       ClientSize = new Size(647, 494);
+      Controls.Add(cmbServerSettings);
       Controls.Add(btnOk);
       Controls.Add(lstSettings);
       Name = "frmSettings";
@@ -100,5 +110,6 @@
     private Button btnOk;
     private ColumnHeader chDataType;
     private ToolTip toolTip1;
+    private ComboBox cmbServerSettings;
   }
 }

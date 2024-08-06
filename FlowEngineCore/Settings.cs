@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -85,6 +86,19 @@ namespace FlowEngineCore
     public void SaveSettings()
     {
       SaveSettings(mFileName);
+    }
+
+    public string GetXml()
+    {
+      Xml xml = new Xml();
+      xml.WriteMemoryNew();
+      xml.WriteTagStart("Settings");
+      for (int x = 0; x < mSettings.Count; x++)
+      {
+        xml.WriteTagContentsBare(mSettings[x].ToXml());
+      }
+      xml.WriteTagEnd("Settings");
+      return xml.ReadMemory();
     }
 
     public virtual void SaveSettings(string path)

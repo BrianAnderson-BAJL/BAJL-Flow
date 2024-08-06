@@ -580,7 +580,6 @@ namespace FlowEngineCore.Administration
 #endif
     }
 
-    //TODO: Implement server settings modification via server GET
     private static void ProcessServerSettingsGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
       string path = Options.GetFullPath(Options.SettingsPath);
@@ -590,13 +589,14 @@ namespace FlowEngineCore.Administration
     }
 
 
-    //TODO: Implement server settings modification via server EDIT
     private static void ProcessServerSettingsEdit(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
-      //string path = Options.GetFullPath(Options.SettingsPath);
-      //string xml = System.IO.File.ReadAllText(path);
-      //ServerSettingsGetResponse response = new ServerSettingsGetResponse(packet.PacketId, RESPONSE_CODE.Success, xml);
-      //client.Send(response.GetPacket());
+      ServerSettingsEdit data = new ServerSettingsEdit(packet);
+      string path = Options.GetFullPath(Options.SettingsPath);
+      System.IO.File.WriteAllText(path, data.Xml);
+      Options.LoadSettingsFromXml(data.Xml);
+      ServerSettingsEditResponse response = new ServerSettingsEditResponse(packet.PacketId, RESPONSE_CODE.Success);
+      client.Send(response.GetPacket());
     }
 
     private static void ProcessStatisticsRegister(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)

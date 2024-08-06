@@ -42,6 +42,8 @@
       cmbStatistics = new ComboBox();
       label5 = new Label();
       cmbTemplates = new ComboBox();
+      label7 = new Label();
+      cmbServerSettings = new ComboBox();
       SuspendLayout();
       // 
       // lblDuplicate
@@ -100,7 +102,7 @@
       // label1
       // 
       label1.AutoSize = true;
-      label1.Location = new Point(74, 120);
+      label1.Location = new Point(74, 121);
       label1.Name = "label1";
       label1.Size = new Size(40, 15);
       label1.TabIndex = 27;
@@ -110,7 +112,7 @@
       // 
       cmbFlows.DropDownStyle = ComboBoxStyle.DropDownList;
       cmbFlows.FormattingEnabled = true;
-      cmbFlows.Location = new Point(130, 120);
+      cmbFlows.Location = new Point(130, 121);
       cmbFlows.Name = "cmbFlows";
       cmbFlows.Size = new Size(225, 23);
       cmbFlows.TabIndex = 26;
@@ -136,7 +138,7 @@
       // label4
       // 
       label4.AutoSize = true;
-      label4.Location = new Point(58, 152);
+      label4.Location = new Point(58, 181);
       label4.Name = "label4";
       label4.Size = new Size(56, 15);
       label4.TabIndex = 31;
@@ -146,7 +148,7 @@
       // 
       cmbStatistics.DropDownStyle = ComboBoxStyle.DropDownList;
       cmbStatistics.FormattingEnabled = true;
-      cmbStatistics.Location = new Point(131, 149);
+      cmbStatistics.Location = new Point(131, 178);
       cmbStatistics.Name = "cmbStatistics";
       cmbStatistics.Size = new Size(225, 23);
       cmbStatistics.TabIndex = 30;
@@ -154,7 +156,7 @@
       // label5
       // 
       label5.AutoSize = true;
-      label5.Location = new Point(51, 181);
+      label5.Location = new Point(51, 210);
       label5.Name = "label5";
       label5.Size = new Size(63, 15);
       label5.TabIndex = 33;
@@ -164,16 +166,36 @@
       // 
       cmbTemplates.DropDownStyle = ComboBoxStyle.DropDownList;
       cmbTemplates.FormattingEnabled = true;
-      cmbTemplates.Location = new Point(131, 178);
+      cmbTemplates.Location = new Point(131, 207);
       cmbTemplates.Name = "cmbTemplates";
       cmbTemplates.Size = new Size(225, 23);
       cmbTemplates.TabIndex = 32;
+      // 
+      // label7
+      // 
+      label7.AutoSize = true;
+      label7.Location = new Point(27, 150);
+      label7.Name = "label7";
+      label7.Size = new Size(87, 15);
+      label7.TabIndex = 35;
+      label7.Text = "Server Settings:";
+      // 
+      // cmbServerSettings
+      // 
+      cmbServerSettings.DropDownStyle = ComboBoxStyle.DropDownList;
+      cmbServerSettings.FormattingEnabled = true;
+      cmbServerSettings.Location = new Point(130, 150);
+      cmbServerSettings.Name = "cmbServerSettings";
+      cmbServerSettings.Size = new Size(225, 23);
+      cmbServerSettings.TabIndex = 34;
       // 
       // frmAdministrationSecurityProfileProperties
       // 
       AutoScaleDimensions = new SizeF(7F, 15F);
       AutoScaleMode = AutoScaleMode.Font;
       ClientSize = new Size(570, 287);
+      Controls.Add(label7);
+      Controls.Add(cmbServerSettings);
       Controls.Add(label5);
       Controls.Add(cmbTemplates);
       Controls.Add(label4);
@@ -211,5 +233,7 @@
     private ComboBox cmbStatistics;
     private Label label5;
     private ComboBox cmbTemplates;
+    private Label label7;
+    private ComboBox cmbServerSettings;
   }
 }

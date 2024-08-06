@@ -1,4 +1,5 @@
 ﻿using FlowEngineCore;
+using FlowEngineCore.Administration.Messages;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,19 +14,49 @@ namespace FlowEngineDesigner
 {
   public partial class frmSettings : Form
   {
+    public enum SOURCE
+    {
+      Local,
+      RemoteServer,
+    }
     Settings mSettings;
     string mFormTitle;
-    internal frmSettings(Settings settings, string formTitle)
+    private SOURCE mSource = SOURCE.Local;
+    internal frmSettings(Settings settings, string formTitle, SOURCE source)
     {
       InitializeComponent();
       mSettings = settings;
       mFormTitle = formTitle;
+      mSource = source;
     }
 
     private void btnOk_Click(object sender, EventArgs e)
     {
-      mSettings.SaveSettings();
-      this.Close();
+      if (mSource == SOURCE.Local)
+      {
+        mSettings.SaveSettings();
+        this.Close();
+      }
+      else if (mSource == SOURCE.RemoteServer)
+      {
+        string xml = mSettings.GetXml();
+        ServerSettingsEdit sse = new ServerSettingsEdit(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, xml);
+        cServer.SendAndResponse(sse.GetPacket(), Settings_Callback);
+      }
+    }
+
+    private void Settings_Callback(FlowEngineCore.Administration.EventArgsPacket e)
+    {
+      if (e.Packet.PeekResponseCode() == BaseResponse.RESPONSE_CODE.Success)
+      {
+        this.Close();
+      }
+      else
+      {
+        Global.FormMain!.Invoke(new Action(() => {
+          MessageBox.Show("Failed to save settings to server, check Trace window for more information.");
+        }));
+      }
     }
 
     private void frmSettings_Load(object sender, EventArgs e)
@@ -133,7 +164,6 @@ namespace FlowEngineDesigner
             f.ShowDialog();
           }
           PopulateSettings();
-          mSettings.SaveSettings();
         }
       }
     }

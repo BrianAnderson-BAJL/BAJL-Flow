@@ -163,6 +163,7 @@ namespace FlowEngineDesigner
       if (Flows is null)
         return;
 
+      Flows = Flows.OrderBy(ffi => ffi.FileName).ToList(); //TODO: Properly sort the columns when clicking on them, this is just a Quick fix to order the names by the file name
       cOptions.AdministrationLastFilePath = e.Node.Text;
       lvFiles.Items.Clear();
       for (int x = 0; x < Flows.Count; x++)
