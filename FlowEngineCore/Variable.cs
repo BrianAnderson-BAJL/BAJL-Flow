@@ -335,10 +335,11 @@ namespace FlowEngineCore
 
     public Variable? SubVariableFindByName(string name)
     {
+      string tmpName = name.ToLower();
       for (int x = 0; x < this.SubVariables.Count; x++)
       {
         Variable v = this.SubVariables[x];
-        if (v.Name == name)
+        if (v.Name.ToLower() == tmpName)
           return v;
       }
       return null;
@@ -346,10 +347,11 @@ namespace FlowEngineCore
 
     public bool SubVariableDeleteByName(string name)
     {
+      string tmpName = name.ToLower();
       for (int x = 0; x < this.SubVariables.Count; x++)
       {
         Variable v = this.SubVariables[x];
-        if (v.Name == name)
+        if (v.Name.ToLower() == tmpName)
         {
           this.SubVariables.RemoveAt(x);
           return true;

@@ -10,7 +10,7 @@ namespace FlowEngineCore
   {
     private DateTime StartTime = DateTime.UtcNow;
 
-    public TimeSpan End()
+    public TimeSpan HowLong()
     {
       return DateTime.UtcNow - StartTime;
     }

@@ -210,12 +210,12 @@ namespace FlowEngineDesigner
     {
       if (tslStatus.Text == STATS_ACTIVE)
       {
-        StatisticsDeregister reg = new(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
+        StatisticsDeregister reg = new(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey);
         cServer.SendAndResponse(reg.GetPacket(), Callback_StatisticsDeregister);
       }
       else
       {
-        StatisticsRegister reg = new(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, FlowEngineCore.Statistics.STATISTICS_UPDATE_FREQUENCY.Slow);
+        StatisticsRegister reg = new(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, FlowEngineCore.Statistics.STATISTICS_UPDATE_FREQUENCY.Slow);
         cServer.SendAndResponse(reg.GetPacket(), Callback_StatisticsRegister);
       }
       tslStatus.ForeColor = Color.Blue;
@@ -225,7 +225,7 @@ namespace FlowEngineDesigner
     private void frmStatistics_FormClosing(object sender, FormClosingEventArgs e)
     {
       cEventManager.StatisticsHandler -= cEventManager_StatisticsHandler;
-      StatisticsDeregister reg = new(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
+      StatisticsDeregister reg = new(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey);
       cServer.SendAndResponse(reg.GetPacket(), Callback_StatisticsDeregister);
 
     }
@@ -237,7 +237,7 @@ namespace FlowEngineDesigner
 
       ComboFrequency? freq = cmbFrequency.SelectedItem as ComboFrequency;
 
-      StatisticsRegister reg = new(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, freq!.Frequency);
+      StatisticsRegister reg = new(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, freq!.Frequency);
       cServer.SendAndResponse(reg.GetPacket(), Callback_StatisticsRegister);
 
     }

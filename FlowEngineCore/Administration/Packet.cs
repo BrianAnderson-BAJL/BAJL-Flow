@@ -7,7 +7,6 @@ using System.Buffers.Binary;
 using static FlowEngineCore.Administration.Messages.BaseResponse;
 using FlowEngineCore.Administration.Messages;
 using System.Net.Security;
-using MySqlX.XDevAPI;
 
 namespace FlowEngineCore.Administration
 {
@@ -68,6 +67,8 @@ namespace FlowEngineCore.Administration
       StatisticsData,
       StatisticsDeregister,
       StatisticsDeregisterResponse,
+      ServerPluginsGet,
+      ServerPluginsGetResponse,
       zMaxValue,
     }
     private static int NextPacketId = 0;

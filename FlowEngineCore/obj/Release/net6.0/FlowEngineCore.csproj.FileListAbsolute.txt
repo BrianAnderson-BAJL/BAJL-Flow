@@ -11,3 +11,16 @@ C:\Users\brian\source\repos\FlowEngine\Interfaces\obj\Release\net6.0\FlowEngineC
 C:\Users\brian\source\repos\FlowEngine\Interfaces\obj\Release\net6.0\refint\FlowEngineCore.dll
 C:\Users\brian\source\repos\FlowEngine\Interfaces\obj\Release\net6.0\FlowEngineCore.pdb
 C:\Users\brian\source\repos\FlowEngine\Interfaces\obj\Release\net6.0\ref\FlowEngineCore.dll
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\bin\Release\net6.0\FlowEngineCore.deps.json
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\bin\Release\net6.0\FlowEngineCore.dll
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\bin\Release\net6.0\FlowEngineCore.pdb
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\FlowEngineCore.csproj.AssemblyReference.cache
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\FlowEngineCore.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\FlowEngineCore.AssemblyInfoInputs.cache
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\FlowEngineCore.AssemblyInfo.cs
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\FlowEngineCore.csproj.CoreCompileInputs.cache
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\FlowEngineCore.sourcelink.json
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\FlowEngineCore.dll
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\refint\FlowEngineCore.dll
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\FlowEngineCore.pdb
+C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\obj\Release\net6.0\ref\FlowEngineCore.dll

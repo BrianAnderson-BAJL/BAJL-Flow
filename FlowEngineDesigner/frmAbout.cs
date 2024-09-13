@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FlowEngineCore.Administration.Messages;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -104,7 +105,28 @@ namespace FlowEngineDesigner
 
     private void frmAbout_Load(object sender, EventArgs e)
     {
+      ServerPluginsGet pluginsGet = new ServerPluginsGet(cServer.Info.PrivateKey, cServer.UserLoggedIn!.SessionKey);
+      cServer.SendAndResponse(pluginsGet.GetPacket(), Callback_ServerPlugins);
+    }
 
+    private void Callback_ServerPlugins(FlowEngineCore.Administration.EventArgsPacket e)
+    {
+      if (e.Packet.PeekResponseCode() != BaseResponse.RESPONSE_CODE.Success)
+        return;
+
+      ServerPluginsGetResponse data = new ServerPluginsGetResponse(e.Packet);
+      lvPlugins.Items.Clear();
+      for (int x = 0; x < data.Plugins.Count; x++)
+      {
+        ListViewItem lvi = lvPlugins.Items.Add(data.Plugins[x].Name);
+        lvi.SubItems.Add(data.Plugins[x].VersionAssembly);
+        lvi.SubItems.Add(data.Plugins[x].VersionFile);
+      }
+    }
+
+    private void okButton_Click(object sender, EventArgs e)
+    {
+      this.Close();
     }
   }
 }

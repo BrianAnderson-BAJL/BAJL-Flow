@@ -40,7 +40,7 @@ namespace FlowEngineCore
         }
         catch (Exception ex)
         {
-          mLog?.Write($"Failed to Load Flow [{files[x]}] - {ex.Message}", LOG_TYPE.WAR);
+          mLog?.Write($"Failed to Load Flow [{files[x]}] - {Global.FullExceptionMessage(ex)}", LOG_TYPE.WAR);
         }
         if (flow.StartPlugin is not null) //If there is no StartPlugin assigned to the flow, then the flow isn't kept in memory, it gets dropped, Flow engine doesn't want flows with no plugin, if you can't start it, no point to keep it
         {

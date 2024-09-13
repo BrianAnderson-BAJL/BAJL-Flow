@@ -69,7 +69,7 @@ namespace FlowEngineDesigner
     {
       if (cServer.UserLoggedIn is not null)
       {
-        UsersGet usersGet = new UsersGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
+        UsersGet usersGet = new UsersGet(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey);
         cServer.SendAndResponse(usersGet.GetPacket(), Callback_UsersGet);
       }
     }

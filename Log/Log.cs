@@ -1,5 +1,4 @@
 ﻿using FlowEngineCore;
-using K4os.Compression.LZ4;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
@@ -19,7 +18,6 @@ namespace Logger
       public string Value = "";
       public string ThreadName = "";
       public DateTime LogDateTime = DateTime.MinValue;
-
       public string Format()
       {
 
@@ -28,21 +26,23 @@ namespace Logger
     }
 
     private LOG_TYPE mLogLevel = LOG_TYPE.INF;
+    private const int CHECK_LOG_ROLL_ARCHIVE_DELETE = 60;
 
     public LOG_TYPE LogLevel
     {
       get { return mLogLevel; }
-      set 
+      set
       {
         if (value != mLogLevel)
           Write($"Changing log level from [{mLogLevel}] to [{value}]");
-        mLogLevel = value; 
+        mLogLevel = value;
       }
     }
     private Thread? LogThread;
     private bool KeepRunning = true;
     private List<LogEntry> LogsToWrite = new List<LogEntry>(128);
-    private object CriticalSection = new object();
+    private object CriticalSectionLogList = new object();
+    private object CriticalSectionFile = new object();
     private Func<DateTime> GetDateTime = LocalTime;
     private string LogFileName = "";
     private const string SETTING_TIME_STYLE = "TimeStyle";
@@ -94,11 +94,11 @@ namespace Logger
       setting.Description = "After this many days the log files will be compressed into zip format and stored in the archive directory. Set to 0 (zero) to disable archiving.";
       mSettings.SettingAdd(setting);
 
-      setting = new Setting("Delete logs after days", 30); 
+      setting = new Setting("Delete logs after days", 30);
       setting.Description = "After this many days the log files (and archived log files) will be deleted. Set to 0 (zero) to disable deleting log files.";
       mSettings.SettingAdd(setting);
 
-      setting = new Setting("Log Level", "WAR", STRING_SUB_TYPE.DropDownList); 
+      setting = new Setting("Log Level", "WAR", STRING_SUB_TYPE.DropDownList);
       setting.Description = "Log all events with this severity or greater. (i.e. 'DBG' will log debug and everything higher, 'WAR' will only log Warnings, and Errors";
       var values = Enum.GetValues(typeof(LOG_TYPE));
       foreach (var item in values)
@@ -197,8 +197,8 @@ namespace Logger
     }
 
     private static DateTime LocalTime()
-    { 
-      return DateTime.Now; 
+    {
+      return DateTime.Now;
     }
 
     private static DateTime UtcTime()
@@ -226,13 +226,12 @@ namespace Logger
 
       if (LogFileName.Length > 200)
       {
-        Global.WriteAllways($"LOGGING DISABLED! Log path and file name combination is over 200 characters [{LogFileName}], Please select a shorter path.", LOG_TYPE.ERR);
+        Global.WriteAlways($"LOGGING DISABLED! Log path and file name combination is over 200 characters [{LogFileName}], Please select a shorter path.", LOG_TYPE.ERR);
         mLoggingEnabled = false;
         return;
       }
       LogThread = new Thread(LogThreadRuntime);
       LogThread.Start();
-
 
       base.StartPlugin(GlobalPluginValues);
     }
@@ -253,11 +252,15 @@ namespace Logger
 
       string fileName = tempFileName;
       int sequenceNumber = 0;
-      do
+
+      lock (CriticalSectionFile)
       {
-        sequenceNumber++;
-        fileName = tempFileName.Replace("{Seq}", sequenceNumber.ToString());
-      } while (File.Exists(Options.GetFullPath(filePath, fileName)));
+        do
+        {
+          sequenceNumber++;
+          fileName = tempFileName.Replace("{Seq}", sequenceNumber.ToString());
+        } while (File.Exists(Options.GetFullPath(filePath, fileName)));
+      }
 
       return Options.GetFullPath(filePath, fileName);
     }
@@ -290,7 +293,7 @@ namespace Logger
       else
         logEntry.ThreadName = overrideThreadName;
 
-      lock (CriticalSection)
+      lock (CriticalSectionLogList)
       {
         LogsToWrite.Add(logEntry);
       }
@@ -301,33 +304,83 @@ namespace Logger
     /// </summary>
     private void LogThreadRuntime()
     {
-      
+      TimeElapsed timeElapsed = new TimeElapsed();
       Thread.CurrentThread.Name = "Logger Plugin";
       mLastLogRollTimeCheck = GetDateTime();
-      List<LogEntry> localLogs = new List<LogEntry>(128);
       while (KeepRunning == true)
       {
-        lock (CriticalSection)
+        Thread.Sleep(10);
+
+        if (timeElapsed.HowLong().TotalSeconds > CHECK_LOG_ROLL_ARCHIVE_DELETE)
         {
-          localLogs.AddRange(LogsToWrite);
-          LogsToWrite.Clear();
+          CheckForLogRoll();
+          CheckForLogArchiveAndDelete();
+          timeElapsed = new TimeElapsed();
         }
 
-        StringBuilder sb = new StringBuilder(4096);
-        for (int x = 0; x < localLogs.Count; x++)
+        lock (CriticalSectionLogList)
         {
-          string temp = localLogs[x].Format();
-          sb.Append(temp + Environment.NewLine);
-          if (Options.ServerType == Options.SERVER_TYPE.Development)
-            Log.WriteToConsole(temp, localLogs[x].LogType);
+          if (LogsToWrite.Count == 0)
+          {
+            continue;
+          }
         }
-        File.AppendAllText(LogFileName, sb.ToString());
-        CheckForLogRoll();
-        CheckForLogArchiveAndDelete();
-        localLogs.Clear();
 
-        Thread.Sleep(1);
+        FlushLogEntries();
+
+
       }
+    }
+
+    List<LogEntry> localLogs = new List<LogEntry>(128);
+    public void FlushLogEntries()
+    {
+
+      lock (CriticalSectionLogList)
+      {
+        localLogs.Clear();
+        localLogs.AddRange(LogsToWrite);
+        LogsToWrite.Clear();
+      }
+
+      StringBuilder sb = new StringBuilder(4096);
+      for (int x = 0; x < localLogs.Count; x++)
+      {
+        string temp = localLogs[x].Format();
+        temp = MaskCriticalData(temp);
+        sb.Append(temp + Environment.NewLine);
+        if (Options.ServerType == Options.SERVER_TYPE.Development)
+          Log.WriteToConsole(temp, localLogs[x].LogType);
+      }
+      if (sb.Length > 0)
+      {
+        lock (CriticalSectionFile)
+        {
+          File.AppendAllText(LogFileName, sb.ToString());
+        }
+      }
+    }
+
+    private string MaskCriticalData(string val)
+    {
+      int index = val.IndexOf("\"password\"");
+      if (index == -1)
+        return val;
+      index = val.IndexOf("\"newPassword\"");
+      if (index == -1)
+        return val;
+
+      int startPos = val.IndexOf('"', index + 10);
+      if (startPos > -1)
+      {
+        int endPos = val.IndexOf('"', startPos + 1);
+        if (endPos > -1)
+        {
+          startPos += 1;
+          val = val.Substring(0, startPos) + new string('*', endPos - startPos) + val.Substring(endPos);
+        }
+      }
+      return val;
     }
 
     private void CheckForLogArchiveAndDelete()
@@ -354,7 +407,7 @@ namespace Logger
 
       DateTime now = GetDateTime();
       string filePath = mSettings.SettingGetAsString("LogPath");
-      extension = "*" + extension; 
+      extension = "*" + extension;
       string[] AllFiles = Directory.GetFiles(filePath, extension, SearchOption.AllDirectories); //Get all the files with the extension defined in the Logger.xml file.
       for (int x = 0; x < AllFiles.Length; x++)
       {
@@ -375,6 +428,7 @@ namespace Logger
       }
     }
 
+    //TODO: Implement CheckForLogArchive...
     private void CheckForLogArchive()
     {
     }
@@ -415,8 +469,8 @@ namespace Logger
       if (maxFileSizeSetting is not null && fi.Length >= maxFileSizeSetting.Value)
       {
         LogFileName = GetFileName(); //We have reached the maximum file size, get a new file name
-        AddLogRollingEntry(oldFileName, $"Rolling log file 'RollStyle' is set to [{ROLL_STYLE_SIZE_BASED}], 'MaxFileSizeInBytes' is set to [{maxFileSizeSetting!.Value}], actual log file size is [{fi.Length}], new file name is [{LogFileName}]");
-        AddLogRollingEntry(LogFileName, $"Log File was Rolled to this log file 'RollStyle' was set to [{ROLL_STYLE_SIZE_BASED}], 'MaxFileSizeInBytes' was set to [{maxFileSizeSetting.Value}], old log file size was [{fi.Length}], old file name is [{oldFileName}]");
+        WriteInstantly($"Rolling log file 'RollStyle' is set to [{ROLL_STYLE_SIZE_BASED}], 'MaxFileSizeInBytes' is set to [{maxFileSizeSetting!.Value}], actual log file size is [{fi.Length}], new file name is [{LogFileName}]", oldFileName);
+        WriteInstantly($"Log File was Rolled to this log file 'RollStyle' was set to [{ROLL_STYLE_SIZE_BASED}], 'MaxFileSizeInBytes' was set to [{maxFileSizeSetting.Value}], old log file size was [{fi.Length}], old file name is [{oldFileName}]", LogFileName);
         return true;
       }
       return false;
@@ -429,25 +483,38 @@ namespace Logger
       if (rollAtHour is not null && currentTime.Hour == rollAtHour.Value && mLastLogRollTimeCheck.TimeOfDay.Hours != currentTime.Hour) //TimeOfDay will return the hours as 24 hour format
       {
         LogFileName = GetFileName(); //We have reached the time to roll the log, get a new file name
-        AddLogRollingEntry(oldFileName, $"Rolling log file 'RollStyle' is set to [{ROLL_STYLE_TIME_BASED}], 'RollLogAtHour' is set to [{rollAtHour!.Value}] hour, actual time is [{currentTime}], new file name is [{LogFileName}]");
-        AddLogRollingEntry(LogFileName, $"Log File was Rolled to this log file 'RollStyle' was set to [{ROLL_STYLE_TIME_BASED}], 'RollLogAtHour' was set to [{rollAtHour.Value}] hour, actual time was [{currentTime}], old file name is [{oldFileName}]");
+        WriteInstantly($"Rolling log file 'RollStyle' is set to [{ROLL_STYLE_TIME_BASED}], 'RollLogAtHour' is set to [{rollAtHour!.Value}] hour, actual time is [{currentTime}], new file name is [{LogFileName}]", oldFileName);
+        WriteInstantly($"Log File was Rolled to this log file 'RollStyle' was set to [{ROLL_STYLE_TIME_BASED}], 'RollLogAtHour' was set to [{rollAtHour.Value}] hour, actual time was [{currentTime}], old file name is [{oldFileName}]", LogFileName);
         return true;
       }
       return false;
     }
 
-    private void AddLogRollingEntry(string oldLogFileName, string val)
+    public void WriteInstantly(string val, string overrideLogFileName = "", LOG_TYPE logType = LOG_TYPE.INF)
     {
+      bool LiveFileNeedToLock = false;
       try
       {
-        if (LogFileName is not null && LogFileName != "") //The log is being rolled, lets add a log entry to the existing file to show that it is rolling.
+        if (overrideLogFileName == "")
         {
-          LogEntry le = new LogEntry();
-          le.LogType = LOG_TYPE.INF;
-          le.Value = val;
-          le.LogDateTime = GetDateTime();
-          File.AppendAllText(oldLogFileName, le.Format() + Environment.NewLine);
+          overrideLogFileName = LogFileName; //if the override file name isn't set, lets use the current file name
+          LiveFileNeedToLock = true;
+        }
+        LogEntry le = new LogEntry();
+        le.LogType = logType;
+        le.Value = val;
+        le.LogDateTime = GetDateTime();
 
+        if (LiveFileNeedToLock == true)
+        {
+          lock (CriticalSectionFile)
+          {
+            File.AppendAllText(overrideLogFileName, le.Format() + Environment.NewLine);
+          }
+        }
+        else
+        {
+          File.AppendAllText(overrideLogFileName, le.Format() + Environment.NewLine);
         }
       }
       catch (Exception ex)
@@ -459,7 +526,8 @@ namespace Logger
     public RESP Create(FlowEngineCore.Flow flow, Variable[] vars)
     {
       Log.WriteToConsole("Log.Create");
-      return RESP.SetSuccess();
+      throw new NotImplementedException("Log.Create is not implemented");
+      //return RESP.SetSuccess();
     }
 
     public RESP Write(FlowEngineCore.Flow flow, Variable[] vars)

@@ -1,0 +1,16 @@
+C:\Users\brian\source\repos\FlowEngine\Google\bin\Debug\net6.0\Goog.deps.json
+C:\Users\brian\source\repos\FlowEngine\Google\bin\Debug\net6.0\Goog.dll
+C:\Users\brian\source\repos\FlowEngine\Google\bin\Debug\net6.0\Goog.pdb
+C:\Users\brian\source\repos\FlowEngine\Google\bin\Debug\net6.0\FlowEngineCore.dll
+C:\Users\brian\source\repos\FlowEngine\Google\bin\Debug\net6.0\FlowEngineCore.pdb
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\Goog.csproj.AssemblyReference.cache
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\Goog.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\Goog.AssemblyInfoInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\Goog.AssemblyInfo.cs
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\Goog.csproj.CoreCompileInputs.cache
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\Goog.sourcelink.json
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\Goog.csproj.Up2Date
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\Goog.dll
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\refint\Goog.dll
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\Goog.pdb
+C:\Users\brian\source\repos\FlowEngine\Google\obj\Debug\net6.0\ref\Goog.dll

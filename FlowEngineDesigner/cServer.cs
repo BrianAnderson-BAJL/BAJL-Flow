@@ -36,18 +36,29 @@ namespace FlowEngineDesigner
     public static FlowEngineCore.User UserLoggedIn = new User();
     public static List<FlowEngineCore.SecurityProfile>? SecurityProfiles;
 
-    public static bool Connect(string domainName, int port)
+    public static List<cServerInformation> Servers = new List<cServerInformation>();
+
+    public static cServerInformation Info = new cServerInformation();
+
+    public static bool Connect(cServerInformation server)
     {
+      bool wasLastConnected = server.WasLastConnected;
+      ClearWasLastConnected();
+      server.WasLastConnected = true;
+      if (wasLastConnected == false)
+        SaveProfiles(); //Wasn't connected to this server before, lets resave the profiles.
+
       TimeElapsed te = new TimeElapsed(); //Starts a timer
+      Info = server;
       lock (CriticalSection)
       {
         if (Client is not null && Client.Connected == true) //Already connected, just return true, they need to call Disconnect to create a new connection first.
           return true;
 
-        Client = FlowEngineCore.Administration.TcpTlsClient.Connect(domainName, port);
+        Client = FlowEngineCore.Administration.TcpTlsClient.Connect(server.Url, server.Port);
         if (Client is null)
         {
-          cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, $"FAILED to Connect to [{domainName}], [{port}]", cEventManager.TRACER_TYPE.Error, te.End().Ticks);
+          cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, $"FAILED to Connect to [{server.Url}], [{server.Port}]", cEventManager.TRACER_TYPE.Error, te.HowLong().Ticks);
           Global.FormMain!.tsServer.Text = "Disconected";
           Global.FormMain!.tsServer.ForeColor = Color.Red;
           Global.FormMain!.tsLoggedInAs.Text = "[NOT LOGGED IN]";
@@ -57,12 +68,55 @@ namespace FlowEngineDesigner
         {
           Client.NewPacket += Client_NewPacket;
           Client.ConnectionClosed += Client_ConnectionClosed;
-          cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, $"Connected to [{domainName}], [{port}]", cEventManager.TRACER_TYPE.Information, te.End().Ticks);
-          Global.FormMain!.tsServer.Text = "Connected";
+          cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, $"Connected to [{server.Url}], [{server.Port}]", cEventManager.TRACER_TYPE.Information, te.HowLong().Ticks);
+          Global.FormMain!.tsServer.Text = $"Connected to [{server.Url}]";
           Global.FormMain!.tsServer.ForeColor = Color.Green;
           return true;
         }
 
+      }
+    }
+
+    
+
+    private static void ClearWasLastConnected()
+    {
+      for (int x = 0; x < Servers.Count; x++)
+      {
+        Servers[x].WasLastConnected = false;
+      }
+    }
+
+    public static void SaveProfiles()
+    {
+      Xml xml = new Xml();
+      string path = cOptions.GetFullPath(".");
+      xml.WriteFileNew(path + "/server_profiles.xml");
+      xml.WriteTagStart("Servers");
+      for (int x = 0; x < Servers.Count; x++)
+      {
+        Servers[x].WriteXml(xml);
+      }
+      xml.WriteTagEnd("Servers");
+      xml.WriteFileClose();
+    }
+
+    public static void LoadProfiles()
+    {
+      Xml xml = new Xml();
+      string path = cOptions.GetFullPath(".");
+      string xmlStr = xml.FileRead(path + "/server_profiles.xml");
+
+      xmlStr = Xml.GetXMLChunk(ref xmlStr, "Servers");
+      string tempXml = Xml.GetXMLChunk(ref xmlStr, "Server");
+      while (tempXml != "")
+      {
+        cServerInformation  server = new cServerInformation();
+        server.ReadXml(tempXml);
+        Servers.Add(server);
+        if (server.WasLastConnected == true)
+          Info = server;
+        tempXml = Xml.GetXMLChunk(ref xmlStr, "Server");
       }
     }
 
@@ -81,7 +135,7 @@ namespace FlowEngineDesigner
       if (UserLoggedIn is null)
         return;
 
-      ServerSettingsGet ssg = new ServerSettingsGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
+      ServerSettingsGet ssg = new ServerSettingsGet(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey);
       cServer.SendAndResponse(ssg.GetPacket(), Callback_GetServerSettings, callback);
     }
 
@@ -100,7 +154,7 @@ namespace FlowEngineDesigner
       if (UserLoggedIn is null)
         return;
 
-      SecurityProfilesGet spg = new SecurityProfilesGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey);
+      SecurityProfilesGet spg = new SecurityProfilesGet(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey);
       cServer.SendAndResponse(spg.GetPacket(), Callback_SecurityProfile, callback);
     }
 
@@ -193,7 +247,7 @@ namespace FlowEngineDesigner
 
           Global.FormMain!.Invoke((MethodInvoker)delegate
           {
-            cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, $"Received [{e.Packet.PacketType}], Response code [{e.Packet.PeekResponseCode()}]", e.Packet.PeekResponseCode(), callbackInfo.Value.ElapsedTime.End().Ticks);
+            cEventManager.RaiseEventTracer(SENDER.FlowEngineServer, $"Received [{e.Packet.PacketType}], Response code [{e.Packet.PeekResponseCode()}]", e.Packet.PeekResponseCode(), callbackInfo.Value.ElapsedTime.HowLong().Ticks);
             callbackInfo.Value.Callback(e);
             if (callbackInfo.Value.Callback_AlsoNotify is not null)
             {
@@ -240,7 +294,7 @@ namespace FlowEngineDesigner
       {
         if (cServer.UserLoggedIn is not null && SendCloseConnectionToServer == true)
         {
-          Send(new BaseMessage(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, Packet.PACKET_TYPE.CloseConnection).GetPacket());
+          Send(new BaseMessage(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, Packet.PACKET_TYPE.CloseConnection).GetPacket());
         }
         if (Client is not null)
           Client.Close();

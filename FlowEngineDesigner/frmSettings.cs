@@ -40,7 +40,7 @@ namespace FlowEngineDesigner
       else if (mSource == SOURCE.RemoteServer)
       {
         string xml = mSettings.GetXml();
-        ServerSettingsEdit sse = new ServerSettingsEdit(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, xml);
+        ServerSettingsEdit sse = new ServerSettingsEdit(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, xml);
         cServer.SendAndResponse(sse.GetPacket(), Settings_Callback);
       }
     }

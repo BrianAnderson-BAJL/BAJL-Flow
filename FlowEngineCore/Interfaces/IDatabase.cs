@@ -8,6 +8,7 @@ namespace FlowEngineCore.Interfaces
 {
   public interface IDatabase
   {
+    DATABASE_TYPE DatabaseType { get; }
     void Connect(string connectionString);
     Variable Execute(string SQL, params Variable[] vars);
     Variable Execute(object transaction, string SQL, params Variable[] vars);

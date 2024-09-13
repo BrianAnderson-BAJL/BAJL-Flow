@@ -1,7 +1,6 @@
 ﻿using FlowEngineCore;
 using FlowEngineCore.Administration.Messages;
 using FlowEngineCore.Interfaces;
-using MySqlX.XDevAPI.Relational;
 using System;
 using System.Drawing;
 using System.Security.Cryptography;
@@ -23,6 +22,7 @@ namespace Session
     private const int ERROR_ACCOUNT_LOCKED_OUT = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 7;
     private const int ERROR_NO_DB_CONNECTION = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 8;
     private const int ERROR_PASSWORD_RESET_BAD_LOGIN_CODE = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 9;
+    private const int ERROR_UNABLE_TO_FIND_DEVICE = (int)STEP_ERROR_NUMBERS.SessionErrorMin + 10;
 
     Random rand = new Random();
     private const string RESET_PASSWORD_CHARACTERS = "ABCDEFGHJKLMNPQRSTWXYZ23456789"; //removed letters/numbers 'I', '1', 'O', '0' so people don't get confused
@@ -39,6 +39,7 @@ namespace Session
       sessionInfoWithUserId.SubVariableAdd(new Variable("sessionToken", ""));
       sessionInfoWithUserId.SubVariableAdd(new Variable("sessionExpiration", ""));
       sessionInfoWithUserId.SubVariableAdd(new Variable("deviceToken", ""));
+      sessionInfoWithUserId.SubVariableAdd(new Variable("sessionId", 0L));
 
       Variable sessionInfo = sessionInfoWithUserId.Clone();
       sessionInfo.SubVariableDeleteByName("userId");
@@ -82,7 +83,7 @@ namespace Session
       function.Parms.Add("PixelsMaxX", DATA_TYPE.String);
       function.Parms.Add("PixelsMaxY", DATA_TYPE.String);
       function.DefaultSaveResponseVariable = true;
-      function.RespNames.Name = "deviceId";
+      function.RespNames = sessionInfo;
       Functions.Add(function);
 
       function = new Function("Check Device", this, CheckDevice);
@@ -208,10 +209,12 @@ namespace Session
       if (recordsAffected.Value > 0)
         mLog?.Write($"Deleted [{recordsAffected.Value}] session User duplicates from UserSessions with UserId [{dbUserId.GetValueAsString()}], only one user can be signed into a device");
 
-      string sessionToken = SecureHasherV1.SessionIdCreate();
+      string sessionToken = SecureHasher.SessionIdCreate();
       recordsAffected = Database.Execute("INSERT INTO UserSessions (UserId, DeviceId, SessionToken) VALUES (@UserId, @DeviceId, @SessionToken)", dbUserId, new Variable("@DeviceId", deviceId!), new Variable("@SessionToken", sessionToken));
       if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
         return RESP.SetError(ERROR_INSERT_DB, "Failed to insert session into database");
+
+      recordsAffected = Database.Execute("DELETE FROM UserForgotPasswordReset WHERE LoginId = @LoginId", loginId);
 
       Variable? varSession = CheckSessionInternal(Database, new Variable("", sessionToken));
       if (varSession is null)
@@ -242,8 +245,8 @@ namespace Session
       Variable loginId = vars[0].CloneWithNewName("@LoginId");
 
       //Check if the loginid exists
-      Variable records = Database.Select("SELECT UserId FROM Users Where LoginId = @LoginId", loginId);
-      if (records.SubVariables.Count == 0)
+      Variable recUserId = Database.SelectId("SELECT UserId FROM Users Where LoginId = @LoginId", loginId);
+      if (recUserId.Value == 0)
         return RESP.SetError(ERROR_BAD_CREDENTIALS, "LoginId does not exist");
 
       int codeLength = mSettings.SettingGetAsInt("ForgotPasswordCodeLength");
@@ -259,7 +262,7 @@ namespace Session
 
       //Clean up and insert the new record
       Variable recordsAffected = Database.Execute("DELETE FROM UserForgotPasswordReset WHERE LoginId = @LoginId", loginId);
-      recordsAffected = Database.Execute($"INSERT INTO UserForgotPasswordReset (LoginId, Code, Expiration) VALUES (@LoginId, @Code, (current_timestamp() + interval {codeMinutes} minute))", loginId, new Variable("@Code", code));
+      recordsAffected = Database.Execute($"INSERT INTO UserForgotPasswordReset (UserId, LoginId, Code, Expiration) VALUES (@UserId, @LoginId, @Code, (current_timestamp() + interval {codeMinutes} minute))", recUserId.CloneWithNewName("@UserId"), loginId, new Variable("@Code", code));
       if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
         return RESP.SetError(ERROR_INSERT_DB, "Failed to insert user password reset into database");
 
@@ -281,6 +284,8 @@ namespace Session
 
       string? deviceToken = null;
       long? deviceId = null;
+      string sqlDevice;
+      
 
       vars[0].GetValue(out string loginId);
       vars[1].GetValue(out string password);
@@ -288,16 +293,26 @@ namespace Session
       if (vars[2].DataType == DATA_TYPE.String) //It must be a device token straight from the request data
       {
         vars[2].GetValue(out deviceToken);
+        sqlDevice = "SELECT UserId FROM UserDevices WHERE DeviceToken = @Device";
       }
       else if (vars[2].DataType == DATA_TYPE.Integer)
       {
         vars[2].GetValue(out long tempDeviceId);
         deviceId = tempDeviceId;
+        sqlDevice = "SELECT UserId FROM UserDevices WHERE UserDeviceId = @Device";
       }
       else
       {
         return RESP.SetError(ERROR_INVALID_DEVICE_TOKEN, "'Device' Variable is not set");
       }
+
+      //Find the UserId with the device token or device id in the database
+      Variable varDeviceForSql = vars[2].CloneWithNewName("@Device");
+      Variable rec = Database.SelectOneRecord(sqlDevice, varDeviceForSql);
+      if (rec.SubVariables.Count == 0)
+        return RESP.SetError(ERROR_UNABLE_TO_FIND_DEVICE, "Failed to retrieve user from database");
+
+      Variable existingUserId = rec[0].CloneWithNewName("@UserId");
 
       //Check if the LoginId already exists in the database
       Variable varLoginId = new("@LoginId", loginId); //Need to name the varialbe '@LoginId' to be used in the SQL
@@ -309,22 +324,18 @@ namespace Session
       }
 
       //LoginId doesn't exist, lets hash the password and insert it into the database
-      string passwordHash = SecureHasherV1.Hash(password);
-      Variable recordsAffected = Database.Execute("INSERT INTO Users (LoginId, Password) VALUES (@LoginId, @Password)", varLoginId, new Variable("@Password", passwordHash));
-      if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
+      string passwordHash = SecureHasher.Hash(password);                                                               //5 = Registered
+      Variable recordsAffected = Database.Execute("UPDATE Users SET LoginId = @LoginId, Password = @Password, StatusId = 5 WHERE UserId = @UserId", varLoginId, new Variable("@Password", passwordHash), existingUserId);
+      if (recordsAffected.Value == 0)
         return RESP.SetError(ERROR_INSERT_DB, "Failed to insert user into database");
 
-      //
-      int NEW_DB_ID_INDEX = 0;
-      recordsAffected[NEW_DB_ID_INDEX].GetValue(out long newDbId); //The only sub variable will be the new Id of the record that was inserted
-      Variable userDb = Database.Select("SELECT LoginId, StatusId FROM Users WHERE UserId = @UserId", new Variable("@UserId", newDbId));
+      Variable userDb = Database.Select("SELECT LoginId, StatusId FROM Users WHERE UserId = @UserId", existingUserId);
       if (userDb.SubVariables.Count == 0)
         return RESP.SetError(ERROR_DB, "Failed to retrieve user from database");
 
       if (deviceId is not null)
       {
         Variable deviceIdVar = new("@UserDeviceID", deviceId);
-        Database.Execute("UPDATE UserDevices SET UserId = @UserId WHERE UserDeviceId = @UserDeviceID", new Variable("@UserId", newDbId), deviceIdVar);
         Variable token = Database.SelectId("SELECT DeviceToken FROM UserDevices WHERE UserDeviceId = @UserDeviceID", deviceIdVar);
         if (token.DataType == DATA_TYPE.String)
           deviceToken = token.Value;
@@ -332,7 +343,6 @@ namespace Session
       else if (deviceToken is not null)
       {
         Variable deviceTokenVar = new("@DeviceToken", deviceToken);
-        Database.Execute("UPDATE UserDevices SET UserId = @UserId WHERE DeviceToken = @DeviceToken", new Variable("@UserId", newDbId), deviceTokenVar);
         Variable id = Database.SelectId("SELECT UserDeviceId FROM UserDevices WHERE DeviceToken = @DeviceToken", deviceTokenVar);
         if (id.DataType == DATA_TYPE.Integer)
           deviceId = id.Value;
@@ -343,8 +353,8 @@ namespace Session
       if (recordsAffected.Value > 0)
         mLog?.Write($"Deleted [{recordsAffected.Value}] session device duplicates from UserDevices with DeviceID [{deviceId}], only one user can be signed into a device");
 
-      string sessionToken = SecureHasherV1.SessionIdCreate();
-      recordsAffected = Database.Execute("INSERT INTO UserSessions (UserId, DeviceId, SessionToken) VALUES (@UserId, @DeviceId, @SessionToken)", new Variable("@UserId", newDbId), new Variable("@DeviceId", deviceId!), new Variable("@SessionToken", sessionToken));
+      string sessionToken = SecureHasher.SessionIdCreate();
+      recordsAffected = Database.Execute("INSERT INTO UserSessions (UserId, DeviceId, SessionToken) VALUES (@UserId, @DeviceId, @SessionToken)", existingUserId, new Variable("@DeviceId", deviceId!), new Variable("@SessionToken", sessionToken));
       if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
         return RESP.SetError(ERROR_INSERT_DB, "Failed to insert session into database");
 
@@ -435,7 +445,7 @@ namespace Session
       }
 
       records[0]["Password"].GetValue(out string passwordDb);
-      if (SecureHasherV1.Verify(password, passwordDb) == false) //Check if the password matches the database
+      if (SecureHasher.Verify(password, passwordDb) == false) //Check if the password matches the database
       {
         loginAttempts++;
         if (loginAttempts < mSettings.SettingGetAsInt("LoginAttemptsBeforeLock"))
@@ -480,7 +490,7 @@ namespace Session
       if (recordsAffected.Value > 0)
         mLog?.Write($"Deleted [{recordsAffected.Value}] session device duplicates from UserDevices with DeviceID [{deviceId}], only one user can be signed into a device");
 
-      string sessionToken = SecureHasherV1.SessionIdCreate();
+      string sessionToken = SecureHasher.SessionIdCreate();
       recordsAffected = Database.Execute("INSERT INTO UserSessions (UserId, DeviceId, SessionToken) VALUES (@UserId, @DeviceId, @SessionToken)", varUserId, new Variable("@DeviceId", deviceId!), new Variable("@SessionToken", sessionToken));
       if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
         return RESP.SetError(ERROR_INSERT_DB, "Failed to insert session into database");
@@ -581,20 +591,46 @@ namespace Session
       if (varDeviceToken.Value is null || varDeviceToken.Value == "") //User has no device token, it is a new device, so create and insert
       {
         mLog?.Write($"Session.DeviceRegister - Existing device token is blank, creating a new one", LOG_TYPE.DBG);
-        varDeviceToken.Value = SecureHasherV1.SessionIdCreate();
-        
-        Variable recordsAffected = Database.Execute("INSERT INTO UserDevices (DeviceToken, AppVersion, OsFamily, OsVersion, Model, MaxTextureSize, PixelsMaxX, PixelsMaxY) VALUES (@DeviceToken, @AppVersion, @OsFamily, @OsVersion, @Model, @MaxTextureSize, @PixelsMaxX, @PixelsMaxY)", varDeviceToken, varAppVersion, varOsFamily, varOsVersion, varModel, varMaxTextureSize, varPixelsMaxX, varPixelsMaxY);
-        if (recordsAffected.Value > 0 && recordsAffected.SubVariables.Count > 0)
-        {
-          mLog?.Write($"Session.DeviceRegister - Created a new token [{varDeviceToken.Value}]", LOG_TYPE.INF);
-          varDeviceToken.Name = "deviceToken";
-          return RESP.SetSuccess(varDeviceToken);
-        }
+        varDeviceToken.Value = SecureHasher.SessionIdCreate();
+        string sql = "";
+        if (Database.DatabaseType == DATABASE_TYPE.MariaDb)
+          sql = "INSERT INTO Users () VALUES ()";
         else
+          sql = "INSERT INTO Users DEFAULT VALUES";
+
+        Variable recordsAffected = Database.Execute(sql);
+        if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
+          return RESP.SetError(ERROR_INSERT_DB, "Failed inserting a user");
+
+        Variable varUserId = recordsAffected[0].CloneWithNewName("@UserID");
+        recordsAffected = Database.Execute("INSERT INTO UserDevices (UserId, DeviceToken, AppVersion, OsFamily, OsVersion, Model, MaxTextureSize, PixelsMaxX, PixelsMaxY) VALUES (@UserId, @DeviceToken, @AppVersion, @OsFamily, @OsVersion, @Model, @MaxTextureSize, @PixelsMaxX, @PixelsMaxY)", varUserId, varDeviceToken, varAppVersion, varOsFamily, varOsVersion, varModel, varMaxTextureSize, varPixelsMaxX, varPixelsMaxY);
+        if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
         {
           mLog?.Write($"Session.DeviceRegister - Failed inserting a new record into the DB", LOG_TYPE.ERR);
-          return RESP.SetError(ERROR_DB, "Failed inserting a new record into the DB");
+          return RESP.SetError(ERROR_INSERT_DB, "Failed inserting a new record into the DB");
         }
+
+        Variable varDeviceId = recordsAffected[0].CloneWithNewName("@DeviceId");
+        string sessionToken = SecureHasher.SessionIdCreate();
+        recordsAffected = Database.Execute("INSERT INTO UserSessions (UserId, DeviceId, SessionToken) VALUES (@UserId, @DeviceId, @SessionToken)", varUserId, varDeviceId, new Variable("@SessionToken", sessionToken));
+        if (recordsAffected.Value == 0 || recordsAffected.SubVariables.Count == 0)
+          return RESP.SetError(ERROR_INSERT_DB, "Failed to insert session into database");
+
+        Variable? varSession = CheckSessionInternal(Database, new Variable("", sessionToken));
+        if (varSession is null)
+          return RESP.SetError(ERROR_DB, "Failed to retrieve session from database");
+
+        Variable sessionInfo = new Variable();
+        sessionInfo.Name = "sessionInfo";
+        sessionInfo.SubVariableAdd(new Variable("loginId", varSession[1].Value));
+        sessionInfo.SubVariableAdd(new Variable("statusId", varSession[2].Value));
+        sessionInfo.SubVariableAdd(new Variable("sessionToken", sessionToken));
+        sessionInfo.SubVariableAdd(new Variable("sessionExpiration", varSession[4].Value));
+        sessionInfo.SubVariableAdd(new Variable("deviceToken", varDeviceToken.Value));
+
+        mLog?.Write($"Session.DeviceRegister - Created a new token [{varDeviceToken.Value}]", LOG_TYPE.INF);
+        return RESP.SetSuccess(sessionInfo);
+
       }
       else //There is a device token already, if it exists update the info, if it doesn't exist create and insert a new one
       {
@@ -603,7 +639,7 @@ namespace Session
         {
           mLog?.Write($"Session.DeviceRegister - Existing token wasn't found [{vars[0].Value}]", LOG_TYPE.DBG);
 
-          varDeviceToken.Value = SecureHasherV1.SessionIdCreate();
+          varDeviceToken.Value = SecureHasher.SessionIdCreate();
 
           Variable recordsAffected = Database.Execute("INSERT INTO UserDevices (DeviceToken, AppVersion, OsFamily, OsVersion, Model, MaxTextureSize, PixelsMaxX, PixelsMaxY) VALUES (@DeviceToken, @AppVersion, @OsFamily, @OsVersion, @Model, @MaxTextureSize, @PixelsMaxX, @PixelsMaxY)", varDeviceToken, varAppVersion, varOsFamily, varOsVersion, varModel, varMaxTextureSize, varPixelsMaxX, varPixelsMaxY);
 
@@ -682,7 +718,7 @@ namespace Session
     {
       string oldName = varSessionToken.Name;
       varSessionToken.Name = "@SessToken";
-      Variable record = database.SelectOneRecord("SELECT UserId as userId, LoginId as loginId, StatusId as statusId, SessionToken as sessionToken, Expiration as expiration, DeviceToken as deviceToken FROM viewUserSession WHERE Expiration > current_timestamp() AND SessionToken = @SessToken", varSessionToken);
+      Variable record = database.SelectOneRecord("SELECT UserId as userId, LoginId as loginId, StatusId as statusId, SessionToken as sessionToken, Expiration as sessionExpiration, DeviceToken as deviceToken, SessionId as sessionId FROM viewUserSession WHERE Expiration > current_timestamp() AND SessionToken = @SessToken", varSessionToken);
       if (record.SubVariables.Count <= 0) //No record, means sessionToken was not found in the database
       {
         mLog?.Write($"Session.CheckSession - INVALID session [{varSessionToken.GetValueAsString()}]", LOG_TYPE.INF);
@@ -705,18 +741,18 @@ namespace Session
       if (varUserSession is null)
         return RESP.SetError(ERROR_INVALID_SESSION, $"Invalid session [{vars[0].GetValueAsString()}]");
 
-      Variable varUserId = varUserSession[0][0].CloneWithNewName("@UserId");
-      Variable varUserPassword = Database.Select("SELECT Password FROM Users WHERE UserId = @UserId", varUserId);
+      Variable varUserId = varUserSession[0].CloneWithNewName("@UserId");
+      Variable varUserPassword = Database.SelectOneRecord("SELECT Password FROM Users WHERE UserId = @UserId", varUserId);
       if (varUserPassword is null || varUserPassword.Count == 0)
         return RESP.SetError(ERROR_DB, "Unknown Error");
 
       string oldPassword = vars[1].GetValueAsString();
-      if (SecureHasherV1.Verify(oldPassword, varUserPassword[0][0].GetValueAsString()) == false)
+      if (SecureHasher.Verify(oldPassword, varUserPassword[0].GetValueAsString()) == false)
         return RESP.SetError(ERROR_BAD_CREDENTIALS, $"Bad credentials");
 
       //We got this far, everything is good
       string newPassword = vars[2].GetValueAsString();
-      string newPasswordHashed = SecureHasherV1.Hash(newPassword);
+      string newPasswordHashed = SecureHasher.Hash(newPassword);
       Variable recordsAffected = Database.Execute("UPDATE Users SET Password = @Password WHERE UserId = @UserId", new Variable("@Password", newPasswordHashed), varUserId);
       if (recordsAffected.Value == 0)
         return RESP.SetError(ERROR_DB, "Not implemented");

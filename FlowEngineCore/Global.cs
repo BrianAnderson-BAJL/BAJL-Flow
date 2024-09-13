@@ -48,6 +48,12 @@ namespace FlowEngineCore
     Xml,
   }
 
+  public enum DATABASE_TYPE
+  {
+    MariaDb,
+    SqlServer,
+  }
+
   public enum RECORD_RESULT
   {
     Success,
@@ -88,6 +94,8 @@ namespace FlowEngineCore
     EmailErrorMax = 8999,
     DataErrorMin = 9000,
     DataErrorMax = 9999,
+    GoogleErrorMin = 10000,
+    GoogleErrorMax = 10999
   }
 
   public class Global
@@ -104,9 +112,19 @@ namespace FlowEngineCore
       return orig.Replace('\\', '/');
     }
 
-    public static void WriteAllways(string val, LOG_TYPE debug = LOG_TYPE.INF)
+    public static void WriteAlways(string val, LOG_TYPE debug = LOG_TYPE.INF)
     {
-      Console.WriteLine(val);
+      if (debug == LOG_TYPE.INF)
+        Console.ForegroundColor = ConsoleColor.White;
+      else if (debug == LOG_TYPE.WAR)
+        Console.ForegroundColor = ConsoleColor.Yellow;
+      else
+        Console.ForegroundColor = ConsoleColor.Red;
+
+      Console.Write(val);
+
+      Console.ForegroundColor = ConsoleColor.White;  //Change the color back to white when done, otherwise the console will stay the color if it exits after an error.
+      Console.WriteLine("");
     }
 
     [Conditional("DEBUG")]

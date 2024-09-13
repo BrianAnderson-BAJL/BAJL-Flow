@@ -193,7 +193,7 @@ namespace FlowEngineCore
       if (Options.GetSettings.SettingGetAsString("ServerType") == Options.SERVER_TYPE.Development.ToString() && lastStep is not null)
       {
 
-        SendFlowDebugTraceStep(lastStep.resps, lastStep, new Variable("parms"), this.DebugFlowStartTime.End().Ticks);
+        SendFlowDebugTraceStep(lastStep.resps, lastStep, new Variable("parms"), this.DebugFlowStartTime.HowLong().Ticks);
       }
 
       //Error handling inside of flow. If the last step wasn't a 'Stop' step, the it must be an error
@@ -219,7 +219,7 @@ namespace FlowEngineCore
         return;
       }
 
-      long executionTicks = this.DebugFlowStartTime.End().Ticks;
+      long executionTicks = this.DebugFlowStartTime.HowLong().Ticks;
       bool success = true;
 
       Xml xml = new();
@@ -522,7 +522,7 @@ namespace FlowEngineCore
       if (varNames.Length == 0)
         return null;
 
-      if (var.Name == varNames[0]) //If the first name is the base name, then lets go to the next level
+      if (var.Name.ToLower() == varNames[0].ToLower()) //If the first name is the base name, then lets go to the next level
         x++;
 
       while (x < varNames.Length)

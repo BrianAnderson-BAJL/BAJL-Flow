@@ -96,17 +96,17 @@ namespace FlowEngineDesigner
 
       if (Mode == FORM_MODE.Add)
       {
-        FlowEngineCore.Administration.Messages.SecurityProfileAdd u = new FlowEngineCore.Administration.Messages.SecurityProfileAdd(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text, users, sp, flows, serverSettings, stats, template);
+        FlowEngineCore.Administration.Messages.SecurityProfileAdd u = new FlowEngineCore.Administration.Messages.SecurityProfileAdd(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text, users, sp, flows, serverSettings, stats, template);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.Edit)
       {
-        FlowEngineCore.Administration.Messages.SecurityProfileEdit u = new FlowEngineCore.Administration.Messages.SecurityProfileEdit(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, OldName, txtName.Text, users, sp, flows, serverSettings, stats, template);
+        FlowEngineCore.Administration.Messages.SecurityProfileEdit u = new FlowEngineCore.Administration.Messages.SecurityProfileEdit(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, OldName, txtName.Text, users, sp, flows, serverSettings, stats, template);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.Delete)
       {
-        FlowEngineCore.Administration.Messages.SecurityProfileDelete u = new FlowEngineCore.Administration.Messages.SecurityProfileDelete(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text);
+        FlowEngineCore.Administration.Messages.SecurityProfileDelete u = new FlowEngineCore.Administration.Messages.SecurityProfileDelete(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, txtName.Text);
         cServer.SendAndResponse(u.GetPacket(), Callback);
       }
       if (Mode == FORM_MODE.ReadOnly)

@@ -428,7 +428,7 @@ namespace FlowEngineDesigner
 
     private void tsbPlay_Click(object sender, EventArgs e)
     {
-      FlowDebug flowDebug = new FlowDebug(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, Flow.FileName, FlowRequest.START_TYPE.Now, Flow.XmlWriteMemory(), "", "");
+      FlowDebug flowDebug = new FlowDebug(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, Flow.FileName, FlowRequest.START_TYPE.Now, Flow.XmlWriteMemory(), "", "");
       cServer.SendAndResponse(flowDebug.GetPacket(), Callback_FlowDebug);
     }
 

@@ -105,8 +105,9 @@ namespace FlowEngineCore.Administration
               T.Start(C);
             }
           }
-          catch
+          catch (Exception ex)
           {
+            Global.WriteToConsoleDebug(Global.FullExceptionMessage(ex));
           }
           Thread.Sleep(1);
         }
@@ -114,7 +115,7 @@ namespace FlowEngineCore.Administration
       }
       catch (Exception ex)
       {
-        Global.WriteToConsoleDebug(ex.Message);
+        Global.WriteToConsoleDebug(Global.FullExceptionMessage(ex));
 
       }
     }

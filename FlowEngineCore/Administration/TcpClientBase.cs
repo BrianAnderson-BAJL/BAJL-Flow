@@ -118,7 +118,7 @@ namespace FlowEngineCore.Administration
       }
       catch (Exception ex)
       {
-        Global.WriteToConsoleDebug(ex.Message);
+        Global.WriteToConsoleDebug(Global.FullExceptionMessage(ex));
       }
       return Rc;
 
@@ -157,7 +157,7 @@ namespace FlowEngineCore.Administration
           }
           catch (SocketException ex)
           {
-            Global.WriteToConsoleDebug(ex.Message);
+            Global.WriteToConsoleDebug(Global.FullExceptionMessage(ex));
             break;
           }
           catch (EndOfStreamException)
@@ -172,7 +172,7 @@ namespace FlowEngineCore.Administration
           catch (Exception ex)
           {
             //Unknown Error
-            Global.WriteToConsoleDebug(ex.Message);
+            Global.WriteToConsoleDebug(Global.FullExceptionMessage(ex));
 
             break; //Exit from Loop
           }
@@ -181,9 +181,9 @@ namespace FlowEngineCore.Administration
         //Client.Stream.Close();
         Client.Close();
       }
-      catch
+      catch (Exception ex)
       {
-
+        Global.WriteToConsoleDebug(Global.FullExceptionMessage(ex));
       }
     }
   }

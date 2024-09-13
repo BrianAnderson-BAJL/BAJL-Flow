@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Net.Security;
 using System.Security.Authentication;
 
+
 namespace FlowEngineCore.Administration
 {
   public class TcpTlsServer
@@ -106,12 +107,13 @@ namespace FlowEngineCore.Administration
 
         while (mContinue == true)
         {
+          System.Net.Sockets.TcpClient? Client = null;
           try
           {
             if (Listener.Pending() == true)
             {
               FlowEngine.Log?.Write($"TcpTlsServer Waiting to accept connections");
-              System.Net.Sockets.TcpClient Client = Listener.AcceptTcpClient();
+              Client = Listener.AcceptTcpClient();
               FlowEngine.Log?.Write($"TcpTlsServer accepted connection");
               Client.NoDelay = true;
               Client.LingerState = new LingerOption(false, 0);
@@ -120,19 +122,22 @@ namespace FlowEngineCore.Administration
               C.ConnectionClosed += this.ConnectionClosed;
               Thread T = new(new ParameterizedThreadStart(C.ReadTlsPacketsThread!));
               T.Start(C);
+              
             }
           }
-          catch //(Exception ex)
+          catch (Exception ex)
           {
-
+            FlowEngine.Log?.Write($"TcpTlsServer.ListenThread Exception", ex, LOG_TYPE.ERR);
+            Client?.Close();
+            Client?.Dispose();
           }
-          Thread.Sleep(1);
+          Thread.Sleep(10);
         }
         Listener.Stop();
       }
       catch (Exception ex)
       {
-        FlowEngine.Log?.Write($"TcpTlsServer ERROR - [{ex.Message}]", LOG_TYPE.ERR);
+        FlowEngine.Log?.Write($"TcpTlsServer ERROR - [{Global.FullExceptionMessage(ex)}]", LOG_TYPE.ERR);
       }
     }
 

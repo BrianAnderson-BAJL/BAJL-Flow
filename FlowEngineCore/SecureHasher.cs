@@ -7,26 +7,24 @@ using System.Threading.Tasks;
 
 namespace FlowEngineCore
 {
-  public static class SecureHasherV1
+  public static class SecureHasher
   {
-    /// <summary>
-    /// Size of salt.
-    /// </summary>
-    //private const int SaltSize = 16;
+    public enum VERSION
+    {
+      _Unsupported,
+      V1,
+      V2
+    }
 
-    /// <summary>
-    /// Size of hash.
-    /// </summary>
-    //private const int HashSize = 20;
 
     private const string DELIMITTER = "~";
     private const string HASH_HEADER_V1 = "BAJL_HASH" + DELIMITTER + "V1" + DELIMITTER;
+    private const string HASH_HEADER_V2 = "BAJL_HASH" + DELIMITTER + "V2" + DELIMITTER;
 
     /// <summary>
     /// Creates a hash from a password.
     /// </summary>
     /// <param name="password">The password.</param>
-    /// <param name="iterations">Number of iterations.</param>
     /// <returns>The hash.</returns>
     public static string Hash(string password)
     {
@@ -37,7 +35,7 @@ namespace FlowEngineCore
       byte[] salt = RandomNumberGenerator.GetBytes(saltSize);
 
       // Create hash
-      var pbkdf2 = new Rfc2898DeriveBytes(password, salt, hashIterations);
+      var pbkdf2 = new Rfc2898DeriveBytes(password, salt, hashIterations, HashAlgorithmName.SHA512);
       var hash = pbkdf2.GetBytes(hashSize);
 
       // Combine salt and hash
@@ -49,7 +47,7 @@ namespace FlowEngineCore
       var base64Hash = Convert.ToBase64String(hashBytes);
 
       // Format hash with extra information
-      return $"{HASH_HEADER_V1}{base64Hash}";
+      return $"{HASH_HEADER_V2}{base64Hash}";
     }
 
 
@@ -58,15 +56,25 @@ namespace FlowEngineCore
     /// </summary>
     /// <param name="hashString">The hash.</param>
     /// <returns>Is supported?</returns>
-    public static bool IsHashSupported(string hashString)
+    public static VERSION GetHashVersion(string hashString)
     {
-      return hashString.StartsWith(HASH_HEADER_V1);
+      if (hashString.StartsWith(HASH_HEADER_V2) == true)
+        return VERSION.V2;
+      else if (hashString.StartsWith(HASH_HEADER_V1) == true)
+        return VERSION.V1;
+      else
+        return VERSION._Unsupported;
     }
 
     public static string SessionIdCreate()
     {
       byte[] randomBytes = RandomNumberGenerator.GetBytes(Options.GetSettings.SettingGetAsInt("SessionSize"));
       return Convert.ToBase64String(randomBytes);
+    }
+
+    public static byte[] RandomByte(int length)
+    {
+      return RandomNumberGenerator.GetBytes(length);
     }
 
     /// <summary>
@@ -81,8 +89,9 @@ namespace FlowEngineCore
       int hashSize = Options.GetSettings.SettingGetAsInt("HashSize");
       int hashIterations = Options.GetSettings.SettingGetAsInt("HashInterations");
 
+      VERSION hashVersion = GetHashVersion(hashedPassword);
       // Check hash
-      if (!IsHashSupported(hashedPassword))
+      if (hashVersion == VERSION._Unsupported)
       {
         throw new NotSupportedException("The hashtype is not supported");
       }
@@ -100,7 +109,12 @@ namespace FlowEngineCore
       Array.Copy(hashBytes, 0, salt, 0, saltSize);
 
       // Create hash with given salt
-      var pbkdf2 = new Rfc2898DeriveBytes(password, salt, hashIterations);
+      Rfc2898DeriveBytes pbkdf2;
+      if (hashVersion == VERSION.V1)
+        pbkdf2 = new Rfc2898DeriveBytes(password, salt, hashIterations);
+      else
+        pbkdf2 = new Rfc2898DeriveBytes(password, salt, hashIterations, HashAlgorithmName.SHA512);
+
       byte[] hash = pbkdf2.GetBytes(hashSize);
 
       // Get result

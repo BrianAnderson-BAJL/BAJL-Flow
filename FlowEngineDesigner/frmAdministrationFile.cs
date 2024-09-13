@@ -52,7 +52,7 @@ namespace FlowEngineDesigner
     private void GetTemplateFiles()
     {
       chkDeployLive.Visible = false;
-      TemplatesGet message = new TemplatesGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn!.SessionKey);
+      TemplatesGet message = new TemplatesGet(cServer.Info.PrivateKey, cServer.UserLoggedIn!.SessionKey);
       cServer.SendAndResponse(message.GetPacket(), Callback_Files);
     }
     private void GetFlowFiles()
@@ -70,7 +70,7 @@ namespace FlowEngineDesigner
       {
         txtFileName.Text = FlowWrapper.FileName;
       }
-      FlowsGet message = new FlowsGet(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn!.SessionKey);
+      FlowsGet message = new FlowsGet(cServer.Info.PrivateKey, cServer.UserLoggedIn!.SessionKey);
       cServer.SendAndResponse(message.GetPacket(), Callback_Files);
       if (FileMode == FILE_MODE.Open)
       {
@@ -88,6 +88,8 @@ namespace FlowEngineDesigner
 
     private void Callback_Files(FlowEngineCore.Administration.EventArgsPacket e)
     {
+      if (e.Packet.PeekResponseCode() != BaseResponse.RESPONSE_CODE.Success)
+        return;
       //TreeNode? previousSelectedNode = tvDirectories.SelectedNode;
       FlowsGetResponse data = new FlowsGetResponse(e.Packet);
 
@@ -106,8 +108,8 @@ namespace FlowEngineDesigner
         else
           tvDirectories.Nodes[0].Expand();
 
-        if (cOptions.AdministrationLastFilePath != "") //We want to select the same directory that was already selected if the treeview was refreshed
-          tvDirectories.SelectedNode = Global.TreeViewSelectNodeByText(tvDirectories.Nodes, cOptions.AdministrationLastFilePath);
+        if (cServer.Info.LastFilePath != "") //We want to select the same directory that was already selected if the treeview was refreshed
+          tvDirectories.SelectedNode = Global.TreeViewSelectNodeByText(tvDirectories.Nodes, cServer.Info.LastFilePath);
         else
           tvDirectories.SelectedNode = tvDirectories.Nodes[0];
 
@@ -164,7 +166,8 @@ namespace FlowEngineDesigner
         return;
 
       Flows = Flows.OrderBy(ffi => ffi.FileName).ToList(); //TODO: Properly sort the columns when clicking on them, this is just a Quick fix to order the names by the file name
-      cOptions.AdministrationLastFilePath = e.Node.Text;
+      cServer.Info.LastFilePath = e.Node.Text;
+      cServer.SaveProfiles();
       lvFiles.Items.Clear();
       for (int x = 0; x < Flows.Count; x++)
       {
@@ -247,12 +250,12 @@ namespace FlowEngineDesigner
       {
         if (FileMode == FILE_MODE.Save)
         {
-          FlowSave fs = new FlowSave(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName, chkDeployLive.Checked, FlowWrapper!.XmlWriteMemory()); //Stupid code parser doesn't understand that FlowWrapper can't be null here, so the !
+          FlowSave fs = new FlowSave(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName, chkDeployLive.Checked, FlowWrapper!.XmlWriteMemory()); //Stupid code parser doesn't understand that FlowWrapper can't be null here, so the !
           cServer.SendAndResponse(fs.GetPacket(), Callback_FileSave);
         }
         if (FileMode == FILE_MODE.Open)
         {
-          FlowOpen fo = new FlowOpen(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName);
+          FlowOpen fo = new FlowOpen(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, SaveAsFileName);
           cServer.SendAndResponse(fo.GetPacket(), Callback_FileOpen);
         }
       }

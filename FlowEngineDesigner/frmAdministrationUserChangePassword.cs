@@ -30,7 +30,7 @@ namespace FlowEngineDesigner
         MessageBox.Show("No user signed in!");
         return;
       }
-      FlowEngineCore.Administration.Messages.UserChangePassword changePassword = new FlowEngineCore.Administration.Messages.UserChangePassword(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, cServer.UserLoggedIn.LoginId, txtOldPassword.Text, txtNewPassword.Text);
+      FlowEngineCore.Administration.Messages.UserChangePassword changePassword = new FlowEngineCore.Administration.Messages.UserChangePassword(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, cServer.UserLoggedIn.LoginId, txtOldPassword.Text, txtNewPassword.Text);
       cServer.SendAndResponse(changePassword.GetPacket(), Callback_UserChangePassword);
     }
 

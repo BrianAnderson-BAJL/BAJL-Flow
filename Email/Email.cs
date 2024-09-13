@@ -3,24 +3,40 @@ using MailKit;
 using MailKit.Net.Imap;
 using MailKit.Search;
 using MimeKit;
+using System;
 using System.Drawing;
 using System.Net.Mail;
+using System.Security.Cryptography;
+using System.Threading;
 
 namespace Email
 {
   public class Email : FlowEngineCore.Plugin
   {
+    private enum RECONNECT
+    {
+      No,
+      HadErrorNeedToReconnect,
+    }
+
     private bool KeepRunning = true;
     private Thread? checkEmailThread;
-    private SmtpClient? mySmtpClient = null;
+    private object CriticalSection = new object();
+    private Stack<SmtpClient> SmtpClients = new Stack<SmtpClient>();
+    private int PoolSizeMax = 5;
+    private int PoolSize = 0;
 
     private const string SETTING_NAME_MAIL_SERVER_URL = "Mail Server Url";
     private const string SETTING_NAME_MAIL_SERVER_PORT = "Mail Server Port";
     private const string SETTING_NAME_MAIL_SERVER_USER_NAME = "Mail Server User name";
     private const string SETTING_NAME_MAIL_SERVER_PASSWORD = "Mail Server Password";
+    private const string SETTING_NAME_MAIL_SERVER_TIMEOUT = "Mail Server Timeout";
+    private const string SETTING_NAME_MAIL_POOL_MIN_SIZE= "Mail Server Pool min size";
+    private const string SETTING_NAME_MAIL_POOL_MAX_SIZE = "Mail Server Pool max size";
 
     private const int ERROR_EMAIL_BAD_TEMPLATE_PATH = (int)STEP_ERROR_NUMBERS.EmailErrorMin + 0;
     private const int ERROR_EMAIL_UNABLE_TO_SEND_EMAIL = (int)STEP_ERROR_NUMBERS.EmailErrorMin + 1;
+    private const int ERROR_EMAIL_UNABLE_TO_GET_SMTP_CLIENT = (int)STEP_ERROR_NUMBERS.EmailErrorMin + 2;
 
     public override void Init()
     {
@@ -76,6 +92,9 @@ namespace Email
       mSettings.SettingAdd(new Setting(SETTING_NAME_MAIL_SERVER_PORT, 587L));
       mSettings.SettingAdd(new Setting(SETTING_NAME_MAIL_SERVER_USER_NAME, ""));
       mSettings.SettingAdd(new Setting(SETTING_NAME_MAIL_SERVER_PASSWORD, ""));
+      mSettings.SettingAdd(new Setting(SETTING_NAME_MAIL_SERVER_TIMEOUT, 10000)); 
+      mSettings.SettingAdd(new Setting(SETTING_NAME_MAIL_POOL_MIN_SIZE, 1L));
+      mSettings.SettingAdd(new Setting(SETTING_NAME_MAIL_POOL_MAX_SIZE, 5L));
 
       mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
       mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Blue));
@@ -87,9 +106,94 @@ namespace Email
     {
       base.StartPlugin(GlobalPluginValues);
 
-      checkEmailThread = new Thread(CheckEmailThread);
-      checkEmailThread.Start();
+      int minPoolSize = mSettings.SettingGetAsInt(SETTING_NAME_MAIL_POOL_MIN_SIZE);
+      PoolSizeMax = mSettings.SettingGetAsInt(SETTING_NAME_MAIL_POOL_MAX_SIZE);
+      PoolCreateClient(minPoolSize);
 
+      //checkEmailThread = new Thread(CheckEmailThread);
+      //checkEmailThread.Start();
+
+    }
+
+    private void PoolCreateClient(int number)
+    {
+      string url = mSettings.SettingGetAsString(SETTING_NAME_MAIL_SERVER_URL);
+      int port = mSettings.SettingGetAsInt(SETTING_NAME_MAIL_SERVER_PORT);
+      string uid = mSettings.SettingGetAsString(SETTING_NAME_MAIL_SERVER_USER_NAME);
+      string pwd = mSettings.SettingGetAsString(SETTING_NAME_MAIL_SERVER_PASSWORD);
+      int timeout = mSettings.SettingGetAsInt(SETTING_NAME_MAIL_SERVER_TIMEOUT);
+
+      for (int x = 0; x < number; x++)
+      {
+        SmtpClient mySmtpClient = new SmtpClient(url, port);
+        mySmtpClient.Timeout = timeout;
+        mySmtpClient.EnableSsl = true;
+        mySmtpClient.UseDefaultCredentials = false;
+        mySmtpClient.Credentials = new System.Net.NetworkCredential(uid, pwd);
+        lock (CriticalSection)
+        {
+          SmtpClients.Push(mySmtpClient);
+          PoolSize++;
+        }
+        mLog?.Write($"Created new email SmtpClient, pool size is now [{PoolSize}], url [{url}], port [{port}], timeout [{timeout}], uid [{uid}], pwd [{new string('*', pwd.Length)}]", LOG_TYPE.INF);
+      }
+    }
+
+    private SmtpClient? PoolGetClient()
+    {
+      //If there is a SmtpClient available, just return it and go
+      lock (CriticalSection)
+      {
+        if (SmtpClients.Count > 0)
+        {
+          return SmtpClients.Pop();
+        }
+        if (PoolSize < PoolSizeMax)
+        {
+          PoolCreateClient(1);
+          return SmtpClients.Pop();
+        }
+      }
+
+      //If we got here, need to wait for an existing connection
+      int timeout = mSettings.SettingGetAsInt(SETTING_NAME_MAIL_SERVER_TIMEOUT);
+      timeout = timeout * 2; //It could take longer for a connection to be returned
+      TimeElapsed time = new TimeElapsed();
+      while (time.HowLong().TotalMilliseconds < timeout)
+      {
+        Thread.Sleep(10);
+        lock (CriticalSection)
+        {
+          if (SmtpClients.Count > 0)
+          {
+            return SmtpClients.Pop();
+          }
+        }
+      }
+
+      //Couldn't get a connection within the timeout period
+      return null;
+    }
+
+    private void PoolReturnClient(SmtpClient client, RECONNECT reconnect = RECONNECT.No)
+    {
+      if (reconnect == RECONNECT.HadErrorNeedToReconnect)
+      {
+        client.Dispose();
+        lock (CriticalSection)
+        {
+          PoolSize--;
+        }
+        mLog?.Write($"Email SmtpClient had an error, disposing and creating a new one, pool size is now [{PoolSize}]", LOG_TYPE.INF);
+        PoolCreateClient(1);
+        return;
+      }
+
+      //If we got here, no error, just add it back to the stack
+      lock (CriticalSection)
+      {
+        SmtpClients.Push(client);
+      }
     }
 
     public override void StopPlugin()
@@ -164,15 +268,18 @@ namespace Email
       string subject = vars[4].GetValueAsString();
       string body = vars[5].GetValueAsString();
       string contentId = vars[6].GetValueAsString();
+
+      SmtpClient? mySmtpClient = PoolGetClient();
+      if (mySmtpClient is null)
+      {
+        return RESP.SetError(ERROR_EMAIL_UNABLE_TO_GET_SMTP_CLIENT, "Timedout apptempting to get SmtpClient");
+      }
+      RECONNECT reconnect = RECONNECT.No;
       try
       {
-        string url = mSettings.SettingGetAsString(SETTING_NAME_MAIL_SERVER_URL);
-        int port = mSettings.SettingGetAsInt(SETTING_NAME_MAIL_SERVER_PORT);
-        string uid = mSettings.SettingGetAsString(SETTING_NAME_MAIL_SERVER_USER_NAME);
-        string pwd = mSettings.SettingGetAsString(SETTING_NAME_MAIL_SERVER_PASSWORD);
 
         if (fromEmailAddress is null || fromEmailAddress == "") //If no from email is set, lets just use the user id credentials
-          fromEmailAddress = uid;
+          fromEmailAddress = mSettings.SettingGetAsString(SETTING_NAME_MAIL_SERVER_USER_NAME);
 
         if (toEmailAddressName == "")
           toEmailAddressName = null;
@@ -181,14 +288,6 @@ namespace Email
 
 
 
-        if (mySmtpClient is null)
-        {
-          mySmtpClient = new SmtpClient(url, port);
-          mySmtpClient.Timeout = 5000;
-          mySmtpClient.EnableSsl = true;
-          mySmtpClient.UseDefaultCredentials = false;
-          mySmtpClient.Credentials = new System.Net.NetworkCredential(uid, pwd);
-        }
         // add from,to mailaddresses
         MailAddress to = new MailAddress(toEmailAddress, toEmailAddressName);
         MailAddress from = new MailAddress(fromEmailAddress, fromEmailAddressName);
@@ -207,30 +306,33 @@ namespace Email
         contentId = Path.GetFileName(contentId);
         myAtt.ContentId = contentId;
         myMail.Attachments.Add(myAtt);
-       
+
         // set body-message and encoding
         myMail.Body = body;
         myMail.BodyEncoding = System.Text.Encoding.UTF8;
         // text or html
         myMail.IsBodyHtml = true;
 
-        
 
         mySmtpClient.Send(myMail);
       }
 
       catch (SmtpException ex)
       {
+        //On an error, lets kill the connection and force it to be recreated
+        reconnect = RECONNECT.HadErrorNeedToReconnect;
         return RESP.SetError(ERROR_EMAIL_UNABLE_TO_SEND_EMAIL, ex.Message);
       }
       catch
       {
+        //On an error, lets kill the connection and force it to be recreated
+        reconnect = RECONNECT.HadErrorNeedToReconnect;
         throw;
       }
-
-
-
-
+      finally
+      {
+        PoolReturnClient(mySmtpClient, reconnect);
+      }
 
       return RESP.SetSuccess();
     }

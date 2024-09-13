@@ -67,6 +67,9 @@ namespace FlowEngineCore
     /// </summary>
     public Variable? SampleStartData;
 
+    public string VersionAssembly = "";
+    public string VersionFile = "";
+
     protected object mFlowsCriticalSection = new object();
 
 
@@ -79,7 +82,6 @@ namespace FlowEngineCore
         FlowRemove(flow.FileName); //If a flow with the same file name is loaded, remove it so we can add the new one.
 
         Flows.Add(flow);
-        FlowEngine.Log?.Write("Flow Added - " + flow.FileName);
       }
     }
 

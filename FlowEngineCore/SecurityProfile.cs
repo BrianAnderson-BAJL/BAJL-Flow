@@ -99,6 +99,7 @@ namespace FlowEngineCore
         case Packet.PACKET_TYPE.FlowDebugAlways:
           rc = AdministrationFlows >= SECURITY_ACCESS_LEVEL.Full; break;
         case Packet.PACKET_TYPE.ServerSettingsGet:
+        case Packet.PACKET_TYPE.ServerPluginsGet:
           rc = ServerSettings >= SECURITY_ACCESS_LEVEL.Readonly; break;
         case Packet.PACKET_TYPE.ServerSettingsEdit:
           rc = ServerSettings >= SECURITY_ACCESS_LEVEL.Edit; break;

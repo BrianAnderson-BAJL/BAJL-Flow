@@ -16,6 +16,7 @@
     <PackageIcon>BAJL_Logo_HD_Square.ico</PackageIcon>
     <RepositoryUrl>https://github.com/BrianAnderson-BAJL/BAJL-Flow</RepositoryUrl>
     <PackageProjectUrl>https://github.com/BrianAnderson-BAJL/BAJL-Flow</PackageProjectUrl>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

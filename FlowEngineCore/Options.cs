@@ -101,7 +101,7 @@ namespace FlowEngineCore
           Console.WriteLine("");
           Console.WriteLine("  ?          - get this information that you are reading right now, obviously you figured this out, congratulations!");
           Console.WriteLine("  settings   - path to the settings.xml file or the key word 'create' to create a default settings.xml file");
-          Console.WriteLine("  privatekey - only accepted value is 'create' which will create a new administrator private key");
+          Console.WriteLine("  privatekey - only accepted value is 'privatekey=create' which will create a new administrator private key");
           Console.WriteLine("");
           Console.WriteLine("");
           Console.WriteLine("");
@@ -137,7 +137,7 @@ namespace FlowEngineCore
           if (val.ToLower() == "create")
           {
             CreateAndLoadSettings();
-            string key = SecureHasherV1.SessionIdCreate();
+            string key = SecureHasher.SessionIdCreate();
             mSettings.SettingUpdate(new Setting("PrivateKey", "Administration", key));
             mSettings.SaveSettings(SettingsPath);
             Global.WriteToConsoleDebug($"ParseArgs...private key created [{key}] and saved to [{SettingsPath}]");

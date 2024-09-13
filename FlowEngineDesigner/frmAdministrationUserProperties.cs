@@ -104,7 +104,7 @@ namespace FlowEngineDesigner
       if (txtLoginId.Text.ToLower() != PreviousLoginId.ToLower() && txtLoginId.Text.ToLower() != User.LoginId.ToLower() && cServer.UserLoggedIn is not null)
       {
         PreviousLoginId = txtLoginId.Text;
-        FlowEngineCore.Administration.Messages.UserLoginIdCheck u = new FlowEngineCore.Administration.Messages.UserLoginIdCheck(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtLoginId.Text);
+        FlowEngineCore.Administration.Messages.UserLoginIdCheck u = new FlowEngineCore.Administration.Messages.UserLoginIdCheck(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, txtLoginId.Text);
         cServer.SendAndResponse(u.GetPacket(), Callback_UserLoginIdCheck);
       }
     }
@@ -119,17 +119,17 @@ namespace FlowEngineDesigner
 
       if (Mode == FORM_MODE.Add)
       {
-        FlowEngineCore.Administration.Messages.UserAdd u = new FlowEngineCore.Administration.Messages.UserAdd(cOptions.AdministrationPrivateKey, SessionKey, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
+        FlowEngineCore.Administration.Messages.UserAdd u = new FlowEngineCore.Administration.Messages.UserAdd(cServer.Info.PrivateKey, SessionKey, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
         cServer.SendAndResponse(u.GetPacket(), Callback_User);
       }
       if (Mode == FORM_MODE.Edit)
       {
-        FlowEngineCore.Administration.Messages.UserEdit u = new FlowEngineCore.Administration.Messages.UserEdit(cOptions.AdministrationPrivateKey, SessionKey, User.LoginId, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
+        FlowEngineCore.Administration.Messages.UserEdit u = new FlowEngineCore.Administration.Messages.UserEdit(cServer.Info.PrivateKey, SessionKey, User.LoginId, txtLoginId.Text, txtPassword.Text, txtNameFirst.Text, txtNameSur.Text, cmbSecurityProfile.Text);
         cServer.SendAndResponse(u.GetPacket(), Callback_User);
       }
       if (Mode == FORM_MODE.Delete)
       {
-        FlowEngineCore.Administration.Messages.UserDelete u = new FlowEngineCore.Administration.Messages.UserDelete(cOptions.AdministrationPrivateKey, SessionKey, User.LoginId);
+        FlowEngineCore.Administration.Messages.UserDelete u = new FlowEngineCore.Administration.Messages.UserDelete(cServer.Info.PrivateKey, SessionKey, User.LoginId);
         cServer.SendAndResponse(u.GetPacket(), Callback_User);
       }
       if (Mode == FORM_MODE.ReadOnly)

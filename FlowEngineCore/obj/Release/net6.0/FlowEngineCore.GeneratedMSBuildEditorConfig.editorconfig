@@ -1,5 +1,5 @@
 is_global = true
 build_property.RootNamespace = FlowEngineCore
-build_property.ProjectDir = C:\Users\brian\source\repos\FlowEngine\Interfaces\
+build_property.ProjectDir = C:\Users\brian\source\repos\FlowEngine\FlowEngineCore\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 

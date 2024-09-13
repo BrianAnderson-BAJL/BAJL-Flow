@@ -89,7 +89,7 @@ namespace FlowEngineDesigner
       Form? form = Global.FindOpenFormByTitleText($"Flow - [{txtFileName.Text}]");
       if (form is null)
       {
-        FlowOpen fo = new FlowOpen(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, txtFileName.Text);
+        FlowOpen fo = new FlowOpen(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, txtFileName.Text);
         cServer.SendAndResponse(fo.GetPacket(), Callback_FileOpen);
       }
       else

@@ -12,6 +12,11 @@ namespace Db
   {
     private Db.Database Db;
 
+    public DATABASE_TYPE DatabaseType
+    {
+      get { return DATABASE_TYPE.SqlServer; }
+    }
+
     public DbSqlServer(Db.Database db)
     {
       this.Db = db;

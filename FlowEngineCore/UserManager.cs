@@ -1,5 +1,4 @@
 ﻿using FlowEngineCore.Administration.Messages;
-using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -150,7 +149,7 @@ namespace FlowEngineCore
 
       User user = new User();
       user.LoginId = userMessage.LoginId;
-      user.passwordHash = SecureHasherV1.Hash(userMessage.Password);
+      user.passwordHash = SecureHasher.Hash(userMessage.Password);
       user.NameFirst = userMessage.NameFirst;
       user.NameSur = userMessage.NameSur;
       user.ModifiedDateTime = DateTime.UtcNow;
@@ -172,7 +171,7 @@ namespace FlowEngineCore
 
       User user = new User();
       user.LoginId = loginId;
-      user.passwordHash = SecureHasherV1.Hash(password);
+      user.passwordHash = SecureHasher.Hash(password);
       user.NameFirst = firstName;
       user.NameSur = surName;
       user.ModifiedDateTime = DateTime.UtcNow;

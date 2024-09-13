@@ -95,7 +95,6 @@
       Controls.Add(toolStrip1);
       Controls.Add(lvTracer);
       Name = "frmTracer";
-      ShowInTaskbar = false;
       Text = "Tracer";
       Load += frmTracer_Load;
       toolStrip1.ResumeLayout(false);

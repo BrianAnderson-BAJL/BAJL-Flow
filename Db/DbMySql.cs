@@ -18,6 +18,11 @@ namespace Db
       this.mDb = db;
       this.mLog = mLog;
     }
+
+    public DATABASE_TYPE DatabaseType
+    {
+      get {return DATABASE_TYPE.MariaDb; }
+    }
     public void Connect(string connectionString)
     {
       ConnectionString = connectionString;

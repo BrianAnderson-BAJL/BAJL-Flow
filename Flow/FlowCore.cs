@@ -306,7 +306,7 @@ namespace FlowCore
       if (step is null)
         return RESP.SetSuccess();
 
-      long elapsedTicks = flow.DebugStepTime.End().Ticks;
+      long elapsedTicks = flow.DebugStepTime.HowLong().Ticks;
       flow.DebugStepTime = new TimeElapsed();
 
       flow.SendFlowDebugTraceStep(resp, step, varParms, elapsedTicks);

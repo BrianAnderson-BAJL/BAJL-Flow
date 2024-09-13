@@ -78,8 +78,8 @@ namespace FlowEngineDesigner
       //f1.Show();
 
       //TEST AREA
-
-      if (cOptions.AdministrationAutoConnect == true)
+      cServer.LoadProfiles();
+      if (cServer.Info.AutoConnect == true)
       {
         frmServerConnect f = new frmServerConnect();
         f.Owner = this;
@@ -255,11 +255,11 @@ namespace FlowEngineDesigner
       {
         FlowDebugAlwaysResponse response = new FlowDebugAlwaysResponse(e.Packet);
         if (response.DebugAlways == DEBUG_ALWAYS.Yes)
-          cOptions.AdministrationDebugAlways = true;
+          cServer.Info.DebugAlways = true;
         else
-          cOptions.AdministrationDebugAlways = false;
+          cServer.Info.DebugAlways = false;
 
-        debugAlwaysToolStripMenuItem.Checked = cOptions.AdministrationDebugAlways;
+        debugAlwaysToolStripMenuItem.Checked = cServer.Info.DebugAlways;
       }
     }
 
@@ -267,10 +267,10 @@ namespace FlowEngineDesigner
     {
       FlowDebugAlways.DEBUG_ALWAYS debugAlways = FlowDebugAlways.DEBUG_ALWAYS.Yes;
 
-      if (cOptions.AdministrationDebugAlways == true) //If it is already Yes/true, we want to toggle it to false/No
+      if (cServer.Info.DebugAlways == true) //If it is already Yes/true, we want to toggle it to false/No
         debugAlways = FlowDebugAlways.DEBUG_ALWAYS.No;
 
-      FlowDebugAlways flowDebugAlways = new FlowDebugAlways(cOptions.AdministrationPrivateKey, cServer.UserLoggedIn.SessionKey, debugAlways);
+      FlowDebugAlways flowDebugAlways = new FlowDebugAlways(cServer.Info.PrivateKey, cServer.UserLoggedIn.SessionKey, debugAlways);
       cServer.SendAndResponse(flowDebugAlways.GetPacket(), Callback_FlowDebugAlways);
     }
 

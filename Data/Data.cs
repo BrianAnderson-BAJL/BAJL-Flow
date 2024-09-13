@@ -1,5 +1,6 @@
 ﻿using FlowEngineCore;
 using System.Drawing;
+using System.Text;
 using static FlowEngineCore.PARM;
 
 namespace Data
@@ -10,6 +11,8 @@ namespace Data
     private const int ERROR_SOURCE_IS_NULL = (int)STEP_ERROR_NUMBERS.DataErrorMin + 1;
     private const int ERROR_SPLIT_VALUE_IS_NULL = (int)STEP_ERROR_NUMBERS.DataErrorMin + 2;
     private const int ERROR_SEEK_VALUE_IS_NOT_FOUND = (int)STEP_ERROR_NUMBERS.DataErrorMin + 3;
+    private const int ERROR_FAILED_TO_ESCAPE_STRING = (int)STEP_ERROR_NUMBERS.DataErrorMin + 4;
+    private const int ERROR_FAILED_TO_UNESCAPE_STRING = (int)STEP_ERROR_NUMBERS.DataErrorMin + 5;
 
     public override void Init()
     {
@@ -82,6 +85,13 @@ namespace Data
       Functions.Add(function);
 
 
+      function = new Function("Concatenate", this, Concatenate,"", "Will concatenate the values into a string, all values will be converted into strings before combining.");
+      parm = function.Parms.Add("String to be concatenated", DATA_TYPE.Various, PARM.PARM_REQUIRED.Yes);
+      parm.AllowMultiple = PARM_ALLOW_MULTIPLE.Multiple;
+      function.DefaultSaveResponseVariable = true;
+      function.RespNames.Name = "concatenatedString";
+      function.OutputAddSuccess("Continue");
+      Functions.Add(function);
 
       function = new Function("Contains", this, VariableContains);
       function.Parms.Add("Source string to check", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes);
@@ -96,6 +106,29 @@ namespace Data
       parm.ValidatorAdd(PARM.PARM_VALIDATION.StringMinLength, 1);
       Functions.Add(function);
 
+      function = new Function("Uri Escape", this, UriEscape);
+      function.Parms.Add("String to be escaped", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes);
+      function.DefaultSaveResponseVariable = true;
+      function.RespNames.Name = "escapedString";
+      Functions.Add(function);
+
+      function = new Function("Uri Unescape", this, UriUnescape);
+      function.Parms.Add("String to be unscaped", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes);
+      function.DefaultSaveResponseVariable = true;
+      function.RespNames.Name = "unescapedString";
+      Functions.Add(function);
+
+      function = new Function("Base64 Encode", this, Base64Encode);
+      function.Parms.Add("String to be encoded", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes);
+      function.DefaultSaveResponseVariable = true;
+      function.RespNames.Name = "encodedString";
+      Functions.Add(function);
+
+      function = new Function("Base64 Decode", this, Base64Decode);
+      function.Parms.Add("String to be decoded", DATA_TYPE.String, PARM.PARM_REQUIRED.Yes);
+      function.DefaultSaveResponseVariable = true;
+      function.RespNames.Name = "decodedString";
+      Functions.Add(function);
 
       // SETTINGS
       mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
@@ -378,5 +411,80 @@ namespace Data
       return RESP.SetSuccess();
     }
 
+    private RESP UriEscape(Flow flow, Variable[] vars)
+    {
+      string val = vars[0].GetValueAsString();
+      string escapedString = "";
+      try
+      {
+        escapedString = Uri.EscapeDataString(val);
+      }
+      catch
+      {
+        return RESP.SetError(ERROR_FAILED_TO_ESCAPE_STRING, "Failed to escape string");
+      }
+      return RESP.SetSuccess(new Variable("escapedString", escapedString));
+    }
+
+    private RESP UriUnescape(Flow flow, Variable[] vars)
+    {
+      string val = vars[0].GetValueAsString();
+      string unescapedString = val;
+      try
+      {
+        unescapedString = Uri.UnescapeDataString(val);
+      }
+      catch
+      {
+        return RESP.SetError(ERROR_FAILED_TO_ESCAPE_STRING, "Failed to unescape string");
+      }
+      return RESP.SetSuccess(new Variable("unescapedString", unescapedString));
+    }
+
+    private RESP Base64Encode(Flow flow, Variable[] vars)
+    {
+      string val = vars[0].GetValueAsString();
+      byte[] byteData = Encoding.UTF8.GetBytes(val);
+      string encodedString = "";
+      try
+      {
+        encodedString = Convert.ToBase64String(byteData);
+      }
+      catch
+      {
+        return RESP.SetError(ERROR_FAILED_TO_ESCAPE_STRING, "Failed to base 64 encode string");
+      }
+      return RESP.SetSuccess(new Variable("encodedString", encodedString));
+    }
+
+    private RESP Base64Decode(Flow flow, Variable[] vars)
+    {
+      string val = vars[0].GetValueAsString();
+      string decodedString = "";
+      try
+      {
+        byte[] data = Convert.FromBase64String(val);
+        decodedString = Encoding.UTF8.GetString(data);
+      }
+      catch
+      {
+        return RESP.SetError(ERROR_FAILED_TO_ESCAPE_STRING, "Failed to base 64 decode string");
+      }
+      return RESP.SetSuccess(new Variable("decodedString", decodedString));
+    }
+
+    private RESP Concatenate(Flow flow, Variable[] vars)
+    {
+      StringBuilder sb = new StringBuilder(1024);
+      for (int x = 0; x < vars.Length; x++)
+      {
+        string val = vars[x].GetValueAsString();
+        sb.Append(val);
+      }
+      
+      return RESP.SetSuccess(new Variable("concatenatedString", sb.ToString()));
+    }
+
+    
   }
 }

@@ -114,6 +114,13 @@ namespace FlowEngineCore
       Value = value;
       DataType = DATA_TYPE.String;
     }
+    public Setting(string key, string groupName, bool value)
+    {
+      Key = key;
+      GroupName = groupName;
+      Value = value;
+      DataType = DATA_TYPE.Boolean;
+    }
     public Setting(string key, bool value)
     {
       Key = key;

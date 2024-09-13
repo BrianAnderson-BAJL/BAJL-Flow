@@ -1,6 +1,6 @@
 ﻿using FlowEngineCore;
 using FlowEngineCore.Interfaces;
-using Org.BouncyCastle.Asn1.Ocsp;
+using System;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Drawing;
@@ -45,9 +45,16 @@ namespace Http
 
     private Thread? ListenerThread;
     private HttpListener? Listener;
+    private List<KeyValuePair<string, string>> HeadersToAdd = new List<KeyValuePair<string, string>>(6);
 
     private const string SETTING_URL_PARAMS_LOWERCASE = "Set all URL parameter keys to lowercase";
     private const string SETTING_ERROR_NO_FLOW_MESSAGE = "Error Message For No Flow";
+    private const string SETTING_CORS_ACCESS_CONTROL_ALLOW_ORIGIN = "Access-Control-Allow-Origin";
+    private const string SETTING_CORS_ACCESS_CONTROL_ALLOW_METHODS = "Access-Control-Allow-Methods";
+    private const string SETTING_CORS_ACCESS_CONTROL_ALLOW_HEADERS = "Access-Control-Allow-Headers";
+    private const string SETTING_CORS_ACCESS_CONTROL_EXPOSE_HEADERS = "Access-Control-Expose-Headers";
+    private const string SETTING_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS = "Access-Control-Allow-Credentials";
+    private const string SETTING_CORS_ACCESS_CONTROL_MAX_AGE = "Access-Control-Max-Age";
     private const string PARM_URL = "Url Path";
     private const string PARM_METHOD = "Method";
     private const string PARM_HOST = "Host";
@@ -77,6 +84,20 @@ namespace Http
         mSettings.SettingAdd(s);
         mSettings.SettingAdd(new Setting(SETTING_ERROR_NO_FLOW_MESSAGE, "No flow capable of handling request."));
         mSettings.SettingAdd(new Setting(SETTING_URL_PARAMS_LOWERCASE, true));
+        
+        s = mSettings.SettingAdd(new Setting("", "CORS", SETTING_CORS_ACCESS_CONTROL_ALLOW_ORIGIN, ""));
+        s.Description = "Specifies which origins are allowed to access the resource. Can be a specific origin or a wildcard (*). If credentials (cookies, HTTP authentication) are involved, this cannot be a wildcard. Should be a full URL without the path (https://example.com)";
+        s = mSettings.SettingAdd(new Setting("", "CORS", SETTING_CORS_ACCESS_CONTROL_ALLOW_METHODS, ""));
+        s.Description = "Specifies the HTTP methods that are allowed when accessing the resource. This is important for requests other than simple GET, POST, or HEAD.";
+        s = mSettings.SettingAdd(new Setting("", "CORS", SETTING_CORS_ACCESS_CONTROL_ALLOW_HEADERS, ""));
+        s.Description = "Specifies the headers that can be used in the actual request. This is important for custom headers or headers other than the simple ones like Content-Type. (Content-Type, Authorization, X-Custom-Header)";
+        s = mSettings.SettingAdd(new Setting("", "CORS", SETTING_CORS_ACCESS_CONTROL_EXPOSE_HEADERS, ""));
+        s.Description = "Specifies which headers can be exposed to the client. By default, only certain \"simple\" headers are accessible; this header allows others to be exposed.";
+        s = mSettings.SettingAdd(new Setting("", "CORS", SETTING_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS, ""));
+        s.Description = "Indicates whether the request can include user credentials like cookies, HTTP authentication, or client-side certificates. If this is set to true, Access-Control-Allow-Origin cannot be *.";
+        s = mSettings.SettingAdd(new Setting("", "CORS", SETTING_CORS_ACCESS_CONTROL_MAX_AGE, ""));
+        s.Description = "Specifies how long the results of a preflight request (OPTIONS request) can be cached by the browser. This can reduce the number of preflight requests. Chrome MAX = 2 hours (7200 seconds), Firefox MAX = 24 hours (86400 seconds), Safari MAX = 10 minutes (600 seconds), Edge MAX = 2 hours (7200 seconds), Opera MAX = 2 hours (7200 seconds)";
+
         mSettings.SettingAdd(new Setting("", "Designer", "BackgroundColor", Color.Transparent));
         mSettings.SettingAdd(new Setting("", "Designer", "BorderColor", Color.Orange));
         mSettings.SettingAdd(new Setting("", "Designer", "FontColor", Color.Black));
@@ -120,8 +141,34 @@ namespace Http
         pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, PARM_DATA_FORMAT_JSON);
         pddl.OptionAdd(PARM_DATA_FORMAT_RAW);
         pddl.OptionAdd(PARM_DATA_FORMAT_JSON);
-        pddl.OptionAdd(PARM_DATA_FORMAT_XML);
+        //pddl.OptionAdd(PARM_DATA_FORMAT_XML);
         function.Parms.Add(pddl);
+        Functions.Add(function); //Send
+
+
+        function = new Function("Send with Headers", this, SendWithHeaders);
+        function.Parms.Add(PARM_CONNECTION_HANDLE, DATA_TYPE.Object);
+        pddl = function.Parms.Add("Http response code", STRING_SUB_TYPE.DropDownList);
+        pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, "200 - OK");
+
+        foreach (int val in Enum.GetValues(typeof(HttpStatusCode)))
+        {
+          String name = Enum.GetName(typeof(HttpStatusCode), val)!;
+          pddl.OptionAdd($"{val} - {name}");
+        }
+
+
+        tmpParm = function.Parms.Add(Flow.VAR_DATA, DATA_TYPE.String);
+        tmpParm.NameChangeable = true;
+        pddl = new PARM(PARM_DATA_FORMAT, STRING_SUB_TYPE.DropDownList, PARM.PARM_REQUIRED.Yes);
+        pddl.ValidatorAdd(PARM_VALIDATION.StringDefaultValue, PARM_DATA_FORMAT_JSON);
+        pddl.OptionAdd(PARM_DATA_FORMAT_RAW);
+        pddl.OptionAdd(PARM_DATA_FORMAT_JSON);
+        //pddl.OptionAdd(PARM_DATA_FORMAT_XML);
+        function.Parms.Add(pddl);
+        parm = new PARM("Header", DATA_TYPE.Various, PARM.PARM_REQUIRED.No, PARM.PARM_ALLOW_MULTIPLE.Multiple) { NameChangeable = true, NameChangeIncrement = true };
+        function.Parms.Add(parm);
+
         Functions.Add(function); //Send
 
 
@@ -178,6 +225,11 @@ namespace Http
         pddl.OptionAdd("POST");
         pddl.OptionAdd("PUT");
         pddl.OptionAdd("DELETE");
+        pddl.OptionAdd("OPTIONS");
+        pddl.OptionAdd("CONNECT");
+        pddl.OptionAdd("PATCH");
+        pddl.OptionAdd("HEAD");
+        pddl.OptionAdd("TRACE");
         FlowStartCommands.Add(pddl);
         FlowStartCommands.Add(PARM_HOST, DATA_TYPE.String);
       }
@@ -232,6 +284,26 @@ namespace Http
         mLog?.Write("Unable to start HTTP listening, no URIs to listen on", LOG_TYPE.WAR);
         return;
       }
+      
+      string temp = mSettings.SettingGetAsString(SETTING_CORS_ACCESS_CONTROL_ALLOW_ORIGIN);
+      if (temp is not null && temp != "")
+        HeadersToAdd.Add(new KeyValuePair<string, string>(SETTING_CORS_ACCESS_CONTROL_ALLOW_ORIGIN, temp));
+      temp = mSettings.SettingGetAsString(SETTING_CORS_ACCESS_CONTROL_ALLOW_METHODS);
+      if (temp is not null && temp != "")
+        HeadersToAdd.Add(new KeyValuePair<string, string>(SETTING_CORS_ACCESS_CONTROL_ALLOW_METHODS, temp));
+      temp = mSettings.SettingGetAsString(SETTING_CORS_ACCESS_CONTROL_ALLOW_HEADERS);
+      if (temp is not null && temp != "")
+        HeadersToAdd.Add(new KeyValuePair<string, string>(SETTING_CORS_ACCESS_CONTROL_ALLOW_HEADERS, temp));
+      temp = mSettings.SettingGetAsString(SETTING_CORS_ACCESS_CONTROL_EXPOSE_HEADERS);
+      if (temp is not null && temp != "")
+        HeadersToAdd.Add(new KeyValuePair<string, string>(SETTING_CORS_ACCESS_CONTROL_EXPOSE_HEADERS, temp));
+      temp = mSettings.SettingGetAsString(SETTING_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS);
+      if (temp is not null && temp != "")
+        HeadersToAdd.Add(new KeyValuePair<string, string>(SETTING_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS, temp));
+      temp = mSettings.SettingGetAsString(SETTING_CORS_ACCESS_CONTROL_MAX_AGE);
+      if (temp is not null && temp != "")
+        HeadersToAdd.Add(new KeyValuePair<string, string>(SETTING_CORS_ACCESS_CONTROL_MAX_AGE, temp));
+
       string noFlowErrorMessage = mSettings.SettingGetAsString(SETTING_ERROR_NO_FLOW_MESSAGE);
       bool queryStringLowercase = mSettings.SettingGetAsBoolean(SETTING_URL_PARAMS_LOWERCASE);
       int index = -1;
@@ -588,7 +660,7 @@ namespace Http
             pMethod.GetValue(out string flowMethod, flow);
             pHost.GetValue(out string flowHost, flow);
             Options.FixUrl(ref url, ref flowUrl); //May need to chop off parameters for checking
-            if (flowUrl == url && flowMethod == method && HostsMatch(flowHost, host) == true)
+            if ((flowUrl == url || flowUrl == "*") && flowMethod == method && HostsMatch(flowHost, host) == true)
             {
               result.Add(flow);
             }
@@ -671,17 +743,20 @@ namespace Http
 
     }
 
-
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="vars 0">"connection_handle"</param>
-    /// <param name="vars 1">"HTTP response code"</param>
-    /// <param name="vars 2">"data"</param>
-    /// <param name="vars 3">"data format"</param>
-    /// <param name="Resps">Output Index 0 = SUCCESS</param>
-    /// <param name="Resps">Output Index 1 = ERROR</param>
     public RESP Send(FlowEngineCore.Flow flow, Variable[] vars)
+    {
+      return SendWithHeaders(flow, vars);
+    }
+      /// <summary>
+      /// 
+      /// </summary>
+      /// <param name="vars 0">"connection_handle"</param>
+      /// <param name="vars 1">"HTTP response code"</param>
+      /// <param name="vars 2">"data"</param>
+      /// <param name="vars 3">"data format"</param>
+      /// <param name="Resps">Output Index 0 = SUCCESS</param>
+      /// <param name="Resps">Output Index 1 = ERROR</param>
+      public RESP SendWithHeaders(FlowEngineCore.Flow flow, Variable[] vars)
     {
       mLog?.Write("Http.Send", LOG_TYPE.DBG);
 
@@ -716,13 +791,38 @@ namespace Http
       else if (dataformat == PARM_DATA_FORMAT_RAW)
         rawData = data.Value;
 
+      //Add the CORS headers if they are set, also check to make sure the flow step isn't overriding the default headers in the variable parameters.
+      //The values from the parameters will alway take precidence over the default values set in the HTTP.xml settings file
+      for (int x = 0; x < HeadersToAdd.Count; x++)
+      {
+        if (VarContainsHeader(HeadersToAdd[x].Key, vars) == false)
+        {
+          response.Headers.Add(HeadersToAdd[x].Key, HeadersToAdd[x].Value);
+        }
+      }
+
+      //Add the headers from the parameters
+      for (int x = 4; x < vars.Length; x++)
+      {
+        response.Headers.Add(vars[x].Name, vars[x].GetValueAsString());
+      }
       response.StatusCode = responseCode;
       byte[] outputData = System.Text.Encoding.UTF8.GetBytes(rawData);
       response.ContentLength64 = outputData.Length;
       response.OutputStream.Write(outputData, 0, outputData.Length);
       response.Close();
-      mLog?.Write($"Http.Send - Sent [{outputData.Length}] bytes of data to client", LOG_TYPE.DBG);
+      mLog?.Write($"Http.Send - Sent [{outputData.Length}] bytes of [{dataformat}] data to client [{rawData}]", LOG_TYPE.DBG);
       return RESP.SetSuccess();
+    }
+
+    private bool VarContainsHeader(string header, Variable[] vars)
+    {
+      for (int x = 4; x < vars.Length; x++)
+      {
+        if (header == vars[x].GetValueAsString())
+          return true;
+      }
+      return false;
     }
 
     public RESP Disconnect(FlowEngineCore.Flow flow, Variable[] vars)

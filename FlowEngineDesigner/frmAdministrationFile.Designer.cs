@@ -78,6 +78,7 @@
       // 
       lvFiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
       lvFiles.Columns.AddRange(new ColumnHeader[] { chFileName, chModified, chStartPlugin, chStartCommands });
+      lvFiles.FullRowSelect = true;
       lvFiles.Location = new Point(3, 3);
       lvFiles.Name = "lvFiles";
       lvFiles.Size = new Size(706, 566);

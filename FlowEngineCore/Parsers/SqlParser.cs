@@ -206,14 +206,14 @@ namespace FlowEngineCore.Parsers
     private List<ParsedUnit> Units = new List<ParsedUnit>(128);
 
     //TODO: These keywords and functions are for MySql, later I will need to pull these values from the Database plugin using the IDatabase interface. That way I can get different keywords based on the database type (MySQl, SQL Server, Oracle, ...)
-    private static readonly string[] Keywords = { "SELECT", "UPDATE", "INSERT", "DELETE", "FROM", "WHERE", "HAVING", "VALUES", "IN", "BETWEEN", "INNER", "LEFT", "RIGHT", "OUTER", "JOIN", "ON", "INTO", "GROUP", "ORDER", "BY", "AS", "WITH", "AND", "OR", "NOT", "DESC", "ASC", "SET" };
+    private static readonly string[] Keywords = { "SELECT", "UPDATE", "INSERT", "DELETE", "FROM", "WHERE", "HAVING", "VALUES", "IN", "BETWEEN", "INNER", "LEFT", "RIGHT", "OUTER", "JOIN", "ON", "INTO", "GROUP", "ORDER", "BY", "AS", "WITH", "AND", "OR", "NOT", "DESC", "ASC", "SET", "IS", "NULL", "LIMIT", "OFFSET", "DISTINCT", "PARTITION", "OVER" };
     //TODO: Need to add a lot more functions to this list
-    private static readonly string[] Functions = { "COUNT", "MAX", "MIN", "AVG", "SUM", "MONTHNAME", "MONTH", "DAY", "YEAR", "CURRENT_TIMESTAMP", "LENGTH" };
+    private static readonly string[] Functions = { "COUNT", "MAX", "MIN", "AVG", "AVERAGE", "SUM", "MONTHNAME", "MONTH", "DAY", "YEAR", "CURRENT_TIMESTAMP", "LENGTH", "NOW", "IF", "RANK" };
     private static readonly string[] Delimiters = { ",", " ", "(", ")", "\r\n", "\n", "\t", "!=", "<=", ">=", "<", ">", "=", ";"};
     private static readonly string[] Comparer = { "=", "<=", ">=", "<", ">", "!=" };
 
     private static Color KeywordColor = Color.Blue;
-    private static Color FunctionColor = Color.DarkGreen;
+    private static Color FunctionColor = Color.DarkOrange;
     private static Color DelimiterColor = Color.DarkGray;
     private static Color ComparerColor = Color.DarkGray;
     private static Color DefaultColor = Color.Black;

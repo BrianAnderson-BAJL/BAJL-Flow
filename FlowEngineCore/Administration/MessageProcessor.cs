@@ -48,6 +48,7 @@ namespace FlowEngineCore.Administration
       Processors.Add(Packet.PACKET_TYPE.StatisticsRegister, ProcessStatisticsRegister);
       Processors.Add(Packet.PACKET_TYPE.StatisticsDeregister, ProcessStatisticsDeregister);
       Processors.Add(Packet.PACKET_TYPE.TemplatesGet, ProcessTemplatesGet);
+      Processors.Add(Packet.PACKET_TYPE.ServerPluginsGet, ProcessServerPluginsGet);
 
 
       if (GlobalPluginValues.ContainsKey("log") == true)
@@ -128,7 +129,7 @@ namespace FlowEngineCore.Administration
           SendGenericError(packet, client, BaseResponse.RESPONSE_CODE.UserLockedout);
           return false;
         }
-        if (SecureHasherV1.Verify(userLogin.Password, user.passwordHash) == false)
+        if (SecureHasher.Verify(userLogin.Password, user.passwordHash) == false)
         {
           user.LoginAttempts++;
           mLog?.Write($"SECURITY ERROR!  User Login, User password does not match Attempt number [{user.LoginAttempts}]");
@@ -140,7 +141,7 @@ namespace FlowEngineCore.Administration
           return false;
         }
         user.LoginAttempts = 0;
-        user.SessionKey = SecureHasherV1.SessionIdCreate(); //User has successfully logged in, lets generate a new session key
+        user.SessionKey = SecureHasher.SessionIdCreate(); //User has successfully logged in, lets generate a new session key
         user.SessionKeyExpiration = DateTime.UtcNow + TimeSpan.FromMinutes(CacheAdministrationUserSessionKeyTimeoutInMinutes);
         return true;
 
@@ -212,7 +213,7 @@ namespace FlowEngineCore.Administration
         user.LoginId = userEdit.LoginId;
         if (userEdit.Password != "")
         {
-          user.passwordHash = SecureHasherV1.Hash(userEdit.Password);
+          user.passwordHash = SecureHasher.Hash(userEdit.Password);
         }
         user.NameFirst = userEdit.NameFirst;
         user.NameSur = userEdit.NameSur;
@@ -300,7 +301,7 @@ namespace FlowEngineCore.Administration
         User? user = UserManager.FindByLoginId(data.LoginId);
         if (user is not null)
         {
-          user.passwordHash = SecureHasherV1.Hash(data.NewPassword);
+          user.passwordHash = SecureHasher.Hash(data.NewPassword);
           mLog?.Write($"ProcessUserChangePassword - response code [0], login id [{user.LoginId}]");
           BaseResponse response = new(packet.PacketId, BaseResponse.RESPONSE_CODE.Success, Packet.PACKET_TYPE.UserChangePasswordResponse);
           client.Send(response.GetPacket());
@@ -575,6 +576,12 @@ namespace FlowEngineCore.Administration
     }
     private static void ProcessCloseConnection(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
     {
+      StatisticsManager.UserDeregister(client);
+      User? user = UserManager.FindByTcpConnection(client);
+      if (user is null)
+        return;
+      DebuggerManager.RemoveByUser(user);
+
 #if QUIT_CONNECTION_CLOSED
       FlowEngine.Instance.Stop(); //Stop the flow engine running after a disconnect for development purposes.
 #endif
@@ -610,6 +617,12 @@ namespace FlowEngineCore.Administration
     {
       StatisticsManager.UserDeregister(client);
       BaseResponse response = new(packet.PacketId, RESPONSE_CODE.Success, Packet.PACKET_TYPE.StatisticsDeregisterResponse);
+      client.Send(response.GetPacket());
+    }
+
+    private static void ProcessServerPluginsGet(FlowEngineCore.Administration.Packet packet, FlowEngineCore.Administration.TcpClientBase client)
+    {
+      ServerPluginsGetResponse response = new(packet.PacketId);
       client.Send(response.GetPacket());
     }
   }

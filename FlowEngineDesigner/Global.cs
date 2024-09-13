@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -40,14 +41,34 @@ namespace FlowEngineDesigner
     public static cLayout Layout = new cLayout();
     public static frmMain? FormMain = null;
     //public static Size InputOutputConnectorSize = new Size(30,30);
+
     public static void LoadStaticImages()
     {
-      HighlightBlack = new Bitmap(cOptions.GetFullPath(cOptions.PluginStaticGraphicsPath) + "HighlightBlack_30.png");
-      HighlightYellow = new Bitmap(cOptions.GetFullPath(cOptions.PluginStaticGraphicsPath) + "HighlightYellow_30.png");
-      HighlightRed = new Bitmap(cOptions.GetFullPath(cOptions.PluginStaticGraphicsPath) + "HighlightRed_30.png");
-      HighlightGreen = new Bitmap(cOptions.GetFullPath(cOptions.PluginStaticGraphicsPath) + "HighlightGreen_30.png");
-      SelectorStep = new Bitmap(cOptions.GetFullPath(cOptions.PluginStaticGraphicsPath) + "Selector.png");
-      ExecutingCurrentStep = new Bitmap(cOptions.GetFullPath(cOptions.PluginStaticGraphicsPath) + "ExecutingCurrentStep.png");
+      HighlightBlack = new Bitmap(cOptions.GetFullPath(cOptions.StaticGraphicsPath) + "HighlightBlack_30.png");
+      HighlightYellow = new Bitmap(cOptions.GetFullPath(cOptions.StaticGraphicsPath) + "HighlightYellow_30.png");
+      HighlightRed = new Bitmap(cOptions.GetFullPath(cOptions.StaticGraphicsPath) + "HighlightRed_30.png");
+      HighlightGreen = new Bitmap(cOptions.GetFullPath(cOptions.StaticGraphicsPath) + "HighlightGreen_30.png");
+      SelectorStep = new Bitmap(cOptions.GetFullPath(cOptions.StaticGraphicsPath) + "Selector.png");
+      ExecutingCurrentStep = new Bitmap(cOptions.GetFullPath(cOptions.StaticGraphicsPath) + "ExecutingCurrentStep.png");
+    }
+
+    public static void CatchAssemblyResolve()
+    {
+      AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+    }
+    private static Assembly? CurrentDomain_AssemblyResolve(object? sender, ResolveEventArgs args)
+    {
+      string baseName = args.Name.Substring(0, args.Name.IndexOf(","));
+      if (baseName == "FlowEngineDesigner.resources")
+      {
+        return null;
+      }
+      else
+      {
+        string assemblyFileName = baseName + ".dll";
+        assemblyFileName = AppDomain.CurrentDomain.BaseDirectory + assemblyFileName;
+        return Assembly.LoadFile(assemblyFileName);
+      }
     }
 
     public static Form? FindOpenFormByTitleText(string titleText)

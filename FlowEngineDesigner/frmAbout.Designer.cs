@@ -35,9 +35,10 @@
       labelCopyright = new Label();
       labelCompanyName = new Label();
       textBoxDescription = new TextBox();
-      listView1 = new ListView();
+      lvPlugins = new ListView();
       chPlugin = new ColumnHeader();
-      chVersion = new ColumnHeader();
+      chVersionAssembly = new ColumnHeader();
+      chVersionFile = new ColumnHeader();
       okButton = new Button();
       statusStrip1 = new StatusStrip();
       tableLayoutPanel.SuspendLayout();
@@ -55,7 +56,7 @@
       tableLayoutPanel.Controls.Add(labelCopyright, 1, 2);
       tableLayoutPanel.Controls.Add(labelCompanyName, 1, 3);
       tableLayoutPanel.Controls.Add(textBoxDescription, 1, 4);
-      tableLayoutPanel.Controls.Add(listView1, 1, 5);
+      tableLayoutPanel.Controls.Add(lvPlugins, 1, 5);
       tableLayoutPanel.Controls.Add(okButton, 1, 6);
       tableLayoutPanel.Dock = DockStyle.Fill;
       tableLayoutPanel.Location = new Point(10, 10);
@@ -147,27 +148,33 @@
       textBoxDescription.TabStop = false;
       textBoxDescription.Text = "Description";
       // 
-      // listView1
+      // lvPlugins
       // 
-      listView1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-      listView1.Columns.AddRange(new ColumnHeader[] { chPlugin, chVersion });
-      listView1.GridLines = true;
-      listView1.Location = new Point(218, 246);
-      listView1.Name = "listView1";
-      listView1.Size = new Size(433, 324);
-      listView1.TabIndex = 25;
-      listView1.UseCompatibleStateImageBehavior = false;
-      listView1.View = View.Details;
+      lvPlugins.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+      lvPlugins.Columns.AddRange(new ColumnHeader[] { chPlugin, chVersionAssembly, chVersionFile });
+      lvPlugins.FullRowSelect = true;
+      lvPlugins.GridLines = true;
+      lvPlugins.Location = new Point(218, 246);
+      lvPlugins.Name = "lvPlugins";
+      lvPlugins.Size = new Size(433, 324);
+      lvPlugins.TabIndex = 25;
+      lvPlugins.UseCompatibleStateImageBehavior = false;
+      lvPlugins.View = View.Details;
       // 
       // chPlugin
       // 
       chPlugin.Text = "Plugin";
       chPlugin.Width = 120;
       // 
-      // chVersion
+      // chVersionAssembly
       // 
-      chVersion.Text = "Version";
-      chVersion.Width = 120;
+      chVersionAssembly.Text = "Version Assembly";
+      chVersionAssembly.Width = 120;
+      // 
+      // chVersionFile
+      // 
+      chVersionFile.Text = "Version File";
+      chVersionFile.Width = 120;
       // 
       // okButton
       // 
@@ -179,6 +186,7 @@
       okButton.Size = new Size(88, 27);
       okButton.TabIndex = 24;
       okButton.Text = "&OK";
+      okButton.Click += okButton_Click;
       // 
       // statusStrip1
       // 
@@ -224,9 +232,10 @@
     private System.Windows.Forms.Label labelCompanyName;
     private System.Windows.Forms.TextBox textBoxDescription;
     private System.Windows.Forms.Button okButton;
-    private ListView listView1;
+    private ListView lvPlugins;
     private ColumnHeader chPlugin;
-    private ColumnHeader chVersion;
+    private ColumnHeader chVersionAssembly;
     private StatusStrip statusStrip1;
+    private ColumnHeader chVersionFile;
   }
 }

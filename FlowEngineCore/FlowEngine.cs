@@ -8,6 +8,7 @@ using FlowEngineCore.Administration.Messages;
 using FlowEngineCore.Administration;
 using FlowEngineCore.Interfaces;
 using FlowEngineCore.Statistics;
+using System.Runtime.InteropServices;
 
 namespace FlowEngineCore
 {
@@ -28,11 +29,46 @@ namespace FlowEngineCore
     private static long ThreadName = 0;// Options.ThreadNameStartingNumber;
     internal static FlowEngine Instance = new();
     public static ILog? Log;
+    private List<PosixSignalRegistration> signalRegistrations = new(8); //Need to keep the PosixSignalRegistration objects in memory, so I just save them in a list
 
     public static string GetNextThreadName()
     {
       Interlocked.Increment(ref ThreadName);
       return ThreadName.ToString();
+    }
+
+    public FlowEngine()
+    {
+      signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGTERM, Sig_Int_Term_Handler));
+      signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGINT, Sig_Int_Term_Handler)); //Control + C on app, really only received when in development
+      
+      //signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGCONT, SigOtherHandler));
+      //signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGQUIT, SigOtherHandler));
+      //signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGCHLD, SigOtherHandler));
+      //signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGHUP, SigOtherHandler));
+      //signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGTSTP, SigOtherHandler));
+      //signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGWINCH, SigOtherHandler));
+      //signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGTTOU, SigOtherHandler));
+      //signalRegistrations.Add(PosixSignalRegistration.Create(PosixSignal.SIGTTIN, SigOtherHandler));
+    }
+
+    private void Sig_Int_Term_Handler(PosixSignalContext context)
+    {
+      if (mState != STATE.Running)
+        return;
+
+      Log?.FlushLogEntries();
+      Log?.WriteInstantly($"{context.Signal.ToString()} received, STATE = Stopping");
+      mState = STATE.Stopping;
+      context.Cancel = true;
+    }
+    private void SigOtherHandler(PosixSignalContext context)
+    {
+      if (mState != STATE.Running)
+        return;
+
+      Log?.FlushLogEntries();
+      Log?.WriteInstantly($"{context.Signal.ToString()} received");
     }
 
     public void Init(string[] args)
@@ -82,7 +118,7 @@ namespace FlowEngineCore
       }
       catch (Exception ex1)
       {
-        Log?.Write(ex1.Message, LOG_TYPE.ERR);
+        Log?.Write(Global.FullExceptionMessage(ex1), LOG_TYPE.ERR);
         Environment.Exit(0);
       }
     }
@@ -104,16 +140,16 @@ namespace FlowEngineCore
 
       do
       {
-        Thread.Sleep(1); //Main thread doesn't need to do anything, it just sleeps while the threadpool and plugins do all the work.
+        Thread.Sleep(100); //Main thread doesn't need to do anything, it just sleeps while the threadpool and plugins do all the work.
 #if DEBUG
-        if (Console.KeyAvailable == true)
-        {
-          ConsoleKeyInfo cki = Console.ReadKey();
-          if (cki.Key == ConsoleKey.Escape || cki.Key == ConsoleKey.Spacebar)
-          {
-            mState = STATE.Stopping;
-          }
-        }
+        //if (Console.KeyAvailable == true)
+        //{
+        //  ConsoleKeyInfo cki = Console.ReadKey();
+        //  if (cki.Key == ConsoleKey.Escape || cki.Key == ConsoleKey.Spacebar)
+        //  {
+        //    mState = STATE.Stopping;
+        //  }
+        //}
 #endif
       } while (mState == STATE.Running);
       Log?.Write("Flow Engine Stopping");
@@ -121,6 +157,7 @@ namespace FlowEngineCore
       PluginManager.StopPlugins();
       StatisticsManager.Stop();
       Log?.Write("Flow Engine exiting");
+      Log?.FlushLogEntries();
     }
 
     private void Administration_TcpServer_NewPacket(object? sender, Administration.EventArgsPacket e)

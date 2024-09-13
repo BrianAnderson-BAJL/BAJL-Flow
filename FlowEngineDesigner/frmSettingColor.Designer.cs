@@ -72,6 +72,7 @@
       txtDescription.Multiline = true;
       txtDescription.Name = "txtDescription";
       txtDescription.ReadOnly = true;
+      txtDescription.ScrollBars = ScrollBars.Vertical;
       txtDescription.Size = new Size(401, 63);
       txtDescription.TabIndex = 7;
       txtDescription.TabStop = false;

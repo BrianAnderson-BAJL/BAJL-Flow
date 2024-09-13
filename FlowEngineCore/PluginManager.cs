@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -32,19 +33,35 @@ namespace FlowEngineCore
       for (int x = 0; x < Files.Length; x++)
       {
         Assembly a = Assembly.LoadFile(Files[x]);
-        Type[] Types = a.GetTypes();
-        for (int y = 0; y < Types.Length; y++)
+        try
         {
-          if (Types[y] is not null && Types[y].BaseType is not null && Types[y].BaseType!.FullName == "FlowEngineCore.Plugin")
+          Type[] Types = a.GetTypes();
+          for (int y = 0; y < Types.Length; y++)
           {
-            FlowEngineCore.Plugin? p = Activator.CreateInstance(Types[y]) as FlowEngineCore.Plugin;
-            if (p is not null)
+            if (Types[y] is not null && Types[y].BaseType is not null && Types[y].BaseType!.FullName == "FlowEngineCore.Plugin")
             {
-              p.Init();
-              p.LoadSettings(Files[x], GlobalPluginValues);
-              mPlugins.Add(p);
+              FlowEngineCore.Plugin? p = Activator.CreateInstance(Types[y]) as FlowEngineCore.Plugin;
+              if (p is not null)
+              {
+                p.Init();
+                p.LoadSettings(Files[x], GlobalPluginValues);
+                mPlugins.Add(p);
+
+                //Get the plugin version numbers
+                Version? av = a.GetName().Version;
+                if (av is not null)
+                  p.VersionAssembly = av.ToString();
+
+                string? fv = FileVersionInfo.GetVersionInfo(a.Location).FileVersion;
+                if (fv is not null)
+                  p.VersionFile = fv;
+              }
             }
           }
+        }
+        catch (Exception ex)
+        {
+          
         }
       }
       PluginsLoaded = true;
